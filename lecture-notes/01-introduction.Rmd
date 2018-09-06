@@ -1,0 +1,33 @@
+---
+title: Introduction
+---
+
+Currently just an example of how notes from lecture might look.  Should be able to edit in class, knit, commit, push and have updated version on website.
+
+```{r}
+library(tidyverse)
+```
+
+
+## Plots
+
+Might include plots:
+
+```{r}
+ggplot(mtcars, aes(cyl, mpg)) +
+  geom_point()
+```
+
+## Lists
+
+And lists:
+
+* like this
+* and this
+
+## Math
+
+And math:
+$$
+\text{weight}_i = \beta_0 + \beta_1\text{height}_{i} + \epsilon_i, \quad \epsilon_i \sim N(0, \sigma^2)
+$$
