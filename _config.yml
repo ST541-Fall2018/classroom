@@ -1,1 +1,2 @@
 theme: jekyll-theme-slate
+exclude: [.Rproj.user, .Rhistory, .RData, .Ruserdata, classroom.Rproj]
