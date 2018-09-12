@@ -1,2 +1,4 @@
+title: "ST441/541"
+description: "Class website for ST441/541 Probability, Computing and Simulation in Statistics at Oregon State University Fall 2018"
 theme: jekyll-theme-slate
 exclude: [.Rproj.user, .Rhistory, .RData, .Ruserdata, classroom.Rproj]
