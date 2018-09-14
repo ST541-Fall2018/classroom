@@ -1,6 +1,4 @@
-# ST441/541 Fall 2018
-
-Probability, Computing and Simulation in Statistics 
+# Probability, Computing and Simulation in Statistics 
 
 **Instructor**: Charlotte Wickham [wickhamc@oregonstate.edu](mailto:wickhamc@oregonstate.edu)
 
