@@ -6,11 +6,12 @@ output:
       in_header: "header.tex"
   md_document: 
     preserve_yaml: true
-date: "Sep 11 2018"
+date: "Sep 13 2018"
 subtitle: "ST441/541 Fall 2018"
 ---
 
-# Syllabus
+Syllabus
+========
 
 **Course Name**: Probability, Computing and Simulation in Statistics  
 **Course Number**: ST441/541  
@@ -182,7 +183,9 @@ for this purpose. You will get set up during the first lab.
 
 Before then, get a github account if you don't have one. Head to
 <https://github.com> and sign up for a free account (don't pay for
-one!).
+one!). **But first,** read [this
+advice](http://happygitwithr.com/github-acct.html#username-advice) on
+choosing a username.
 
 Although not required for the class, you may also like to request a
 [Student Developer Pack](https://education.github.com/pack), which among
@@ -214,10 +217,10 @@ In addition you may find the following books useful supplements:
 Evaluation of Student Performance
 ---------------------------------
 
-Your final grade will be a weighted combination of homework (40%), a
+Your final grade will be a weighted combination of homework (50%), a
 project (40%) and class participation (10%).
 
-**Homework (40%)**: Weekly homework will be released on the class
+**Homework (50%)**: Weekly homework will be released on the class
 website on Fridays and due the following Thursday at midnight. You may
 discuss ideas with other students, but you must write up your homework
 without assistance and on your own. Late homework will not be accepted
