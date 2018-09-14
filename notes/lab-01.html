@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>Lab 1 - An introduction to git and github</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Lab 1 - An introduction to git and github</h1>
+<h4 class="date"><em>Sep 21st 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#learning-objectives">Learning Objectives</a></li>
+<li><a href="#getting-started">Getting started</a><ul>
+<li><a href="#get-the-required-accounts-if-you-havent-already">Get the required accounts (if you haven’t already)</a></li>
+<li><a href="#accepting-a-homework-assignment">Accepting a homework assignment</a></li>
+<li><a href="#get-your-homework-1-repository-into-rstudio.cloud">Get your homework 1 repository into rstudio.cloud</a></li>
+<li><a href="#preliminaries-in-rstudio.cloud">Preliminaries in rstudio.cloud</a></li>
+</ul></li>
+<li><a href="#workflow">Workflow</a><ul>
+<li><a href="#make-edits-in-readme.md">Make edits in README.md</a></li>
+</ul></li>
+<li><a href="#rmarkdown-markdown-and-github">Rmarkdown, markdown and github</a></li>
+<li><a href="#submitting-homework">Submitting homework</a></li>
+<li><a href="#getting-setup-on-your-own-computer.">Getting setup on your own computer.</a></li>
+</ul>
+</div>
+
+<div id="learning-objectives" class="section level1">
+<h1>Learning Objectives</h1>
+<p>I’ll be using github to give you your homeworks, you’ll be using it to submit homeworks. Today in lab, you’ll practice this workflow in preparation for your first homework.</p>
+<p>By the end of lab you should be able to:</p>
+<ul>
+<li>Find and access a homework assignment.</li>
+<li>Navigate a github repository to find its README, URL for cloning, and <em>Issues</em>.</li>
+<li>Clone a github repository into RStudio Cloud.</li>
+<li>Edit, commit, and push your work to github.</li>
+</ul>
+</div>
+<div id="getting-started" class="section level1">
+<h1>Getting started</h1>
+<div id="get-the-required-accounts-if-you-havent-already" class="section level2">
+<h2>Get the required accounts (if you haven’t already)</h2>
+<ol style="list-style-type: decimal">
+<li><p>Sign up for <a href="https://github.com/">github</a>. Remember <a href="http://happygitwithr.com/github-acct.html#username-advice">this advice</a> about picking a username. Remember your username and password, you’ll need them again soon.</p></li>
+<li><p>Sign up for <a href="https://rstudio.cloud/">rstudio.cloud</a>, then join the ST541 Fall 2018 workspace by following <a href="https://rstudio.cloud/spaces/4116/join?access_code=3usvxE4mqSKF4YggQNA4EANwH9DdP1VrwEsnIJUT">this link</a></p></li>
+</ol>
+</div>
+<div id="accepting-a-homework-assignment" class="section level2">
+<h2>Accepting a homework assignment</h2>
+<ol style="list-style-type: decimal">
+<li>In <a href="https://oregonstate.instructure.com/courses/1689180">canvas</a> find Homework 1 under Assignments.
+<ul>
+<li>Follow the link provided to github.</li>
+<li>Github will start to copy over the required files</li>
+<li>Once it’s finished follow the link to your new repository</li>
+</ul>
+<p><img src="assets/lab-01_hw1-get.gif" width="400" /></p></li>
+<li><strong>Take a look around</strong> This is a git repository, repo for short. A git repo is just a folder of files along with a history of those files. When you host a git repository on github you get some nice extras, some most relevant to us:
+<ul>
+<li>An easy way to navigate the files</li>
+<li>Previews of certain files types</li>
+<li>Issues - a way to start discussions on the repository</li>
+</ul></li>
+</ol>
+<p><strong>Your Turn</strong>:</p>
+<ul>
+<li>What is the name of your repository? How does it differ from your neighbors?</li>
+<li>How can you tell this repository is private?</li>
+<li>Scroll down, you should see the contents of the file <code>README.md</code>. What’s in this file?</li>
+</ul>
+</div>
+<div id="get-your-homework-1-repository-into-rstudio.cloud" class="section level2">
+<h2>Get your homework 1 repository into rstudio.cloud</h2>
+<p>To actually to do some work on your homework, you’ll “clone” this repository to rstudio.cloud as a project.</p>
+<ol style="list-style-type: decimal">
+<li><p>In github, click the “Clone or Download” button, then copy the URL given to the clipboard.</p></li>
+<li><p>Head to the <a href="https://rstudio.cloud/spaces/4116/">ST541 Fall 2018 workspace on RStudio Cloud</a>, click the small arrow next to “New Project” and select “New project from Git repo”.</p></li>
+<li><p>Paste in the Clone URL you copied earlier. You’ll be prompted for your github username and password. RStudio Cloud will then clone your repo into an RStudio Project.</p>
+<p><img src="assets/lab-01_hw1-clone.gif" width="400" /></p></li>
+<li><p>Take a look through the files in the Files pane. <strong>How do these compare to those on github?</strong></p></li>
+</ol>
+</div>
+<div id="preliminaries-in-rstudio.cloud" class="section level2">
+<h2>Preliminaries in rstudio.cloud</h2>
+<p>There are a few things we need to do to tell git who we are before working on this project. (You’ll need to do this with each new project in RStudio Cloud).</p>
+<p>In the Terminal in your RStudio Cloud project, copying the following, but substituting in your name and email address:</p>
+<pre><code>git config --global user.email &quot;your email here&quot;
+git config --global user.name &quot;your name here&quot;
+git config --global credential.helper &#39;cache --timeout 3600&#39;</code></pre>
+<p>The last line extends the time interval that our github username and password are valid for, so you should only be asked for it once more in lab. You can use the line:</p>
+<pre><code>git config --global --list</code></pre>
+<p>to check you’ve set them correctly.</p>
+<p><img src="assets/lab-01_hw1-creds.gif" width="400" /></p>
+</div>
+</div>
+<div id="workflow" class="section level1">
+<h1>Workflow</h1>
+<p>The link between your project in RStudio and the files on github isn’t dynamic. The files on github are only updated when you ask them to be. The workflow I encourage is:</p>
+<ul>
+<li>Do some work in RStudio Cloud</li>
+<li><em>Commit</em> your changes to git</li>
+<li><em>Push</em> your changes to github and repeat.</li>
+</ul>
+<p>Let’s work through those steps to complete the first task on Homework 1.</p>
+<div id="make-edits-in-readme.md" class="section level2">
+<h2>Make edits in README.md</h2>
+<ol style="list-style-type: decimal">
+<li><p>In your project in RStudio Cloud open up <code>README.md</code>. You might like to compare the contents of this file to that shown in your repo on github.com.</p>
+<p>README.md is a Markdown file, a plain text format that allows for simple formatting like section headings and lists. On Github Markdown files get rendered into a nice formatted preview.</p></li>
+<li><p><strong>Do some work</strong> Edit <code>README.md</code> in RStudio Cloud to add your name after <code>Name:</code> in the file. Save the file.</p>
+<p>Right now this edit just lives in your project on RStudio cloud, for me to be able to see you’ve completed this task, you’ll have to <em>commit</em> the change to git, then <em>push</em> the change to github.</p></li>
+<li><p><strong>Commit</strong> In the Git pane, you’ll see the file <code>README.md</code> because it has changed since from the most recent version committed. To commit this change, we need to stage the file (check the box next to its name), then commit.</p>
+<p>A new window will open. You can browse any changed file here and see what has changed (although only those that are staged will be commited). In the “Commit message” area, describe the change you’ve made then hit the Commit button.</p></li>
+<li><p><strong>Push</strong> This change still only lives here in RStudio, to send it to github, hit Push.</p></li>
+<li><p>Head back to Github and see your change is now recorded there.</p>
+<p><img src="assets/lab-01_hw1-workflow.gif" width="400" /></p></li>
+</ol>
+<p><strong>Your Turn</strong>: Practice this workflow again by editing <code>README.md</code> to check off the first task. Add an <code>x</code> between the <code>[ ]</code> next to the first task, commit, and push. Take a look on github to see the result.</p>
+</div>
+</div>
+<div id="rmarkdown-markdown-and-github" class="section level1">
+<h1>Rmarkdown, markdown and github</h1>
+<p>Markdown only adds formatting for plain text. It doesn’t recognize R code. For that we need Rmarkdown.</p>
+<ol style="list-style-type: decimal">
+<li><p>Open 03-vectors-in-R.Rmd, an Rmarkdown file. <em>If you haven’t seen RMarkdown before you should work though <a href="https://rmarkdown.rstudio.com/lesson-1.html">this set</a> of lessons</em>.</p></li>
+<li><p>Take a look at the YAML header, the bit between the <code>---</code>. Here, we are asking for an HTML output, but also to keep the intermediate Markdown (md) file.</p></li>
+<li><p>Knit the file and verify it produces both 03-vectors-in-R.md and 03-vectors-in-R.html.</p></li>
+<li><p>Commit and push both 03-vectors-in-R.md and 03-vectors-in-R.html</p></li>
+<li><p>Head to Github and compare the three documents. Which file looks best on github? Which file do you need to edit to complete the assignment?</p></li>
+</ol>
+</div>
+<div id="submitting-homework" class="section level1">
+<h1>Submitting homework</h1>
+<p>Completing the homework now just involves completing all the tasks as set out in README.md.</p>
+<p>When you are done and are ready to submit, first check you’ve pushed all your changes to github. Head to github and check the files there reflect what you want to be graded.</p>
+<p>When you are ready, head to canvas and submit your github repository URL in the Homework 1 assignment. This signals that you are ready for your work to be graded.</p>
+<p>We will grade all commits up to the due date.</p>
+<p>If you have time, you might want to read through the other tasks in Homework 1 and pick one to get started on.</p>
+</div>
+<div id="getting-setup-on-your-own-computer." class="section level1">
+<h1>Getting setup on your own computer.</h1>
+<p>You are welcome to complete all your work on your local computer without using RStudio Cloud, however you will need to get git installed and talking to RStudio. Follow chapters 4 through 13 in <a href="http://happygitwithr.com/">Happy Git and GitHub for the useR</a> to get there.</p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
