@@ -18,9 +18,8 @@
 
 ## Learning Materials
 
-| Date     | Topic                | Resources                             |
-| -------- | -------------------- | ------------------------------------- |
-| Sep 20   | Introduction         |                                       |    
+*  Sep 20  **Introduction**
+*  Sep 21  [**Lab 01**](notes/lab-01.html) 
 
 ## Credits
 
