@@ -29,7 +29,7 @@ By the end of lab you should be able to:
     * Github will start to copy over the required files
     * Once it's finished follow the link to your new repository
     
-    <img src="assets/lab-01_hw1-get.gif" width="400" />
+    <img src="assets/lab-01_hw1-get.gif" width="600" />
 
 2. **Take a look around** This is a git repository, repo for short.  A git repo is just a folder of files along with a history of those files. When you host a git repository on github you get some nice extras, some most relevant to us:
     * An easy way to navigate the files
@@ -52,7 +52,7 @@ To actually to do some work on your homework, you'll "clone" this repository to 
 
 3. Paste in the Clone URL you copied earlier.  You'll be prompted for your github username and password.  RStudio Cloud will then clone your repo into an RStudio Project.
     
-    <img src="assets/lab-01_hw1-clone.gif" width="400" />
+    <img src="assets/lab-01_hw1-clone.gif" width="600" />
 
 4. Take a look through the files in the Files pane.  **How do these compare to those on github?**
 
@@ -73,7 +73,7 @@ git config --global --list
 ```
 to check you've set them correctly.
 
-<img src="assets/lab-01_hw1-creds.gif" width="400" />
+<img src="assets/lab-01_hw1-creds.gif" width="600" />
 
 # Workflow
 
@@ -103,7 +103,7 @@ Let's work through those steps to complete the first task on Homework 1.
 
 6. Head back to Github and see your change is now recorded there.
     
-    <img src="assets/lab-01_hw1-workflow.gif" width="400" />
+    <img src="assets/lab-01_hw1-workflow.gif" width="600" />
 
 **Your Turn**:  Practice this workflow again by editing `README.md` to check off the first task.  Add an `x` between the `[ ]` next to the first task, commit, and push.  Take a look on github to see the result.
 
