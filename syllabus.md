@@ -6,7 +6,7 @@ output:
       in_header: "header.tex"
   md_document: 
     preserve_yaml: true
-date: "Sep 13 2018"
+date: "Sep 18 2018"
 subtitle: "ST441/541 Fall 2018"
 ---
 
