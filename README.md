@@ -16,8 +16,13 @@
 
 ## Learning Materials
 
-*  Sep 20  **Introduction**
+### Week 0  
+*  Sep 20  **Introduction** [Pre-lecture reading](readings.html#week-0)
 *  Sep 21  [**Lab 01**](notes/lab-01.html) 
+
+### Week 1  
+* Sep 25 **Random Numbers** [Pre-lecture reading](readings.html#week-1)
+
 
 ## Credits
 
