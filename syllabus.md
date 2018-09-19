@@ -6,7 +6,7 @@ output:
       in_header: "header.tex"
   md_document: 
     preserve_yaml: true
-date: "Sep 18 2018"
+date: "Sep 19 2018"
 subtitle: "ST441/541 Fall 2018"
 ---
 
@@ -209,7 +209,12 @@ In addition you may find the following books useful supplements:
     Burns, Patrick. Lulu.com, 2012.
 -   *A first course in statistical programming with R.* Braun, W. John,
     and Duncan J. Murdoch. Cambridge University Press, 2016.
--   [*Handbook of monte carlo
+-   [*Simulation*](https://ebookcentral.proquest.com/lib/osu/detail.action?docID=1044919)
+    Ross, Sheldon M. Elsevier Science & Technology, 2012.
+-   [*Simulation and the Monte Carlo
+    Method*](https://search.library.oregonstate.edu/primo-explore/fulldisplay?docid=CP51254858070001451&context=L&vid=OSU&search_scope=everything&tab=default_tab&lang=en_US)
+    Rubinstein, Reuven Y., and Kroese, Dirk P. 3rd ed., Wiley, 2016.
+-   [*Handbook of Monte Carlo
     methods.*](https://search.library.oregonstate.edu/primo-explore/fulldisplay?docid=CP51230786880001451&context=L&vid=OSU&search_scope=everything&tab=default_tab&lang=en_US)
     Kroese, Dirk P., Thomas Taimre, and Zdravko I. Botev. Vol. 706. John
     Wiley & Sons, 2013
