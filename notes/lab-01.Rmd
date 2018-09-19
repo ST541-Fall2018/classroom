@@ -119,7 +119,7 @@ Markdown only adds formatting for plain text.  It doesn't recognize R code.  For
 
 4. Commit and push both 03-vectors-in-R.md and 03-vectors-in-R.html
 
-5. Head to Github and compare the three documents.  Which file looks best on github? Which file do you need to edit to complete the assignment?
+5. Head to Github and compare the three documents.  **Which file looks best on github? Which file do you need to edit to complete the assignment?**
 
 # Submitting homework
 
