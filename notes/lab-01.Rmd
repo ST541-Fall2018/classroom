@@ -137,6 +137,11 @@ If you have time, you might want to read through the other tasks in Homework 1 a
 
 You are welcome to complete all your work on your local computer without using RStudio Cloud, however you will need to get git installed and talking to RStudio.  Follow chapters 4 through 13 in [Happy Git and GitHub for the useR](http://happygitwithr.com/) to get there. 
 
+# But, why?
 
+Why are we using git/github? It's a fantastic way to organize the myriad of files we generate in any data analysis project and facilitates sharing and collaboration.
+
+If you want to know more, I'd read Sections 1-4 of:  
+Bryan J. (2017) Excuse me, do you have a moment to talk about version control? PeerJ Preprints 5:e3159v2 https://doi.org/10.7287/peerj.preprints.3159v2
 
 
