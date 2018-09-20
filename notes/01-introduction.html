@@ -9,6 +9,7 @@
 <meta name="generator" content="pandoc" />
 
 
+<meta name="author" content="Charlotte Wickham" />
 
 
 <title>Introduction</title>
@@ -19,9 +20,6 @@
 <script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
-<script src="libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
-<link href="libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
-<script src="libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="libs/navigation-1.1/tabsets.js"></script>
 <link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="libs/highlightjs-9.12.0/highlight.js"></script>
@@ -119,101 +117,6 @@ $(document).ready(function () {
 
 
 
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
-
-<style type="text/css">
-
-#TOC {
-  margin: 25px 0px 20px 0px;
-}
-@media (max-width: 768px) {
-#TOC {
-  position: relative;
-  width: 100%;
-}
-}
-
-
-.toc-content {
-  padding-left: 30px;
-  padding-right: 40px;
-}
-
-div.main-container {
-  max-width: 1200px;
-}
-
-div.tocify {
-  width: 20%;
-  max-width: 260px;
-  max-height: 85%;
-}
-
-@media (min-width: 768px) and (max-width: 991px) {
-  div.tocify {
-    width: 25%;
-  }
-}
-
-@media (max-width: 767px) {
-  div.tocify {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-.tocify ul, .tocify li {
-  line-height: 20px;
-}
-
-.tocify-subheader .tocify-item {
-  font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
-}
-
-.tocify .list-group-item {
-  border-radius: 0px;
-}
-
-
-</style>
-
-<!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row-fluid">
-<div class="col-xs-12 col-sm-4 col-md-3">
-<div id="TOC" class="tocify">
-</div>
-</div>
-
-<div class="toc-content col-xs-12 col-sm-8 col-md-9">
-
-
 
 
 <div class="fluid-row" id="header">
@@ -221,46 +124,270 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Introduction</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Sep 20th 2018</em></h4>
 
 </div>
 
-
-<p>Currently just an example of how notes from lecture might look. Should be able to edit in class, knit, commit, push and have updated version on website.</p>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ──────────────────────────────── tidyverse 1.2.1 ──</code></pre>
-<pre><code>## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
-## ✔ tibble  1.4.2     ✔ dplyr   0.7.5
-## ✔ tidyr   0.8.1     ✔ stringr 1.3.1
-## ✔ readr   1.1.1     ✔ forcats 0.3.0</code></pre>
-<pre><code>## ── Conflicts ─────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()</code></pre>
-<div id="plots" class="section level2">
-<h2>Plots</h2>
-<p>Might include plots:</p>
-<pre class="r"><code>ggplot(mtcars, aes(cyl, mpg)) +
-  geom_point()</code></pre>
-<p><img src="01-introduction_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
-</div>
-<div id="lists" class="section level2">
-<h2>Lists</h2>
-<p>And lists:</p>
+<div id="TOC">
 <ul>
-<li>like this</li>
-<li>and this</li>
+<li><a href="#st441541-welcome">ST441/541 Welcome!</a></li>
+<li><a href="#introductions">Introductions</a></li>
+<li><a href="#general-overview">General Overview</a></li>
+<li><a href="#highlights-from-the-syllabus">Highlights from the syllabus</a></li>
+<li><a href="#r-knowledge-survey">R Knowledge Survey</a></li>
+<li><a href="#russia-election-fraud">Russia election fraud</a><ul>
+<li><a href="#getting-started">Getting started</a></li>
+<li><a href="#get-the-project">Get the project</a></li>
+<li><a href="#find-the-number-of-integer-turnouts">Find the number of integer turnouts</a></li>
+<li><a href="#why-is-this-hard">Why is this hard?</a></li>
+<li><a href="#monte-carlo-approach">Monte Carlo Approach</a></li>
+<li><a href="#simulate-a-turnout">Simulate a turnout</a></li>
+<li><a href="#the-authors-approach">The authors approach</a></li>
+<li><a href="#simulate-turnouts-for-all-polling-stations">Simulate turnouts for all polling stations</a></li>
+<li><a href="#a-larger-simulation">A larger simulation</a></li>
+<li><a href="#what-would-an-alternative-approach-be">What would an alternative approach be?</a></li>
+<li><a href="#main-themes-of-course">Main themes of course:</a></li>
+</ul></li>
+<li><a href="#whats-next">What’s next…?</a><ul>
+<li><a href="#lab">Lab</a></li>
+<li><a href="#next-week">Next week</a></li>
+</ul></li>
 </ul>
 </div>
-<div id="math" class="section level2">
-<h2>Math</h2>
-<p>And math: <span class="math display">\[
-\text{weight}_i = \beta_0 + \beta_1\text{height}_{i} + \epsilon_i, \quad \epsilon_i \sim N(0, \sigma^2)
+
+<div id="st441541-welcome" class="section level2">
+<h2>ST441/541 Welcome!</h2>
+<p>Did you get the announcement from canvas?</p>
+<blockquote>
+<p>I’ve attached a short article (2 pages) about election fraud in Russia’s recent election. Before Thursday, please read it and be prepared to answer the following questions:</p>
+<ul>
+<li><p>What feature of Figure 1 do the authors argue is evidence for election fraud?</p></li>
+<li><p>For a particular year, say 2018, how do the authors measure the statistical significance of the feature in Figure 1? What statistic do they calculate? What do they compare that statistic to?</p></li>
+</ul>
+</blockquote>
+<p>Article is circulating if you want to read/review it now.</p>
+<p>If you bought your laptop (great!), head to <a href="https://rstudio.cloud/" class="uri">https://rstudio.cloud/</a> and sign up for an account.</p>
+<hr />
+</div>
+<div id="introductions" class="section level2">
+<h2>Introductions</h2>
+<p>My name is Charlotte! <a href="mailto:wickhamc@oregonstate.edu">wickhamc@oregonstate.edu</a></p>
+<p><a href="http://stat541.cwick.co.nz">stat541.cwick.co.nz</a></p>
+<p>I’m excited about teaching this class because:</p>
+<ul>
+<li>I love R (and we aren’t using Matlab!)</li>
+<li>We get to focus on computation rather that it being a side topic</li>
+<li>I get to learn more about your interests through your projects</li>
+</ul>
+<hr />
+</div>
+<div id="general-overview" class="section level2">
+<h2>General Overview</h2>
+<p>My goal (from the syllabus):</p>
+<blockquote>
+<p>Prepare you to plan, organize, implement and communicate a computationally intensive statistical investigation.</p>
+</blockquote>
+<p>Learning objectives:</p>
+<ul>
+<li>Investigate properties of random variables through simulation.</li>
+<li>Break down a computational task into modular components and implement them in R.</li>
+<li>Balance the concerns of speed and clarity to write R code that is both efficient and understandable.</li>
+<li>Organize a computational project in a way that facilitates reproduction and collaboration.</li>
+</ul>
+<hr />
+</div>
+<div id="highlights-from-the-syllabus" class="section level2">
+<h2>Highlights from the syllabus</h2>
+<p>Final grade = 50% Homework + 40% Project + 10% Participation</p>
+<p><strong>Homework:</strong> weekly due Thursday 11:59pm (midnight) starting now.</p>
+<p><strong>Project:</strong> more details over the coming weeks. You choose the topic. There will be deadlines throughout the quarter culminating in a written report and presentation (presentation is optional for 441 students).</p>
+<p>Read the syllabus and ask questions Tuesday!</p>
+<hr />
+</div>
+<div id="r-knowledge-survey" class="section level2">
+<h2>R Knowledge Survey</h2>
+<p>Help make sure I’m delivering at the right level.</p>
+<p><strong>Anonymous</strong></p>
+<hr />
+</div>
+<div id="russia-election-fraud" class="section level1">
+<h1>Russia election fraud</h1>
+<p>An example of:</p>
+<ul>
+<li>analysis using a computational rather than analytical tool</li>
+<li>a self-contained reproducible project</li>
+<li>an introduction to some common themes in the course</li>
+<li>the way we’ll commonly work in lecture</li>
+</ul>
+<hr />
+<div id="getting-started" class="section level2">
+<h2>Getting started</h2>
+<ol style="list-style-type: decimal">
+<li>Get into groups of 3-4.<br />
+</li>
+<li>You need one (and only one) laptop, organise yourselves so the laptop can be seen be everyone, and designate a driver.<br />
+</li>
+<li><p>Start by reviewing your answers to the questions:</p>
+<ul>
+<li><p>What feature of Figure 1 do the authors argue is evidence for election fraud?</p></li>
+<li><p>For a particular year, say 2018, how do the authors measure the statistical significance of the feature in Figure 1? What statistic do they calculate? What do they compare that statistic to?</p></li>
+</ul></li>
+</ol>
+<hr />
+<p><strong>Class Discussion</strong> Review answers and narrow focus to voter turnout in 2018.</p>
+<hr />
+</div>
+<div id="get-the-project" class="section level2">
+<h2>Get the project</h2>
+<ol style="list-style-type: decimal">
+<li>Access the class workspace on RStudio cloud: <a href="http://bit.ly/541-f18" class="uri">http://bit.ly/541-f18</a>.</li>
+<li>Open <code>russia-elections</code> project and save a copy.</li>
+<li><strong>Knit</strong> <code>01-data-import.Rmd</code>.</li>
+</ol>
+<ul>
+<li>What is reported by the polling stations?</li>
+<li>How is the turnout calculated from the available data?</li>
+<li>Compare the figures, does this data seem to match the paper?</li>
+</ul>
+<hr />
+<ul>
+<li><p>What is reported by the polling stations?</p></li>
+<li><p>How is the turnout calculated from the available data?</p></li>
+<li><p>Compare the figures, does this data seem to match the paper?</p></li>
+</ul>
+<hr />
+</div>
+<div id="find-the-number-of-integer-turnouts" class="section level2">
+<h2>Find the number of integer turnouts</h2>
+<p>Open <code>02-explore-analysis.Rmd</code></p>
+<p><strong>Task 1:</strong> How many polling stations reported an integer turnout in 2018?</p>
+<p>Try with a small example first. Imagine <code>x</code> contains these 4 turnouts:</p>
+<pre><code>(x &lt;- c(85, 85.2, 100*(((0.8 - 0.2) * 2000))/2000, 100*1562/1838))
+## [1] 85.00000 85.20000 60.00000 84.98368</code></pre>
+<p>What should the result be? How can you calculate it with code?</p>
+<hr />
+</div>
+<div id="why-is-this-hard" class="section level2">
+<h2>Why is this hard?</h2>
+<!-- * Floating point representation of numbers (computers) -->
+<!-- * Rounding errors (fraudsters) -->
+<hr />
+</div>
+<div id="monte-carlo-approach" class="section level2">
+<h2>Monte Carlo Approach</h2>
+<p>Find the null distribution of the test statistic by:</p>
+<ul>
+<li>simulating many datasets under the null hypothesis, and</li>
+<li>calculating the test statistic on each.</li>
+</ul>
+<p>If observed test statistic is far from those simulated, we have evidence against the null hypothesis.</p>
+<hr />
+</div>
+<div id="simulate-a-turnout" class="section level2">
+<h2>Simulate a turnout</h2>
+<p><strong>Task 2</strong>: How would you simulate the turnout percentage for a polling station in the absence of fraud?</p>
+<p>What distribution would you use? What would you use for its parameter values?</p>
+<p>Simulate a turnout for the first polling station:</p>
+<pre><code># A tibble: 1 x 14
+  turnout_percent leader_percent region       tik      uik voters leader
+            &lt;dbl&gt;          &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;  &lt;int&gt;  &lt;int&gt;  &lt;int&gt;
+1            96.1           91.1 Республика … 1 Ады…     1   2256   1977
+# ... with 7 more variables: ballots_inside &lt;int&gt;,
+#   ballots_outside &lt;int&gt;, ballots_early &lt;int&gt;, invalid &lt;int&gt;,
+#   valid &lt;int&gt;, given &lt;int&gt;, received &lt;int&gt;</code></pre>
+<hr />
+</div>
+<div id="the-authors-approach" class="section level2">
+<h2>The authors approach</h2>
+<p>Let:</p>
+<ul>
+<li><span class="math inline">\(V_i\)</span> be the <strong>number</strong> or people on the voter list</li>
+<li><span class="math inline">\(G_i\)</span> be the <strong>number</strong> of ballots given</li>
+</ul>
+<p>To simulate the turnout percentage, <span class="math inline">\(T^\text{MC}_i\)</span>, first simulate the number of ballots given (i.e. the number of people who voted): <span class="math display">\[
+G_i^{\text{MC}} \sim \text{Binomial}(n = V_i, p = G_i/V_i)
 \]</span></p>
+<p>Then convert to a turnout percentage <span class="math display">\[
+T^\text{MC}_i = G_i^\text{MC}/V_i \cdot 100\%
+\]</span></p>
+<p>In words: simulate the number of voters as Binomial based on the number of people on the voter list and the observed turnout proportion.</p>
+<hr />
+<p>Turnout % for first station:</p>
+<pre class="r"><code>100*(rbinom(n = 1, size = 2256, prob = 2169/2256)/2256)</code></pre>
+<pre><code>## [1] 96.67553</code></pre>
+<p>Turnout % for all stations</p>
+<pre class="r"><code>with(ok_stations, 
+  100*(rbinom(n = region, size = voters, prob = given/voters)/voters)
+)</code></pre>
+<hr />
+</div>
+<div id="simulate-turnouts-for-all-polling-stations" class="section level2">
+<h2>Simulate turnouts for all polling stations</h2>
+<p>Find a <strong>count of integer stations</strong> based the simulated turnout at all stations.</p>
+<hr />
+</div>
+<div id="a-larger-simulation" class="section level2">
+<h2>A larger simulation</h2>
+<p>In <code>03_simulation.Rmd</code> if you are curious.</p>
+<div class="figure">
+<img src="01-introduction_files/simulated-integer-turnouts.png" />
+
+</div>
+<hr />
+</div>
+<div id="what-would-an-alternative-approach-be" class="section level2">
+<h2>What would an alternative approach be?</h2>
+<p>Find sampling distribution of test statistic analytically</p>
+<p>Very large sum of random variables (integer or not indicator).</p>
+<p>Some version of Central Limit Theorem (but not the usual one, why?).</p>
+<p>Need to work out expectations and variances for random variables.</p>
+</div>
+<div id="main-themes-of-course" class="section level2">
+<h2>Main themes of course:</h2>
+<ul>
+<li><strong>Computational alternatives to analytical techniques</strong>: specific algorithms commonly encountered in statistics.</li>
+<li><strong>Programming for statistical computation</strong>: code that is correct, clear, and if necessary, fast.</li>
+<li><strong>Best practices for computational projects</strong>: organization and workflows for projects so they are easy to reproduce, share and collaborate on.</li>
+</ul>
+<hr />
+</div>
+</div>
+<div id="whats-next" class="section level1">
+<h1>What’s next…?</h1>
+<hr />
+<div id="lab" class="section level2">
+<h2>Lab</h2>
+<p>First lab tomorrow 3pm-3:50pm in Bexell Hall 324</p>
+<p><strong>Important to attend</strong>: You will learn workflow for getting and completing homeworks on github.</p>
+<p><strong>Before you get there</strong>:</p>
+<ul>
+<li>Get a <a href="https://github.com">github</a> account</li>
+<li>Get an <a href="https://rstudio.cloud">RStudio cloud</a> account</li>
+</ul>
+<p>Both are free. More details as first step in <a href="lab-01.html">Lab 01</a>.</p>
+<hr />
+</div>
+<div id="next-week" class="section level2">
+<h2>Next week</h2>
+<p>Pre-lecture reading (links on class website):</p>
+<ul>
+<li><em>Section 3.1 Pseudorandom Number Generation</em> in Simulation (1 page)</li>
+<li><em>Section 4.1 The Inverse Transform Method</em> in Simulation up to and including Example 4a (~ 2 pages)</li>
+<li><em>Section 5.1 The Inverse Transform Algorithm</em> in Simulation up to and including Example 5b (~ 2 pages)</li>
+</ul>
+<p>Be prepared to answer:</p>
+<ul>
+<li>Why are random numbers generated by a computer called <strong>pseudo</strong>-random numbers?</li>
+<li>How would you use a Uniform(0, 1) random variable to simulate a Bernoulli( <span class="math inline">\(\pi\)</span> ) random variable?</li>
+<li>How would you use a Uniform(0, 1) random variable to simulate a Exponential( <span class="math inline">\(\lambda\)</span> ) random variable?</li>
+</ul>
+<hr />
+</div>
 </div>
 
 
 
-</div>
-</div>
 
 </div>
 
