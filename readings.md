@@ -26,7 +26,7 @@ Be prepared to answer the following questions in class:
 Pre-lecture reading:  
 
 * [*Section 3.1 Pseudorandom Number Generation* in Simulation](https://oregonstate.instructure.com/courses/1689180/files/folder/Readings?preview=72232060) (1 page)
-* [*Section 4.1 The Inverse Transform Method* in Simulation](https://oregonstate.instructure.com/courses/1689180/files/folder/Readings?preview=72232059) up to and inlcuding Example 4a (~ 2 pages)
+* [*Section 4.1 The Inverse Transform Method* in Simulation](https://oregonstate.instructure.com/courses/1689180/files/folder/Readings?preview=72232059) up to and including Example 4a (~ 2 pages)
 * [*Section 5.1 The Inverse Transform Algorithm* in Simulation](https://oregonstate.instructure.com/courses/1689180/files/folder/Readings?preview=72232058) up to and including Example 5b (~ 2 pages)
 
 Be prepared to answer:
