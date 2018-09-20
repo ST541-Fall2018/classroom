@@ -230,6 +230,8 @@ Some version of Central Limit Theorem (but not the usual one, why?).
 
 Need to work out expectations and variances for random variables.
 
+---
+
 ## Main themes of course:
 
 -   **Computational alternatives to analytical techniques**: specific algorithms commonly encountered in statistics.
