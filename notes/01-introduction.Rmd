@@ -100,7 +100,7 @@ An example of:
 
 ## Get the project
 
-1. Access the class workspace on RStudio cloud: http://bit.ly/541-f18. 
+1. Access the class workspace on RStudio cloud: http://bit.ly/st541-f18. 
 2. Open `russia-elections` project and save a copy.
 3. **Knit** `01-data-import.Rmd`. 
 

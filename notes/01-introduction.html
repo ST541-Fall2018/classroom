@@ -241,7 +241,7 @@ $(document).ready(function () {
 <div id="get-the-project" class="section level2">
 <h2>Get the project</h2>
 <ol style="list-style-type: decimal">
-<li>Access the class workspace on RStudio cloud: <a href="http://bit.ly/541-f18" class="uri">http://bit.ly/541-f18</a>.</li>
+<li>Access the class workspace on RStudio cloud: <a href="http://bit.ly/st541-f18" class="uri">http://bit.ly/st541-f18</a>.</li>
 <li>Open <code>russia-elections</code> project and save a copy.</li>
 <li><strong>Knit</strong> <code>01-data-import.Rmd</code>.</li>
 </ol>
@@ -315,7 +315,7 @@ T^\text{MC}_i = G_i^\text{MC}/V_i \cdot 100\%
 <hr />
 <p>Turnout % for first station:</p>
 <pre class="r"><code>100*(rbinom(n = 1, size = 2256, prob = 2169/2256)/2256)</code></pre>
-<pre><code>## [1] 96.67553</code></pre>
+<pre><code>## [1] 96.76418</code></pre>
 <p>Turnout % for all stations</p>
 <pre class="r"><code>with(ok_stations, 
   100*(rbinom(n = region, size = voters, prob = given/voters)/voters)
