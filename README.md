@@ -12,7 +12,7 @@
 * [Syllabus](syllabus.html) [(PDF)](syllabus.pdf): Full details on the structure of the class 
 * [canvas](https://oregonstate.instructure.com/courses/1689180): Submit homeworks and see grades
 * [Class workspace on RStudio Cloud](https://rstudio.cloud/spaces/4116/projects): Work in RStudio online 
-* [Discussion repo](https://github.com/ST541-Fall2018/Discussion): Open issues here to ask questions
+* [Discussion repo](https://github.com/ST541-Fall2018/Discussion/issues): Open issues here to ask questions
 
 ## Learning Materials
 
