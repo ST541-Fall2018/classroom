@@ -1,0 +1,408 @@
+---
+title: Random Numbers
+author: Charlotte Wickham
+date: Sep 25th 2018
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, results = "hide", fig.keep="none")
+```
+
+# Preliminaries
+
+## Syllabus
+
+What questions do you have?
+
+---
+
+## Prior R survey
+
+Experience with R:
+
+---------------------------------------
+ comfortable   copy/edit    never used 
+------------- ------------ ------------
+      9            10           1      
+---------------------------------------
+
+---
+
+## Experience with tools/functions/packages
+
+-------------------------------------------------------------
+   tool        never used it   not comfortable   comfortable 
+-----------   --------------- ----------------- -------------
+ rmarkdown           4                5              11      
+
+    `for`            5                5              10      
+
+   `apply()`         6                7               7      
+
+    git             11                7               2      
+-------------------------------------------------------------
+
+---
+
+## Predict the output
+
+```{r}
+x <- c(1, 2, 3, 4)
+y <- c(0, 1)
+z <- c("a", "b", "c", "d")
+```
+
+---------------------------------------------------------
+Code            Percent Correct Correct Answer     
+------------- ----------------- -------------------------
+   `z[2]`           100                  `"b"`          
+
+ `x <- y; x`         90                   `0 1`          
+
+   `x < 4`           90          `TRUE TRUE FALSE FALSE` 
+
+  `z[x<2]`           65                   `"a"`          
+
+   `x + y`           30                 `1 3 3 5`        
+
+   `z[-2]`           30               `"a" "c" "d"`    
+---------------------------------------------------------
+
+---
+
+## Getting help
+
+* Office hours:
+  
+    * Tue 11-11:50am 255 Weniger (Charlotte)
+    * Thu 11-11:50am 255 Weniger (Charlotte)
+
+* Open an Issue in the Discussion Repo.
+
+---
+
+# Simulation
+
+Simulation is a way to explore the properties of a random variable, e.g.:
+
+* Particularly hard to analyse processes 
+* Properties of an estimator/test in scenarios it wasn't designed for
+* A method for conducting a hypothesis test
+
+But, we have to be able to simulate a random variable!
+
+This week: methods for simulating random variables.
+
+Next week: what can you do with those simulations...
+
+---
+
+## General idea
+
+If we could simulate a Uniform(0, 1) there are methods we can use to get other distributions. 
+
+Today: 
+
+1. How to simulate from a Uniform(0, 1).
+
+2. One way to use a Uniform(0, 1) to simulate from another distribution: inverse transform method
+
+3. What makes code "good"?
+
+---
+
+## Aside: Workflow
+
+Sometimes (like last Thursday), I'll provide an entire project for our work in lecture.   You will log in to rstudio.cloud, find it and copy it.
+
+Sometimes, I'll just work from the lecture notes. I reccomend you get the RMarkdown document, open it and work inside.
+
+I'll always re-Knit (with results included), and re-post the lecture  after class.
+
+---
+
+# Psuedo-random numbers 
+
+In R `runif()` produces random draws from a Uniform(0, 1) distribution, and relies on a **pseudo-random number generator**.
+
+```{r}
+runif(n = 10)
+```
+The first argument `n` controls how many numbers are drawn.
+
+---
+
+## Your Turn
+
+You read about one pseudo-random number generator, the *Multiplicative congruential method*.  
+
+(`runif()` uses a more complicated generator, but the principle is the same.)
+
+* Why is the method known as **pseudo**-random?
+* Will you get the same sequence I did?  Why, or why not? 
+
+Try it:
+```{r}
+runif(n = 10)
+```
+
+--- 
+
+## Seeds
+
+The **seed** is the first number used to start the generating sequence ($x_0$ in the reading).
+
+Two ways to get a seed:
+
+1.  Create an unpredictable one when needed:
+
+    > Initially, there is no seed; a new one is created from the current time and the process ID when one is required. Hence different sessions will give different simulation results, by default. 
+    
+    -- from `?Random`
+    
+2.  Set a specific one to ensure the same sequence.  Good for: debugging, comparing to someone else, removing sampling variability.  In R: `set.seed(seed)`, where `seed` is some integer.
+
+---
+
+## Your Turn
+
+Will the code in these two chunks give the same 20 random numbers?  **Guess, then try it.**
+
+```{r}
+set.seed(1871)
+x <- runif(10)
+y <- runif(10)
+c(x, y)
+```
+
+```{r}
+set.seed(1871)
+runif(20)
+```
+
+*(How could we check with code?)*
+
+---
+
+## Take-aways
+
+* Most programming languages use a deterministic process to get numbers that appear random.
+
+* These sequences depend on an initial state, known as a **seed**.  If you start from the same seed (with the same generator) you will get exactly the same sequence of random numbers.
+
+* R keeps track of the state of the sequence for you.  You can set the seed with `set.seed()` if you want the sequence to be reproducible.
+
+Unanswered questions:
+
+* What generator does R actually use?  See `?Random`.  How does it work?
+* How are pseudo-random number generators evaluated?  I.e. what makes a good pseudo-random number generator? 
+
+---
+
+# Inverse Transform Method
+
+A method for generating a sample from a stated distribution, by using a sample from a Uniform(0, 1).
+
+Relies on inverting the cumulative density function.  
+
+So, you need to have a form for the CDF and be able to invert it.
+
+---
+
+## Intuition
+
+To generate a sample, $X$, with cumulative distribution function (cdf) $F(x)$:
+
+1. Sample $U$ from a Uniform(0, 1)
+2. Calculate $X = F^{-1}(u)$
+
+
+*Add sketch here*
+
+We are generating a quantile at random, and using the inverse CDF to translate the quantile back to the support of the CDF.
+
+---
+
+## Continuous case - Exponential
+
+**Goal:** Draw a sample from Exponential($\lambda$).
+
+If $X \sim Exp(\lambda)$, 
+$$
+F(x) = 1- e^{-\lambda x}
+$$
+
+Invert the CDF, let $x = F^{-1}(u)$
+$$
+u = 1 - e^{-\lambda x} \\
+(1 - u) = e^{-\lambda x} \\
+\log(1-u) = -\lambda x \\
+x = -\frac{1}{\lambda} \log(1-u)
+$$
+
+---
+
+## Continuous case - Exponential
+
+To simulate $X \sim Exp(\lambda)$:
+
+1. Generate $U$ from Uniform(0, 1)
+2. Set $X = -\frac{1}{\lambda} \log(1-U)$
+
+```{r}
+u <- runif(1)
+lambda <- 5
+(x <- -1 / lambda * log(1 - u))
+```
+
+How can we check this is working?
+
+---
+
+## Your turn
+
+Edit to generate 1000 samples from Exponential($\lambda$):
+
+```{r}
+u <- runif(1)
+lambda <- 5
+(x <- -1 / lambda * log(1 - u))
+```
+
+```{r}
+library(ggplot2)
+ggplot(mapping = aes(x = x)) +
+  geom_histogram(aes(y = stat(density)), 
+    binwidth = 0.02, center = 0.01) +
+  stat_function(fun = dexp, args = list(rate = lambda)) +
+  xlim(0, 2)
+```
+
+---
+
+## Discrete case - Bernoulli
+
+$$
+\begin{aligned}
+P(X = 1) &= \pi \\
+P(X = 0) &= 1 - \pi 
+\end{aligned}
+$$
+
+Application of the inverse CDF method, to simulate $X$:
+
+1. Generate $U$ from Uniform(0, 1)
+2. If $U < \pi$, set $X = 1$, else set $X = 0$.
+
+(See Ross 4.1 for more details)
+
+**Game plan:** three different implementations, compare and contrast.
+
+---
+
+## Implementation #1 
+
+A *literal* translation: 
+
+```{r}
+u <- runif(1)
+pi <- 0.4
+
+if(u < pi){
+  x <- 1
+} else {
+  x <- 0
+}
+x
+```
+
+Can you edit to sample 1000 numbers from Bernoulli(0.4)?
+
+(*No, the condition inside `if()` is interpreted as a length 1 logical*)
+
+---
+
+## Implemention #2 - Your turn 
+
+Use subsetting instead: 
+
+1. Set `x` to be 0
+2. Where `u` is less than `pi`, set `x` to 1.
+
+```{r}
+u <- runif(1)
+pi <- 0.4
+```
+
+Can you edit to sample 1000 numbers from Bernoulli(0.4)?
+
+---
+
+## Implementation #2.5
+
+`?ifelse`
+
+> `ifelse` returns a value with the same shape as `test` which is filled with elements selected from either `yes` or `no` depending on whether the element of `test` is `TRUE` or `FALSE`.
+
+```{r}
+u <- runif(1000)
+pi <- 0.4
+
+x <- ifelse(u < pi, 1, 0)
+```
+
+---
+
+## Implementation #3
+
+Use built in function:
+
+```{r}
+pi <- 0.4
+x <- rbinom(n = 1000, size = 1, prob = pi)
+```    
+
+---
+
+## Your Turn
+
+We have a few implementations:
+
+```
+# 1
+if(u < pi){
+  x <- 1
+} else {
+  x <- 0
+}
+x
+```
+
+```
+# 2
+x <- 0
+x[u < pi] <- 1
+```
+
+```
+# 2.5
+x <- ifelse(u < pi, 1, 0)
+```
+
+```
+# 3
+x <- rbinom(n = 1000, size = 1, prob = pi)
+```
+
+```
+# 4 an addition
+x <- 1
+x[u < pi] <- 0
+```
+
+How do we judge which code is best?  What are the advantages/disadvantages of each implementation?
+
+**What makes code good?**
+
+## What makes code good
+
