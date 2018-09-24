@@ -21,7 +21,7 @@
 *  Sep 21  [**Lab 01**](notes/lab-01.html) 
 
 ### Week 1  
-* Sep 25 **Random Numbers** [Pre-lecture reading](readings.html#week-1)
+* Sep 25 [**Random Numbers**](notes/02-random-numbers.html) ([Rmd](notes/02-random-numbers.Rmd)) [Pre-lecture reading](readings.html#week-1)
 
 
 ## Credits
