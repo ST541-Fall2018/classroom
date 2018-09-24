@@ -115,7 +115,10 @@ Today:
 
 Sometimes (like last Thursday), I'll provide an entire project for our work in lecture.   You will log in to rstudio.cloud, find it and copy it.
 
-Sometimes, I'll just work from the lecture notes. I reccomend you get the RMarkdown document, open it and work inside.
+Sometimes, I'll just work from the lecture notes:
+
+* You'll want the RMarkdown document - linked on website
+* Either open and work on your copy of RStudio, or use cloud.
 
 I'll always re-Knit (with results included), and re-post the lecture  after class.
 
