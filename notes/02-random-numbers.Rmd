@@ -5,7 +5,7 @@ date: Sep 25th 2018
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE, results = "hide", fig.keep="none")
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Preliminaries
@@ -75,9 +75,11 @@ Code            Percent Correct Correct Answer
 * Office hours:
   
     * Tue 11-11:50am 255 Weniger (Charlotte)
+    * Wed 3-3:50pm   TBA         (Sam)
     * Thu 11-11:50am 255 Weniger (Charlotte)
+    
 
-* Open an Issue in the Discussion Repo.
+* Open an Issue in the Discussion Repo...more in lab/homework
 
 ---
 
@@ -135,14 +137,21 @@ The first argument `n` controls how many numbers are drawn.
 
 ---
 
-## Your Turn
+## Your Turn (2 mins)
 
 You read about one pseudo-random number generator, the *Multiplicative congruential method*.  
 
 (`runif()` uses a more complicated generator, but the principle is the same.)
 
 * Why is the method known as **pseudo**-random?
+
+It's a deterministic algorithm. 
+
+It's recursive, uses a seed (first number), it's cyclic (numbers will eventually repeat). Seed, based on the time now? 
+
 * Will you get the same sequence I did?  Why, or why not? 
+
+No.  We don't have the same seed. (But assuming we are all using the same R version the default generator and its parameters will be the same.)
 
 Try it:
 ```{r}
@@ -167,7 +176,7 @@ Two ways to get a seed:
 
 ---
 
-## Your Turn
+## Your Turn (2 mins)
 
 Will the code in these two chunks give the same 20 random numbers?  **Guess, then try it.**
 
@@ -175,15 +184,19 @@ Will the code in these two chunks give the same 20 random numbers?  **Guess, the
 set.seed(1871)
 x <- runif(10)
 y <- runif(10)
-c(x, y)
+(unif_1 <- c(x, y))
 ```
 
 ```{r}
 set.seed(1871)
-runif(20)
+(unif_2 <- runif(20))
 ```
 
 *(How could we check with code?)*
+```{r}
+all(unif_1 == unif_2) # OK here, dangerous in general because of floating point error
+all.equal(unif_1, unif_2) # Gives more info if not TRUE
+```
 
 ---
 
@@ -202,12 +215,13 @@ Unanswered questions:
 
 ---
 
-# Inverse Transform Method
+# Inverse Transform Method 
+
+**@8:36am**
 
 A method for generating a sample from a stated distribution, by using a sample from a Uniform(0, 1).
 
-Relies on inverting the cumulative density function.  
-
+Relies on inverting the cumulative distribution function.  
 So, you need to have a form for the CDF and be able to invert it.
 
 ---
@@ -217,7 +231,7 @@ So, you need to have a form for the CDF and be able to invert it.
 To generate a sample, $X$, with cumulative distribution function (cdf) $F(x)$:
 
 1. Sample $U$ from a Uniform(0, 1)
-2. Calculate $X = F^{-1}(u)$
+2. Calculate $X = F^{-1}(U)$
 
 
 *Add sketch here*
@@ -240,7 +254,7 @@ $$
 u = 1 - e^{-\lambda x} \\
 (1 - u) = e^{-\lambda x} \\
 \log(1-u) = -\lambda x \\
-x = -\frac{1}{\lambda} \log(1-u)
+F^{-1}(u) = x = -\frac{1}{\lambda} \log(1-u)
 $$
 
 ---
@@ -260,6 +274,8 @@ lambda <- 5
 
 How can we check this is working?
 
+Generate many and plot.
+
 ---
 
 ## Your turn
@@ -267,9 +283,9 @@ How can we check this is working?
 Edit to generate 1000 samples from Exponential($\lambda$):
 
 ```{r}
-u <- runif(1)
+u <- runif(n = 1000)
 lambda <- 5
-(x <- -1 / lambda * log(1 - u))
+x <- -1 / lambda * log(1 - u)
 ```
 
 ```{r}
@@ -283,7 +299,8 @@ ggplot(mapping = aes(x = x)) +
 
 ---
 
-## Discrete case - Bernoulli
+## Discrete case - Bernoulli 
+**(back at 9:01am)**
 
 $$
 \begin{aligned}
@@ -308,8 +325,9 @@ Application of the inverse CDF method, to simulate $X$:
 A *literal* translation: 
 
 ```{r}
-u <- runif(1)
 pi <- 0.4
+
+(u <- runif(1))
 
 if(u < pi){
   x <- 1
@@ -321,7 +339,19 @@ x
 
 Can you edit to sample 1000 numbers from Bernoulli(0.4)?
 
-(*No, the condition inside `if()` is interpreted as a length 1 logical*)
+*No, the condition inside `if()` is interpreted as a length 1 logical*:
+```{r}
+pi <- 0.4
+
+u <- runif(1000) # this doesn't work
+
+if(u < pi){
+  x <- 1
+} else {
+  x <- 0
+}
+x
+```
 
 ---
 
@@ -333,11 +363,16 @@ Use subsetting instead:
 2. Where `u` is less than `pi`, set `x` to 1.
 
 ```{r}
-u <- runif(1)
 pi <- 0.4
+
+u <- runif(1000)
+x <- double(1000)
+x[u < pi] <- 1
 ```
 
 Can you edit to sample 1000 numbers from Bernoulli(0.4)?
+
+**Pick up here Thursday**
 
 ---
 
@@ -401,6 +436,11 @@ x <- rbinom(n = 1000, size = 1, prob = pi)
 # 4 an addition
 x <- 1
 x[u < pi] <- 0
+```
+
+```
+# 5 a student solution
+as.numeric(u < pi)
 ```
 
 How do we judge which code is best?  What are the advantages/disadvantages of each implementation?

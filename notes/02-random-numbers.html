@@ -143,22 +143,22 @@ $(document).ready(function () {
 <li><a href="#aside-workflow">Aside: Workflow</a></li>
 </ul></li>
 <li><a href="#psuedo-random-numbers">Psuedo-random numbers</a><ul>
-<li><a href="#your-turn">Your Turn</a></li>
+<li><a href="#your-turn-2-mins">Your Turn (2 mins)</a></li>
 <li><a href="#seeds">Seeds</a></li>
-<li><a href="#your-turn-1">Your Turn</a></li>
+<li><a href="#your-turn-2-mins-1">Your Turn (2 mins)</a></li>
 <li><a href="#take-aways">Take-aways</a></li>
 </ul></li>
 <li><a href="#inverse-transform-method">Inverse Transform Method</a><ul>
 <li><a href="#intuition">Intuition</a></li>
 <li><a href="#continuous-case---exponential">Continuous case - Exponential</a></li>
 <li><a href="#continuous-case---exponential-1">Continuous case - Exponential</a></li>
-<li><a href="#your-turn-2">Your turn</a></li>
+<li><a href="#your-turn">Your turn</a></li>
 <li><a href="#discrete-case---bernoulli">Discrete case - Bernoulli</a></li>
 <li><a href="#implementation-1">Implementation #1</a></li>
 <li><a href="#implemention-2---your-turn">Implemention #2 - Your turn</a></li>
 <li><a href="#implementation-2.5">Implementation #2.5</a></li>
 <li><a href="#implementation-3">Implementation #3</a></li>
-<li><a href="#your-turn-3">Your Turn</a></li>
+<li><a href="#your-turn-1">Your Turn</a></li>
 <li><a href="#what-makes-code-good">What makes code good</a></li>
 </ul></li>
 </ul>
@@ -302,9 +302,10 @@ z &lt;- c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;)</code></pr
 <li><p>Office hours:</p>
 <ul>
 <li>Tue 11-11:50am 255 Weniger (Charlotte)</li>
+<li>Wed 3-3:50pm TBA (Sam)</li>
 <li>Thu 11-11:50am 255 Weniger (Charlotte)</li>
 </ul></li>
-<li><p>Open an Issue in the Discussion Repo.</p></li>
+<li><p>Open an Issue in the Discussion Repo…more in lab/homework</p></li>
 </ul>
 <hr />
 </div>
@@ -348,18 +349,27 @@ z &lt;- c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;)</code></pr
 <h1>Psuedo-random numbers</h1>
 <p>In R <code>runif()</code> produces random draws from a Uniform(0, 1) distribution, and relies on a <strong>pseudo-random number generator</strong>.</p>
 <pre class="r"><code>runif(n = 10)</code></pre>
+<pre><code>##  [1] 0.62560231 0.20937990 0.56192565 0.97749120 0.22372223 0.93932038
+##  [7] 0.05197818 0.68125187 0.12644383 0.26086237</code></pre>
 <p>The first argument <code>n</code> controls how many numbers are drawn.</p>
 <hr />
-<div id="your-turn" class="section level2">
-<h2>Your Turn</h2>
+<div id="your-turn-2-mins" class="section level2">
+<h2>Your Turn (2 mins)</h2>
 <p>You read about one pseudo-random number generator, the <em>Multiplicative congruential method</em>.</p>
 <p>(<code>runif()</code> uses a more complicated generator, but the principle is the same.)</p>
 <ul>
 <li>Why is the method known as <strong>pseudo</strong>-random?</li>
+</ul>
+<p>It’s a deterministic algorithm.</p>
+<p>It’s recursive, uses a seed (first number), it’s cyclic (numbers will eventually repeat). Seed, based on the time now?</p>
+<ul>
 <li>Will you get the same sequence I did? Why, or why not?</li>
 </ul>
+<p>No. We don’t have the same seed. (But assuming we are all using the same R version the default generator and its parameters will be the same.)</p>
 <p>Try it:</p>
 <pre class="r"><code>runif(n = 10)</code></pre>
+<pre><code>##  [1] 0.19864771 0.21836967 0.04316548 0.40640229 0.38366313 0.59268709
+##  [7] 0.39088686 0.99415652 0.11175616 0.99309092</code></pre>
 <hr />
 </div>
 <div id="seeds" class="section level2">
@@ -376,16 +386,28 @@ z &lt;- c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;)</code></pr
 </ol>
 <hr />
 </div>
-<div id="your-turn-1" class="section level2">
-<h2>Your Turn</h2>
+<div id="your-turn-2-mins-1" class="section level2">
+<h2>Your Turn (2 mins)</h2>
 <p>Will the code in these two chunks give the same 20 random numbers? <strong>Guess, then try it.</strong></p>
 <pre class="r"><code>set.seed(1871)
 x &lt;- runif(10)
 y &lt;- runif(10)
-c(x, y)</code></pre>
+(unif_1 &lt;- c(x, y))</code></pre>
+<pre><code>##  [1] 0.44482382 0.46826211 0.11013158 0.33573747 0.31285982 0.15742834
+##  [7] 0.90300484 0.59244524 0.47035439 0.50336048 0.99857384 0.84269130
+## [13] 0.22613531 0.06823719 0.92291775 0.35295546 0.24142579 0.33392353
+## [19] 0.56343514 0.50514421</code></pre>
 <pre class="r"><code>set.seed(1871)
-runif(20)</code></pre>
+(unif_2 &lt;- runif(20))</code></pre>
+<pre><code>##  [1] 0.44482382 0.46826211 0.11013158 0.33573747 0.31285982 0.15742834
+##  [7] 0.90300484 0.59244524 0.47035439 0.50336048 0.99857384 0.84269130
+## [13] 0.22613531 0.06823719 0.92291775 0.35295546 0.24142579 0.33392353
+## [19] 0.56343514 0.50514421</code></pre>
 <p><em>(How could we check with code?)</em></p>
+<pre class="r"><code>all(unif_1 == unif_2) # OK here, dangerous in general because of floating point error</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>all.equal(unif_1, unif_2) # Gives more info if not TRUE</code></pre>
+<pre><code>## [1] TRUE</code></pre>
 <hr />
 </div>
 <div id="take-aways" class="section level2">
@@ -405,16 +427,17 @@ runif(20)</code></pre>
 </div>
 <div id="inverse-transform-method" class="section level1">
 <h1>Inverse Transform Method</h1>
+<p><strong><span class="citation">@8:36am</span></strong></p>
 <p>A method for generating a sample from a stated distribution, by using a sample from a Uniform(0, 1).</p>
-<p>Relies on inverting the cumulative density function.</p>
-<p>So, you need to have a form for the CDF and be able to invert it.</p>
+<p>Relies on inverting the cumulative distribution function.<br />
+So, you need to have a form for the CDF and be able to invert it.</p>
 <hr />
 <div id="intuition" class="section level2">
 <h2>Intuition</h2>
 <p>To generate a sample, <span class="math inline">\(X\)</span>, with cumulative distribution function (cdf) <span class="math inline">\(F(x)\)</span>:</p>
 <ol style="list-style-type: decimal">
 <li>Sample <span class="math inline">\(U\)</span> from a Uniform(0, 1)</li>
-<li>Calculate <span class="math inline">\(X = F^{-1}(u)\)</span></li>
+<li>Calculate <span class="math inline">\(X = F^{-1}(U)\)</span></li>
 </ol>
 <p><em>Add sketch here</em></p>
 <p>We are generating a quantile at random, and using the inverse CDF to translate the quantile back to the support of the CDF.</p>
@@ -430,7 +453,7 @@ F(x) = 1- e^{-\lambda x}
 u = 1 - e^{-\lambda x} \\
 (1 - u) = e^{-\lambda x} \\
 \log(1-u) = -\lambda x \\
-x = -\frac{1}{\lambda} \log(1-u)
+F^{-1}(u) = x = -\frac{1}{\lambda} \log(1-u)
 \]</span></p>
 <hr />
 </div>
@@ -444,25 +467,29 @@ x = -\frac{1}{\lambda} \log(1-u)
 <pre class="r"><code>u &lt;- runif(1)
 lambda &lt;- 5
 (x &lt;- -1 / lambda * log(1 - u))</code></pre>
+<pre><code>## [1] 0.03831972</code></pre>
 <p>How can we check this is working?</p>
+<p>Generate many and plot.</p>
 <hr />
 </div>
-<div id="your-turn-2" class="section level2">
+<div id="your-turn" class="section level2">
 <h2>Your turn</h2>
 <p>Edit to generate 1000 samples from Exponential(<span class="math inline">\(\lambda\)</span>):</p>
-<pre class="r"><code>u &lt;- runif(1)
+<pre class="r"><code>u &lt;- runif(n = 1000)
 lambda &lt;- 5
-(x &lt;- -1 / lambda * log(1 - u))</code></pre>
+x &lt;- -1 / lambda * log(1 - u)</code></pre>
 <pre class="r"><code>library(ggplot2)
 ggplot(mapping = aes(x = x)) +
   geom_histogram(aes(y = stat(density)), 
     binwidth = 0.02, center = 0.01) +
   stat_function(fun = dexp, args = list(rate = lambda)) +
   xlim(0, 2)</code></pre>
+<p><img src="02-random-numbers_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 <hr />
 </div>
 <div id="discrete-case---bernoulli" class="section level2">
 <h2>Discrete case - Bernoulli</h2>
+<p><strong>(back at 9:01am)</strong></p>
 <p><span class="math display">\[
 \begin{aligned}
 P(X = 1) &amp;= \pi \\
@@ -481,17 +508,32 @@ P(X = 0) &amp;= 1 - \pi
 <div id="implementation-1" class="section level2">
 <h2>Implementation #1</h2>
 <p>A <em>literal</em> translation:</p>
-<pre class="r"><code>u &lt;- runif(1)
-pi &lt;- 0.4
+<pre class="r"><code>pi &lt;- 0.4
 
-if(u &lt; pi){
+(u &lt;- runif(1))</code></pre>
+<pre><code>## [1] 0.4196467</code></pre>
+<pre class="r"><code>if(u &lt; pi){
   x &lt;- 1
 } else {
   x &lt;- 0
 }
 x</code></pre>
+<pre><code>## [1] 0</code></pre>
 <p>Can you edit to sample 1000 numbers from Bernoulli(0.4)?</p>
-<p>(<em>No, the condition inside <code>if()</code> is interpreted as a length 1 logical</em>)</p>
+<p><em>No, the condition inside <code>if()</code> is interpreted as a length 1 logical</em>:</p>
+<pre class="r"><code>pi &lt;- 0.4
+
+u &lt;- runif(1000) # this doesn&#39;t work
+
+if(u &lt; pi){
+  x &lt;- 1
+} else {
+  x &lt;- 0
+}</code></pre>
+<pre><code>## Warning in if (u &lt; pi) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre class="r"><code>x</code></pre>
+<pre><code>## [1] 0</code></pre>
 <hr />
 </div>
 <div id="implemention-2---your-turn" class="section level2">
@@ -501,9 +543,13 @@ x</code></pre>
 <li>Set <code>x</code> to be 0</li>
 <li>Where <code>u</code> is less than <code>pi</code>, set <code>x</code> to 1.</li>
 </ol>
-<pre class="r"><code>u &lt;- runif(1)
-pi &lt;- 0.4</code></pre>
+<pre class="r"><code>pi &lt;- 0.4
+
+u &lt;- runif(1000)
+x &lt;- double(1000)
+x[u &lt; pi] &lt;- 1</code></pre>
 <p>Can you edit to sample 1000 numbers from Bernoulli(0.4)?</p>
+<p><strong>Pick up here Thursday</strong></p>
 <hr />
 </div>
 <div id="implementation-2.5" class="section level2">
@@ -525,7 +571,7 @@ x &lt;- ifelse(u &lt; pi, 1, 0)</code></pre>
 x &lt;- rbinom(n = 1000, size = 1, prob = pi)</code></pre>
 <hr />
 </div>
-<div id="your-turn-3" class="section level2">
+<div id="your-turn-1" class="section level2">
 <h2>Your Turn</h2>
 <p>We have a few implementations:</p>
 <pre><code># 1
@@ -545,6 +591,8 @@ x &lt;- rbinom(n = 1000, size = 1, prob = pi)</code></pre>
 <pre><code># 4 an addition
 x &lt;- 1
 x[u &lt; pi] &lt;- 0</code></pre>
+<pre><code># 5 a student solution
+as.numeric(u &lt; pi)</code></pre>
 <p>How do we judge which code is best? What are the advantages/disadvantages of each implementation?</p>
 <p><strong>What makes code good?</strong></p>
 </div>
