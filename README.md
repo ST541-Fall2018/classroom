@@ -5,6 +5,7 @@
 **Office Hours**: 
 
 * Tuesday  11:00-11:50 Weniger 255 (Charlotte)
+* Wednesday 3:00-3:50pm Weniger 205 (Sam)
 * Thursday 11:00-11:50 Weniger 255 (Charlotte)
 
 ## Quick Navigation
