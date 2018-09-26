@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Simulation</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Simulation</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Sep 27th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#good-code">Good code</a><ul>
+<li><a href="#pick-up-from-thursday">Pick up from Thursday</a></li>
+<li><a href="#good-code-1">Good code</a></li>
+<li><a href="#use-existing-functions-when-you-can">Use existing functions when you can</a></li>
+</ul></li>
+<li><a href="#monte-carlo-simulations">Monte Carlo simulations</a><ul>
+<li><a href="#missisippi">Missisippi</a></li>
+<li><a href="#general-structure-of-monte-carlo-simulations">General structure of Monte Carlo Simulations</a></li>
+<li><a href="#mississippi">Mississippi</a></li>
+<li><a href="#russian-election-fraud">Russian Election Fraud</a></li>
+<li><a href="#one-pretty-flexible-approach">One pretty flexible approach</a></li>
+<li><a href="#one-mississippi">One Mississippi</a></li>
+<li><a href="#samplex-size-replace-false"><code>sample(x, size, replace = FALSE)</code></a></li>
+<li><a href="#two-mississippi">Two Mississippi</a></li>
+<li><a href="#so-far">So far</a></li>
+<li><a href="#scaling-up---many-examples-with-rerun">Scaling up - many examples with <code>rerun()</code></a></li>
+<li><a href="#scaling-up---for-each-example-do-something-with-map">Scaling up - for each example, do something with <code>map()</code></a></li>
+<li><a href="#map-returns-a-list">map() returns a list</a></li>
+<li><a href="#all-together">All together</a></li>
+<li><a href="#your-turn">Your turn</a></li>
+<li><a href="#iteration">Iteration</a></li>
+<li><a href="#questions">Questions</a></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="good-code" class="section level1">
+<h1>Good code</h1>
+<div id="pick-up-from-thursday" class="section level2">
+<h2>Pick up from Thursday</h2>
+<hr />
+</div>
+<div id="good-code-1" class="section level2">
+<h2>Good code</h2>
+<p>In rough order of importance (for us as statisticians/data scientists):</p>
+<ol style="list-style-type: decimal">
+<li>Correct</li>
+<li><strong>Obviously</strong> correct: the code is easy to understand</li>
+<li>Expressive: the code emphasizes the actions not the details</li>
+<li>Fast</li>
+</ol>
+<hr />
+</div>
+<div id="use-existing-functions-when-you-can" class="section level2">
+<h2>Use existing functions when you can</h2>
+<p>E.g. <code>rbinom()</code> rather than implementing the inverse transform method</p>
+<ul>
+<li><p>See:</p>
+<pre class="r"><code>?Distributions</code></pre>
+<p>for those available in the <code>stats</code> package.</p></li>
+<li><p>See <a href="https://cran.r-project.org/web/views/Distributions.html" class="uri">https://cran.r-project.org/web/views/Distributions.html</a> for packages that implement other distributions.</p></li>
+</ul>
+<p>Inverse transform (Tue) and Rejection method (Lab) are options when nothing exists for the distribution you need.</p>
+</div>
+</div>
+<div id="monte-carlo-simulations" class="section level1">
+<h1>Monte Carlo simulations</h1>
+<div id="missisippi" class="section level2">
+<h2>Missisippi</h2>
+<p>Consider the 11 letters in the word <em>Mississippi</em>.</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
+## ✔ tibble  1.4.2     ✔ dplyr   0.7.5
+## ✔ tidyr   0.8.1     ✔ stringr 1.3.1
+## ✔ readr   1.1.1     ✔ forcats 0.3.0</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>(mi_letters &lt;- str_split(&quot;Mississippi&quot;, &quot;&quot;)[[1]])</code></pre>
+<p>What is the probability that no adjacent letters are the same, in a random reordering of the letters?</p>
+<p><em>Taken from Tijms, Henk. Probability: A Lively Introduction. Cambridge University Press, 2017.</em></p>
+<p><strong>Your Turn</strong>:</p>
+<ul>
+<li>How would you do a simulation to estimate this probability?</li>
+<li>How is this simulation similar to the Russian election example?</li>
+</ul>
+<hr />
+</div>
+<div id="general-structure-of-monte-carlo-simulations" class="section level2">
+<h2>General structure of Monte Carlo Simulations</h2>
+<ol style="list-style-type: decimal">
+<li>Simulate many examples</li>
+<li>Calculate something on each example</li>
+<li>Explore the many calculated things</li>
+</ol>
+<hr />
+</div>
+<div id="mississippi" class="section level2">
+<h2>Mississippi</h2>
+<ol style="list-style-type: decimal">
+<li>Generate random reorderings of the letters in <em>Mississippi</em></li>
+<li>For each reordering, ask: are any adjacent letters the same?</li>
+<li>Find the proportion of “No”s</li>
+</ol>
+<hr />
+</div>
+<div id="russian-election-fraud" class="section level2">
+<h2>Russian Election Fraud</h2>
+<ol style="list-style-type: decimal">
+<li>Generate turnout vectors based on no fraud (Binomial counts based on number on voter list and observed turnout, transformed to turnout percentages)</li>
+<li>For each turnout vector, count the number of integers.</li>
+<li>Find the mean and quantiles of the counts</li>
+</ol>
+<hr />
+</div>
+<div id="one-pretty-flexible-approach" class="section level2">
+<h2>One pretty flexible approach</h2>
+<p>First, figure out 1. and 2. on a single example.</p>
+<p>Then scale up:</p>
+<ol style="list-style-type: decimal">
+<li>Simulate many examples <code>rerun()</code></li>
+<li>Calculate something on each example <code>map()</code>, <code>map_dbl()</code></li>
+<li>Explore the many calculated things <code># depends on goal</code></li>
+</ol>
+<p><code>rerun()</code> and <code>map()</code> are in the purrr package.</p>
+<hr />
+</div>
+<div id="one-mississippi" class="section level2">
+<h2>One Mississippi</h2>
+<p>Step 1: How do we get <strong>a</strong> random reordering of the letters in Mississippi?</p>
+<pre class="r"><code>mi_letters</code></pre>
+<hr />
+</div>
+<div id="samplex-size-replace-false" class="section level2">
+<h2><code>sample(x, size, replace = FALSE)</code></h2>
+<blockquote>
+<p>sample takes a sample of the specified size from the elements of x using either with or without replacement.</p>
+</blockquote>
+<p>– <code>?sample</code></p>
+<pre class="r"><code>(one_reordering &lt;- sample(mi_letters))</code></pre>
+<hr />
+</div>
+<div id="two-mississippi" class="section level2">
+<h2>Two Mississippi</h2>
+<p>Step 2: Given a reordering, does it have letters next to each other that are the same?</p>
+<p>The <code>rle()</code> function will be very useful.</p>
+<p><strong>What does it do?</strong></p>
+<pre class="r"><code>rle(one_reordering)</code></pre>
+<p><strong>How can we use it?</strong></p>
+<hr />
+</div>
+<div id="so-far" class="section level2">
+<h2>So far</h2>
+<pre class="r"><code>one_reordering &lt;- sample(mi_letters) # One example
+
+# Fill in this bit in class</code></pre>
+<hr />
+</div>
+<div id="scaling-up---many-examples-with-rerun" class="section level2">
+<h2>Scaling up - many examples with <code>rerun()</code></h2>
+<p>The first argument is the number of times you’d like to repeat the evaluation of the second argument.</p>
+<pre class="r"><code>many_reorderings &lt;- rerun(10, sample(mi_letters))</code></pre>
+<p><strong>Your turn</strong> Take a look at the object <code>many_reorderings</code>. What kind of object is it? Generate 1000 reorderings instead.</p>
+<hr />
+</div>
+<div id="scaling-up---for-each-example-do-something-with-map" class="section level2">
+<h2>Scaling up - for each example, do something with <code>map()</code></h2>
+<p><code>map()</code> solves iteration problems, like: for each ___ do ___.</p>
+<ol style="list-style-type: decimal">
+<li><p>First argument is the object you want to iterate over, <code>many_reorderings</code></p></li>
+<li><p>Second argument describes what you want to do. One way, specify a formula (starts with <code>~</code>) using <code>.</code> as a placeholder for a single example: <code>~ any(rle(.)$lengths &gt; 1</code></p></li>
+</ol>
+<pre class="r"><code>map(many_reorderings, ~ all(rle(.x)$lengths == 1))</code></pre>
+<hr />
+</div>
+<div id="map-returns-a-list" class="section level2">
+<h2>map() returns a list</h2>
+<p>Use one of its friends instead: <code>map_dbl()</code>, <code>map_lgl()</code>, <code>map_int()</code>, <code>map_chr()</code> to get an atomic vector.</p>
+<p><strong>Your turn</strong>: Swap out <code>map()</code> for the appropriate function</p>
+<pre class="r"><code>map_lgl(many_reorderings, ~ all(rle(.x)$lengths == 1))</code></pre>
+<hr />
+</div>
+<div id="all-together" class="section level2">
+<h2>All together</h2>
+<pre class="r"><code>num_sims &lt;- 1000
+many_reorderings &lt;- rerun(num_sims, sample(mi_letters))
+adj_letters_same &lt;- map_lgl(many_reorderings, 
+  ~ all(rle(.x)$lengths == 1))
+
+# Explore 
+adj_letters_same %&gt;% table()
+adj_letters_same %&gt;% mean()</code></pre>
+<hr />
+</div>
+<div id="your-turn" class="section level2">
+<h2>Your turn</h2>
+<p>A random sequence of H’s and T’s is generated by tossing a fair coin <span class="math inline">\(n = 20\)</span> times. What’s the expected length of the longest run of consecutive heads or tails?</p>
+<p><em>Taken from Tijms, Henk. Probability: A Lively Introduction. Cambridge University Press, 2017.</em></p>
+<hr />
+</div>
+<div id="iteration" class="section level2">
+<h2>Iteration</h2>
+<p>Common patterns:</p>
+<ol style="list-style-type: decimal">
+<li>Do this thing <code>m</code> times, <code>rerun()</code></li>
+<li>Do this thing to each element of <code>x</code>, <code>map()</code></li>
+<li>Do this thing until some condition is satisfied <code>while</code></li>
+</ol>
+<p>You can do 1. and 2. with <code>for</code> loops, but the purrr functions abstract away the details and let you focus on <em>“this thing”</em>.</p>
+<p><em>(You also don’t run the risk of writing an inefficient <code>for</code> loop)</em></p>
+<p><strong>But remember</strong> R loves working with vectors. Don’t iterate over the elements of a vector, when a function exists to handle the whole vector.</p>
+<hr />
+</div>
+<div id="questions" class="section level2">
+<h2>Questions</h2>
+<ul>
+<li>How many simulations do we need? I.e. what should <code>num_sims</code> be?</li>
+<li>What do we do when the simulation part is complicated? What do we do when the calculation part is complicated?</li>
+</ul>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
