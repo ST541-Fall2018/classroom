@@ -23,7 +23,7 @@
 
 ### Week 1  
 * Sep 25 [**Random Numbers**](notes/02-random-numbers.html) ([Rmd](notes/02-random-numbers.Rmd)) [Pre-lecture reading](readings.html#week-1)
-
+* Sep 27 [**Simulation**](notes/03-simulation.html) ([Rmd](notes/03-simulation.Rmd)) 
 
 ## Credits
 
