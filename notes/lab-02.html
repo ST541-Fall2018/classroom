@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Lab 02</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Lab 02</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Sep 27th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#learning-objectives">Learning Objectives</a></li>
+<li><a href="#acceptance-rejection-algorithm">Acceptance Rejection Algorithm</a></li>
+<li><a href="#an-example">An example</a></li>
+<li><a href="#find-a-constant">Find a constant</a></li>
+<li><a href="#generating-a-sample">Generating a sample</a></li>
+<li><a href="#automating">Automating</a></li>
+</ul>
+</div>
+
+<div id="learning-objectives" class="section level2">
+<h2>Learning Objectives</h2>
+<p>In class we saw one method for turning a sample from a Uniform(0, 1) random varible into a sample from some other distibrution: the inverse transform method.</p>
+<p>In this lab you’ll see another technique for turning a sample from one distribution into a sample from another: the rejection method.</p>
+<p>By the end of this lab you should be able to:</p>
+<ul>
+<li>Describe the steps in Rejection sampling</li>
+<li>Given a proposal and target density choose a value for <span class="math inline">\(c\)</span></li>
+<li>Describe how the choice of <span class="math inline">\(c\)</span> affects the efficiency of the sampling</li>
+<li>Identify the pattern of iteration suitbale for a <code>while</code> loop</li>
+</ul>
+<p>If you want more details see Section 5.2 in Ross in the readings for the week.</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+</div>
+<div id="acceptance-rejection-algorithm" class="section level2">
+<h2>Acceptance Rejection Algorithm</h2>
+<p><strong>General Idea</strong></p>
+<p>If you can simulate from distribution with probability density function (pdf) <span class="math inline">\(g(x)\)</span>, then you can sample from a distribution with pdf <span class="math inline">\(f(x)\)</span> by sampling <span class="math inline">\(Y\)</span> from <span class="math inline">\(g(x)\)</span> and accepting the sample with probability proportional to <span class="math inline">\(\frac{f(Y)}{g(Y)}\)</span>.</p>
+<p><strong>The Intuition</strong></p>
+<p>When we sample from <span class="math inline">\(g(x)\)</span>, also known as a proposal distribution, in some regions we’ll get more observations that we should expect from <span class="math inline">\(f(x)\)</span>, our target distribution, so to decrease their prevalance we accept fewer of them, i.e. we accept them with some value less than 100%.</p>
+<p>For example, if we draw <span class="math inline">\(Y\)</span> from <span class="math inline">\(g(Y)\)</span>, and the ratio <span class="math inline">\(\tfrac{f(Y)}{g(Y)} = \tfrac{1}{3}\)</span>, then it’s 3 times less likely to see this value from our desired distribution than our target distibrution, and we should only accept it with probability 1/3 to account for that.</p>
+<p>Of course there will be other draws of <span class="math inline">\(Y\)</span>, where <span class="math inline">\(\tfrac{f(Y)}{g(Y)} &gt; 1\)</span>, but we can’t accept something with a probability above 1! So, in practice we find a value <span class="math inline">\(c\)</span> such that <span class="math inline">\(\tfrac{f(Y)}{g(Y)} \le c\)</span> for all possible <span class="math inline">\(Y\)</span>, and instead accept draws with probability <span class="math inline">\(\tfrac{f(Y)}{cg(Y)}\)</span>.</p>
+<p><em>Sam will talk through this</em></p>
+<p><strong>The Algorithm</strong></p>
+<p>If you want to sample <span class="math inline">\(X\)</span> from <span class="math inline">\(f(x)\)</span>, based on draws from <span class="math inline">\(g(x)\)</span>, first find a constant <span class="math inline">\(c\)</span> such that <span class="math display">\[
+\frac{f(x)}{g(x)} \le c \quad \text{for all } x
+\]</span> Then:</p>
+<ol style="list-style-type: decimal">
+<li>Draw a sample <span class="math inline">\(Y\)</span> from <span class="math inline">\(f(x)\)</span></li>
+<li>Accept <span class="math inline">\(Y\)</span> with probability <span class="math inline">\(\tfrac{f(Y)}{cg(Y)}\)</span>. That is, draw U from Unif(0, 1) and if <span class="math inline">\(U &lt; \tfrac{f(Y)}{cg(Y)}\)</span> set <span class="math inline">\(X = Y\)</span>, otherwise return to step 1.</li>
+</ol>
+</div>
+<div id="an-example" class="section level2">
+<h2>An example</h2>
+<p>To see this in action you’ll work through example 5d in Ross.</p>
+<p>In this example, we want a sample from a distribution with p.d.f. <span class="math display">\[
+f(x) = 20 x (1 - x)^3, \quad 0 &lt; x &lt; 1
+\]</span></p>
+<p>But what we have at hand, is a way to sample from the Uniform(0, 1), <span class="math display">\[
+g(x) = 1, \quad 0 &lt; x &lt; 1
+\]</span></p>
+</div>
+<div id="find-a-constant" class="section level2">
+<h2>Find a constant</h2>
+<p>Let’s take a look at the target density. To do so, we’ll create a function for <span class="math inline">\(f(x)\)</span>:</p>
+<pre class="r"><code>f_x &lt;- function(x){
+  20 * x * (1 - x)^3
+}</code></pre>
+<p>And then plot it:</p>
+<pre class="r"><code>ggplot(data.frame(x = c(0, 1)), aes(x)) +
+  stat_function(fun = f_x, geom = &quot;line&quot;) +
+  labs(y = &quot;f(x)&quot;, x = &quot;x&quot;)</code></pre>
+<p><img src="lab-02_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p><strong>What would be a good value of <span class="math inline">\(c\)</span>?</strong> I.e. what value for <span class="math inline">\(c\)</span> will ensure our target density is always below <span class="math inline">\(cg(x)\)</span>?</p>
+<p>Use the figure to pick <span class="math inline">\(c\)</span> and set it below:</p>
+<pre class="r"><code>constant &lt;- 2.5  # my choice, yours might be different</code></pre>
+</div>
+<div id="generating-a-sample" class="section level2">
+<h2>Generating a sample</h2>
+<p>We first sample <span class="math inline">\(Y\)</span> from our proposal density, Uniform(0,1)</p>
+<pre class="r"><code>set.seed(7416) # So your results will match those online
+Y &lt;- runif(1)</code></pre>
+<p>Then randomly accept this value with probability <span class="math inline">\(\tfrac{f(Y)}{cg(Y)}\)</span></p>
+<pre class="r"><code>U &lt;- runif(1)
+(accept &lt;- U &lt; (f_x(Y)/(constant * dunif(Y))))</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<p>I got <code>FALSE</code>, i.e. I shouldn’t accept this number (if your <code>constant</code> is very different from mine, you might get a different result).</p>
+<p>In which case I should try again:</p>
+<pre class="r"><code>Y &lt;- runif(1)
+U &lt;- runif(1)
+(accept &lt;- U &lt; (f_x(Y)/(constant * 1)))</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<p>Doh, <code>FALSE</code> again.</p>
+<pre class="r"><code>Y &lt;- runif(1)
+U &lt;- runif(1)
+(accept &lt;- U &lt; (f_x(Y)/(constant * 1)))</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Finally, so this <span class="math inline">\(Y\)</span> is my draw</p>
+<pre class="r"><code>Y</code></pre>
+<pre><code>## [1] 0.1224577</code></pre>
+<p>You can show the expected number of draws before accepting a value is <span class="math inline">\(c\)</span>, so it isn’t surprising it took me three times here.</p>
+<p><strong>Your Turn</strong></p>
+<ul>
+<li><p>Ross finds <span class="math inline">\(c = 135/64\)</span>. What’s the advantage of using calculus to find the smallest <span class="math inline">\(c\)</span> that satifies the requirement?</p></li>
+<li><p>The target distribution and the proposal distribution in this example have the same support? What would happen if for some <span class="math inline">\(x\)</span>, <span class="math inline">\(g(x) &gt; 0\)</span> and <span class="math inline">\(f(x) = 0\)</span>? Or vice versa, for some <span class="math inline">\(x\)</span>, <span class="math inline">\(g(x) = 0\)</span> and <span class="math inline">\(f(x) &gt; 0\)</span></p></li>
+</ul>
+</div>
+<div id="automating" class="section level2">
+<h2>Automating</h2>
+<p>If we want to automate drawing a single sample (no matter how many rejections it takes), we would need to use a <code>while()</code> loop. The body of a <code>while()</code> loop will continue to be evaluated until the condition (inside the <code>()</code>) evaluates to <code>TRUE</code>.</p>
+<p>As a simple example, we could keep adding 1 to <code>i</code> until we hit 5:</p>
+<pre class="r"><code>i &lt;- 0
+while(i &lt; 5){
+  cat(i, &quot;\n&quot;)
+  i &lt;- i + 1
+}</code></pre>
+<pre><code>## 0 
+## 1 
+## 2 
+## 3 
+## 4</code></pre>
+<p>Or in words: set <code>i</code> to be zero, then while <code>i</code> is less than five, tell me what <code>i</code> is and add one.</p>
+<p>We might implement the rejection algorithm for our example like this:</p>
+<pre class="r"><code>accept &lt;- FALSE
+while(!accept){
+  Y &lt;- runif(1)
+  U &lt;- runif(1)
+  accept &lt;- U &lt; f_x(Y)/constant
+}
+Y</code></pre>
+<pre><code>## [1] 0.3202172</code></pre>
+<p>Of course to get another number we need to rerun the entire block of code. A better approach might be to wrap this chunk into a function:</p>
+<pre class="r"><code>draw_one &lt;- function(quiet = FALSE){
+  accept &lt;- FALSE
+  while(!accept){
+    Y &lt;- runif(1)
+    U &lt;- runif(1)
+    accept &lt;- U &lt; f_x(Y)/constant
+  }
+  Y
+}</code></pre>
+<p>Now we can easily run it many times:</p>
+<pre class="r"><code>many_draws &lt;- rerun(1000, draw_one()) %&gt;% 
+  flatten_dbl() # to get a vector rather than a list</code></pre>
+<p>And check our draws look about right:</p>
+<pre class="r"><code>ggplot(mapping = aes(x = many_draws)) + 
+  geom_histogram(aes(y = stat(density))) +
+  stat_function(fun = f_x, geom = &quot;line&quot;) +
+  labs(y = &quot;f(x)&quot;, x = &quot;x&quot;)</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="lab-02_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>Looking good!</p>
+<p><strong>Your Turn</strong>:</p>
+<ul>
+<li>This function has a big problem in that it relies on objects defined outside of the function. What are these objects? Which objects should be passed in as arguments?</li>
+<li>What needs to change in this function if we use a different proposal density?</li>
+<li><strong>Challenge</strong> A more efficient method for drawing sample of size <span class="math inline">\(n\)</span> might be to draw many <span class="math inline">\(Y\)</span> and <span class="math inline">\(U\)</span> in a chunk, keep all those that meet the acceptance criterion, then generate a new chunk if we don’t have <span class="math inline">\(n\)</span> yet. Try implementing this method.</li>
+</ul>
+<p>You might like to compare this version of <code>draw_one()</code> to the one above. What is different?</p>
+<pre class="r"><code>draw_one &lt;- function(target_density, proposal_density, proposal_sampler, constant){
+  accept &lt;- FALSE
+  while(!accept){
+    Y &lt;- proposal_sampler(1)
+    U &lt;- runif(1)
+    accept &lt;- U &lt; target_density(Y)/(constant*proposal_density(Y))
+  }
+  Y
+}
+
+# our example
+draw_one(target_density = f_x, 
+  proposal_density = dunif, 
+  proposal_sampler = runif, 
+  constant = 2.5)</code></pre>
+<pre><code>## [1] 0.598208</code></pre>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
