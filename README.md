@@ -25,6 +25,10 @@
 * Sep 25 [**Random Numbers**](notes/02-random-numbers.html) ([Rmd](notes/02-random-numbers.Rmd)) [Pre-lecture reading](readings.html#week-1)
 * Sep 27 [**Simulation**](notes/03-simulation.html) ([Rmd](notes/03-simulation.Rmd)) 
 
+### Week 2
+
+* Oct 2 **Functions**  [Pre-lecture reading](readings.html#week-2)
+
 ## Credits
 
 A big thanks to the [STAT 545 teaching team](https://github.com/STAT545-UBC) for inspiring the organization of the class website and github repo.
