@@ -73,8 +73,8 @@ What is the probability that no adjacent letters are the same, in a random reord
 ## Mississippi
 
 1. Generate random reorderings of the letters in *Mississippi*
-2. For each reordering, ask: are any adjacent letters the same?
-3. Find the proportion of "No"s
+2. For each reordering, ask: are all adjacent letters different?
+3. Find the proportion of "Yes"s
 
 ---
 
