@@ -21,7 +21,7 @@ In rough order of importance (for us as statisticians/data scientists):
 1. Correct
 2. **Obviously** correct: the code is easy to understand
 3. Expressive: the code emphasizes the actions not the details
-4. Fast
+4. Efficiency: speed, memory, I/O
 
 ---
 
@@ -106,7 +106,7 @@ Step 1: How do we get **a** random reordering of the letters in Mississippi?
 
 
 ```{r}
-mi_letters
+sample(mi_letters)
 ```
 
 ---
@@ -125,25 +125,43 @@ mi_letters
 
 ## Two Mississippi
 
-Step 2: Given a reordering, does it have letters next to each other that are the same?
+Step 2: Given a reordering, does it have letters next to each other that are the same? We want `TRUE` when no adjacent letters match.
 
 The `rle()` function will be very useful.
 
 **What does it do?**
 ```{r}
+one_reordering
 rle(one_reordering)
 ```
 **How can we use it?**
+```{r}
+rle(one_reordering)$lengths
+?rle
+rel_one <- rle(one_reordering) 
+rel_one$lengths
+
+# look for any runs greater than length 1
+length(rle(one_reordering)$lengths) == length(one_reordering)
+
+!(mean(rle(one_reordering)$lengths) > 1)
+
+max(rle(one_reordering)$lengths) == 1
+
+all(rle(one_reordering)$lengths == 1)
+
+```
 
 ---
 
 ## So far
+**Back at 9:01am**
 
 ```{r}
 one_reordering <- sample(mi_letters) # One example
 
 # Fill in this bit in class
-
+all(rle(one_reordering)$lengths == 1)
 ```
 
 ---
