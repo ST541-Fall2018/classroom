@@ -47,7 +47,7 @@ $$
 $$
 Then:
 
-1. Draw a sample $Y$ from $f(x)$
+1. Draw a sample $Y$ from $g(x)$
 2. Accept $Y$ with probability $\tfrac{f(Y)}{cg(Y)}$.  That is, draw U from Unif(0, 1) and if $U < \tfrac{f(Y)}{cg(Y)}$ set $X = Y$, otherwise return to step 1.
 
 
