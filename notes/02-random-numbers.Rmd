@@ -365,8 +365,9 @@ Use subsetting instead:
 ```{r}
 pi <- 0.4
 
-u <- runif(1000)
-x <- double(1000)
+n <- 1000
+u <- runif(n)
+x <- double(n)
 x[u < pi] <- 1
 ```
 
@@ -380,12 +381,14 @@ Can you edit to sample 1000 numbers from Bernoulli(0.4)?
 
 `?ifelse`
 
+`ifelse(test, yes, no)`
+
 > `ifelse` returns a value with the same shape as `test` which is filled with elements selected from either `yes` or `no` depending on whether the element of `test` is `TRUE` or `FALSE`.
 
 ```{r}
-u <- runif(1000)
 pi <- 0.4
 
+u <- runif(1000)
 x <- ifelse(u < pi, 1, 0)
 ```
 

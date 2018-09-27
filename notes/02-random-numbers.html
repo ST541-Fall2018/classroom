@@ -349,8 +349,8 @@ z &lt;- c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;)</code></pr
 <h1>Psuedo-random numbers</h1>
 <p>In R <code>runif()</code> produces random draws from a Uniform(0, 1) distribution, and relies on a <strong>pseudo-random number generator</strong>.</p>
 <pre class="r"><code>runif(n = 10)</code></pre>
-<pre><code>##  [1] 0.62560231 0.20937990 0.56192565 0.97749120 0.22372223 0.93932038
-##  [7] 0.05197818 0.68125187 0.12644383 0.26086237</code></pre>
+<pre><code>##  [1] 0.2338991 0.9260319 0.2718123 0.5667901 0.2671424 0.6279740 0.4020896
+##  [8] 0.4183823 0.6643049 0.2313253</code></pre>
 <p>The first argument <code>n</code> controls how many numbers are drawn.</p>
 <hr />
 <div id="your-turn-2-mins" class="section level2">
@@ -368,8 +368,8 @@ z &lt;- c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;)</code></pr
 <p>No. We don’t have the same seed. (But assuming we are all using the same R version the default generator and its parameters will be the same.)</p>
 <p>Try it:</p>
 <pre class="r"><code>runif(n = 10)</code></pre>
-<pre><code>##  [1] 0.19864771 0.21836967 0.04316548 0.40640229 0.38366313 0.59268709
-##  [7] 0.39088686 0.99415652 0.11175616 0.99309092</code></pre>
+<pre><code>##  [1] 0.7573553 0.4453555 0.6937774 0.3896192 0.2322473 0.2652118 0.7575507
+##  [8] 0.4705431 0.4004783 0.7948263</code></pre>
 <hr />
 </div>
 <div id="seeds" class="section level2">
