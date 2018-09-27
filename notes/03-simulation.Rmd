@@ -230,4 +230,13 @@ You can do 1. and 2. with `for` loops, but the purrr functions abstract away the
 * How many simulations do we need? I.e. what should `num_sims` be?
 * What do we do when the simulation part is complicated?  What do we do when the calculation part is complicated?
 
+---
+
+## Reading for next week
+
+[Functions in R4DS](r4ds.had.co.nz/functions.html
+) 19.1 through and including 19.3
+
+(If you are on a roll keep reading...)
+
 
