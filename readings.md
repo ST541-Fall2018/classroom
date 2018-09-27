@@ -35,3 +35,14 @@ Be prepared to answer:
 * How would you use a Uniform(0, 1) random variable to simulate a Bernoulli($\pi$) random variable?
 * How would you use a Uniform(0, 1) random variable to simulate a Exponential($\lambda$) random variable?
 
+## Week 2
+
+Pre-lecture reading:
+
+[Functions in R4DS](r4ds.had.co.nz/functions.html
+) 19.1 through and including 19.3  *(If you are on a roll keep reading...)*
+
+Be prepared to answer:
+
+* What are the three key steps to writing a function?
+* Do exercise 19.2.1 #3

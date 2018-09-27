@@ -239,4 +239,7 @@ You can do 1. and 2. with `for` loops, but the purrr functions abstract away the
 
 (If you are on a roll keep reading...)
 
+Be prepared to answer:
 
+* What are the three key steps to writing a function?
+* Do exercise 19.2.1 #3
