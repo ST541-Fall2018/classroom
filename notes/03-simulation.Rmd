@@ -5,7 +5,8 @@ date: Sep 27th 2018
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE, results = "hide")
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
 ```
 
 # Good code
@@ -134,22 +135,34 @@ The `rle()` function will be very useful.
 one_reordering
 rle(one_reordering)
 ```
+
 **How can we use it?**
+
+Look for any lengths greater than 2.
+
+How do you get out the lengths? Some strategies:
+```{r, eval = FALSE}
+rle(one_reordering)$lengths # guess
+
+?rle # read the Value section 
+
+rel_one <- rle(one_reordering) # save  
+rel_one$lengths # then rely on RStudio completion
+
+# use str()
+str(one_reordering)
+```
+
+Now find out if any are greater than 1.  My approach:
 ```{r}
-rle(one_reordering)$lengths
-?rle
-rel_one <- rle(one_reordering) 
-rel_one$lengths
-
-# look for any runs greater than length 1
-length(rle(one_reordering)$lengths) == length(one_reordering)
-
-!(mean(rle(one_reordering)$lengths) > 1)
-
-max(rle(one_reordering)$lengths) == 1
-
 all(rle(one_reordering)$lengths == 1)
+```
 
+Some other approaches
+```{r, eval = FALSE}
+length(rle(one_reordering)$lengths) == length(one_reordering)
+!(mean(rle(one_reordering)$lengths) > 1)
+max(rle(one_reordering)$lengths) == 1
 ```
 
 ---
@@ -171,7 +184,7 @@ all(rle(one_reordering)$lengths == 1)
 The first argument is the number of times you'd like to repeat the evaluation of the second argument.
 
 ```{r}
-many_reorderings <- rerun(10, sample(mi_letters))
+many_reorderings <- rerun(.n = 1000, sample(mi_letters))
 ```
 
 **Your turn** Take a look at the object `many_reorderings`.  What kind of object is it?  Generate 1000 reorderings instead.
@@ -186,8 +199,9 @@ many_reorderings <- rerun(10, sample(mi_letters))
 
 2. Second argument describes what you want to do. One way, specify a formula (starts with `~`) using `.` as a placeholder for a single example:  `~ any(rle(.)$lengths > 1`
 
-```{r}
-map(many_reorderings, ~ all(rle(.x)$lengths == 1))
+```{r, results="hide"}
+map(many_reorderings,
+  ~ all(rle(.)$lengths == 1))
 ```
 
 ---
@@ -198,7 +212,7 @@ Use one of its friends instead: `map_dbl()`, `map_lgl()`, `map_int()`, `map_chr(
 
 **Your turn**: Swap out `map()` for the appropriate function
 
-```{r}
+```{r, results = "hide"}
 map_lgl(many_reorderings, ~ all(rle(.x)$lengths == 1))
 ```
 

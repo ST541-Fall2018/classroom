@@ -192,16 +192,9 @@ $(document).ready(function () {
 <div id="missisippi" class="section level2">
 <h2>Missisippi</h2>
 <p>Consider the 11 letters in the word <em>Mississippi</em>.</p>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ───────────────────────────────── tidyverse 1.2.1 ──</code></pre>
-<pre><code>## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
-## ✔ tibble  1.4.2     ✔ dplyr   0.7.5
-## ✔ tidyr   0.8.1     ✔ stringr 1.3.1
-## ✔ readr   1.1.1     ✔ forcats 0.3.0</code></pre>
-<pre><code>## ── Conflicts ──────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>(mi_letters &lt;- str_split(&quot;Mississippi&quot;, &quot;&quot;)[[1]])</code></pre>
+<pre class="r"><code>library(tidyverse)
+(mi_letters &lt;- str_split(&quot;Mississippi&quot;, &quot;&quot;)[[1]])</code></pre>
+<pre><code>##  [1] &quot;M&quot; &quot;i&quot; &quot;s&quot; &quot;s&quot; &quot;i&quot; &quot;s&quot; &quot;s&quot; &quot;i&quot; &quot;p&quot; &quot;p&quot; &quot;i&quot;</code></pre>
 <p>What is the probability that no adjacent letters are the same, in a random reordering of the letters?</p>
 <p><em>Taken from Tijms, Henk. Probability: A Lively Introduction. Cambridge University Press, 2017.</em></p>
 <p><strong>Your Turn</strong>:</p>
@@ -254,6 +247,7 @@ $(document).ready(function () {
 <h2>One Mississippi</h2>
 <p>Step 1: How do we get <strong>a</strong> random reordering of the letters in Mississippi?</p>
 <pre class="r"><code>sample(mi_letters)</code></pre>
+<pre><code>##  [1] &quot;p&quot; &quot;i&quot; &quot;M&quot; &quot;s&quot; &quot;i&quot; &quot;p&quot; &quot;s&quot; &quot;s&quot; &quot;i&quot; &quot;s&quot; &quot;i&quot;</code></pre>
 <hr />
 </div>
 <div id="samplex-size-replace-false" class="section level2">
@@ -263,6 +257,7 @@ $(document).ready(function () {
 </blockquote>
 <p>– <code>?sample</code></p>
 <pre class="r"><code>(one_reordering &lt;- sample(mi_letters))</code></pre>
+<pre><code>##  [1] &quot;s&quot; &quot;i&quot; &quot;p&quot; &quot;i&quot; &quot;s&quot; &quot;i&quot; &quot;i&quot; &quot;M&quot; &quot;s&quot; &quot;p&quot; &quot;s&quot;</code></pre>
 <hr />
 </div>
 <div id="two-mississippi" class="section level2">
@@ -270,36 +265,47 @@ $(document).ready(function () {
 <p>Step 2: Given a reordering, does it have letters next to each other that are the same? We want <code>TRUE</code> when no adjacent letters match.</p>
 <p>The <code>rle()</code> function will be very useful.</p>
 <p><strong>What does it do?</strong></p>
-<pre class="r"><code>one_reordering
-rle(one_reordering)</code></pre>
+<pre class="r"><code>one_reordering</code></pre>
+<pre><code>##  [1] &quot;s&quot; &quot;i&quot; &quot;p&quot; &quot;i&quot; &quot;s&quot; &quot;i&quot; &quot;i&quot; &quot;M&quot; &quot;s&quot; &quot;p&quot; &quot;s&quot;</code></pre>
+<pre class="r"><code>rle(one_reordering)</code></pre>
+<pre><code>## Run Length Encoding
+##   lengths: int [1:10] 1 1 1 1 1 2 1 1 1 1
+##   values : chr [1:10] &quot;s&quot; &quot;i&quot; &quot;p&quot; &quot;i&quot; &quot;s&quot; &quot;i&quot; &quot;M&quot; &quot;s&quot; &quot;p&quot; &quot;s&quot;</code></pre>
 <p><strong>How can we use it?</strong></p>
-<pre class="r"><code>rle(one_reordering)$lengths
-?rle
-rel_one &lt;- rle(one_reordering) 
-rel_one$lengths
+<p>Look for any lengths greater than 2.</p>
+<p>How do you get out the lengths? Some strategies:</p>
+<pre class="r"><code>rle(one_reordering)$lengths # guess
 
-# look for any runs greater than length 1
-length(rle(one_reordering)$lengths) == length(one_reordering)
+?rle # read the Value section 
 
+rel_one &lt;- rle(one_reordering) # save  
+rel_one$lengths # then rely on RStudio completion
+
+# use str()
+str(one_reordering)</code></pre>
+<p>Now find out if any are greater than 1. My approach:</p>
+<pre class="r"><code>all(rle(one_reordering)$lengths == 1)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<p>Some other approaches</p>
+<pre class="r"><code>length(rle(one_reordering)$lengths) == length(one_reordering)
 !(mean(rle(one_reordering)$lengths) &gt; 1)
-
-max(rle(one_reordering)$lengths) == 1
-
-all(rle(one_reordering)$lengths == 1)</code></pre>
+max(rle(one_reordering)$lengths) == 1</code></pre>
 <hr />
 </div>
 <div id="so-far" class="section level2">
 <h2>So far</h2>
+<p><strong>Back at 9:01am</strong></p>
 <pre class="r"><code>one_reordering &lt;- sample(mi_letters) # One example
 
 # Fill in this bit in class
 all(rle(one_reordering)$lengths == 1)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
 <hr />
 </div>
 <div id="scaling-up---many-examples-with-rerun" class="section level2">
 <h2>Scaling up - many examples with <code>rerun()</code></h2>
 <p>The first argument is the number of times you’d like to repeat the evaluation of the second argument.</p>
-<pre class="r"><code>many_reorderings &lt;- rerun(10, sample(mi_letters))</code></pre>
+<pre class="r"><code>many_reorderings &lt;- rerun(.n = 1000, sample(mi_letters))</code></pre>
 <p><strong>Your turn</strong> Take a look at the object <code>many_reorderings</code>. What kind of object is it? Generate 1000 reorderings instead.</p>
 <hr />
 </div>
@@ -310,7 +316,8 @@ all(rle(one_reordering)$lengths == 1)</code></pre>
 <li><p>First argument is the object you want to iterate over, <code>many_reorderings</code></p></li>
 <li><p>Second argument describes what you want to do. One way, specify a formula (starts with <code>~</code>) using <code>.</code> as a placeholder for a single example: <code>~ any(rle(.)$lengths &gt; 1</code></p></li>
 </ol>
-<pre class="r"><code>map(many_reorderings, ~ all(rle(.x)$lengths == 1))</code></pre>
+<pre class="r"><code>map(many_reorderings,
+  ~ all(rle(.)$lengths == 1))</code></pre>
 <hr />
 </div>
 <div id="map-returns-a-list" class="section level2">
@@ -328,8 +335,12 @@ adj_letters_same &lt;- map_lgl(many_reorderings,
   ~ all(rle(.x)$lengths == 1))
 
 # Explore 
-adj_letters_same %&gt;% table()
-adj_letters_same %&gt;% mean()</code></pre>
+adj_letters_same %&gt;% table()</code></pre>
+<pre><code>## .
+## FALSE  TRUE 
+##   940    60</code></pre>
+<pre class="r"><code>adj_letters_same %&gt;% mean()</code></pre>
+<pre><code>## [1] 0.06</code></pre>
 <hr />
 </div>
 <div id="your-turn" class="section level2">
