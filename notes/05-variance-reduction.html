@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Variance Reduction</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Variance Reduction</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Oct 4th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#finish-last-times-slides">Finish last times slides</a><ul>
+<li><a href="#what-about-empirical-comparisons-of-variance">What about empirical comparisons of variance?</a></li>
+<li><a href="#simulating-to-find-the-variance-of-a-simulation-estimate">Simulating to find the variance of a simulation estimate</a></li>
+<li><a href="#take-the-same-approach">Take the same approach</a></li>
+<li><a href="#your-turn">Your turn</a></li>
+<li><a href="#careful-with-n">Careful with <span class="math inline">\(n\)</span></a></li>
+</ul></li>
+<li><a href="#variance-reduction">Variance Reduction</a></li>
+<li><a href="#antithetic-variables">Antithetic variables</a><ul>
+<li><a href="#an-example">An example</a></li>
+<li><a href="#the-antithetic-variable-approach">The antithetic variable approach</a></li>
+<li><a href="#antithetic-variables-takeaways">Antithetic variables takeaways</a></li>
+</ul></li>
+<li><a href="#next-week-reading">Next week reading</a></li>
+</ul>
+</div>
+
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ──────────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
+## ✔ tibble  1.4.2     ✔ dplyr   0.7.5
+## ✔ tidyr   0.8.1     ✔ stringr 1.3.1
+## ✔ readr   1.1.1     ✔ forcats 0.3.0</code></pre>
+<pre><code>## ── Conflicts ─────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>set.seed(101991)</code></pre>
+<div id="finish-last-times-slides" class="section level1">
+<h1>Finish last times slides</h1>
+<div id="what-about-empirical-comparisons-of-variance" class="section level2">
+<h2>What about empirical comparisons of variance?</h2>
+<p>When our parameter of interest can be written as an expectation, we can use the CLT to guide us in quantifying the variance in our estimate.</p>
+<p>But sometimes this might not be enough if:</p>
+<ol style="list-style-type: decimal">
+<li>We aren’t convinced the CLT has kicked in</li>
+<li>We aren’t in a situation where the CLT applies (we aren’t using a sample average)</li>
+</ol>
+<p>We could use simulation to estimate it…</p>
+</div>
+<div id="simulating-to-find-the-variance-of-a-simulation-estimate" class="section level2">
+<h2>Simulating to find the variance of a simulation estimate</h2>
+<p>One estimate of the required expectation:</p>
+<pre class="r"><code>num_sims &lt;- 1000
+many_sequences &lt;- rerun(num_sims, 
+  rbinom(20, size = 1, prob = 0.5))
+longest_runs &lt;- map_dbl(many_sequences, 
+  ~ max(rle(.)$lengths))
+mean(longest_runs)</code></pre>
+<pre><code>## [1] 4.657</code></pre>
+<p>Another…</p>
+<pre class="r"><code>many_sequences &lt;- rerun(num_sims, 
+  rbinom(20, size = 1, prob = 0.5))
+longest_runs &lt;- map_dbl(many_sequences, 
+  ~ max(rle(.)$lengths))
+mean(longest_runs)</code></pre>
+<pre><code>## [1] 4.662</code></pre>
+<p>But…really we want to automate this.</p>
+</div>
+<div id="take-the-same-approach" class="section level2">
+<h2>Take the same approach</h2>
+<ol style="list-style-type: decimal">
+<li>Simulate: repeat the prior simulation many times, each time getting an estimate of the desired expectation: <code>mean(longest_runs)</code></li>
+<li>Calculate: nothing extra to do (<code>flatten_dbl()</code>)</li>
+<li>Summarize: sample variance of estimated expectations</li>
+</ol>
+<p>The first step is now simulating a complicated thing, so wrap it up into a function:</p>
+<pre class="r"><code>mc_estimate_run_length &lt;- function(num_sims){
+  many_sequences &lt;- rerun(num_sims, 
+    rbinom(20, size = 1, prob = 0.5))
+  longest_runs &lt;- map_dbl(many_sequences, 
+    ~ max(rle(.)$lengths))
+  mean(longest_runs)
+}
+mc_estimate_run_length(num_sims = 1000)</code></pre>
+<pre><code>## [1] 4.608</code></pre>
+<pre class="r"><code>many_estimates &lt;- rerun(500, mc_estimate_run_length(num_sims = 1000))
+many_estimates_flat &lt;- many_estimates %&gt;% flatten_dbl() 
+sd(many_estimates_flat)</code></pre>
+<pre><code>## [1] 0.04846478</code></pre>
+<p>Compares well to our estimate that relied on the CLT (it should, the CLT should be pretty good for <span class="math inline">\(n = 1000\)</span>)</p>
+</div>
+<div id="your-turn" class="section level2">
+<h2>Your turn</h2>
+<p>Estimate the standard deviation of our MC based estimate, when we simulate just 250 coin toss sequences in each simulation.</p>
+<p>Does you answer agree with what the CLT might predict?</p>
+</div>
+<div id="careful-with-n" class="section level2">
+<h2>Careful with <span class="math inline">\(n\)</span></h2>
+<p>Lot’s of sample sizes floating around:</p>
+<ul>
+<li>500 the number of simulations we use to estimate the variance</li>
+<li>1000 the number of simulations of coin toss sequences in each estimate of the expectation</li>
+<li>20 the number of coins flipped</li>
+</ul>
+<p>(that’s 10 million coin flips total)</p>
+</div>
+</div>
+<div id="variance-reduction" class="section level1">
+<h1>Variance Reduction</h1>
+<p>An collection of techniques designed to decrease the variance of our simulation based estimate.</p>
+<p>I.e. we can get just as good an estimate with many fewer simulations.</p>
+<ul>
+<li>Antithetic variables</li>
+<li>Importance sampling</li>
+<li>Common random numbers</li>
+<li>Control variates</li>
+<li>Stratified sampling</li>
+</ul>
+</div>
+<div id="antithetic-variables" class="section level1">
+<h1>Antithetic variables</h1>
+<p><strong>Setting:</strong></p>
+<p>We want to estimate: <span class="math display">\[
+  \theta = \text{E}\left( h(X)\right)
+\]</span></p>
+<p>We do this by:</p>
+<ol style="list-style-type: decimal">
+<li><p>Sampling <span class="math inline">\(X_1, \ldots, X_n\)</span> i.i.d from distribution <span class="math inline">\(F_X\)</span>.</p></li>
+<li><p>Calculating <span class="math inline">\(h(X_1), \ldots, h(X_n)\)</span>.</p></li>
+<li><p>Finding the sample mean of the <span class="math inline">\(h(X_i)\)</span>, i.e. <span class="math display">\[
+\hat{\theta} = \frac{1}{n}\sum_{i = 1}^n h(X_i)
+\]</span></p></li>
+</ol>
+<p><strong>Idea:</strong></p>
+<p>Instead of generating <span class="math inline">\(X_i\)</span> independently, generate them in pairs, use the sample average of the pair averages.</p>
+<p><strong>Intuition:</strong></p>
+<p>The average of a pair of simulated values, <span class="math display">\[
+\text{Var} \left(\frac{1}{2} \left(X_1 + X_2\right) \right)= 
+\frac{1}{2} \left( \text{Var}(X_1) + \text{Var}(X_2) + 2 \text{Cov}(X_1, X_2) \right)
+\]</span> will be smaller than the average of two independently simulated values, if <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span> are negatively correlated, i.e. <span class="math inline">\(\text{Cov}(X_1, X_2) &lt; 0\)</span>.</p>
+<p><strong>But really…</strong></p>
+<p>We actually we are interested in: <span class="math display">\[
+\text{Var}\left(\frac{1}{2} \left(h(X_1) + h(X_2)\right) \right )
+\]</span></p>
+<p>It can be shown if <span class="math inline">\(h\)</span> is monotonic that above relationship still holds: this variance will be less than the average of two independently simulated values, as long as <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span> are negatively correlated.</p>
+<div id="an-example" class="section level2">
+<h2>An example</h2>
+<p>Let <span class="math inline">\(X \sim\)</span> Uniform(0, 1). What is <span class="math inline">\(\text{E}\left(e^x\right)\)</span>?</p>
+<p>(We could answer this with calculus quite easily…but it’s a nice example to work with)</p>
+<p>The naive MC approach:</p>
+<pre class="r"><code>n_sims &lt;- 500
+many_x &lt;- runif(n_sims)
+exp_many_x &lt;- exp(many_x)
+mean(exp_many_x) # our estimate of E(e^x)</code></pre>
+<pre><code>## [1] 1.717975</code></pre>
+<pre class="r"><code># rough CI half-width on this estimate
+(naive_ci_halfwidth &lt;- 2*sd(exp_many_x)/sqrt(n_sims))</code></pre>
+<pre><code>## [1] 0.04533721</code></pre>
+<p>(Don’t need <code>rerun()</code> here, it’s easy to get many samples from a Uniform)</p>
+</div>
+<div id="the-antithetic-variable-approach" class="section level2">
+<h2>The antithetic variable approach</h2>
+<p><span class="math inline">\(h(X) = e^x\)</span> is monotone in <span class="math inline">\(x\)</span>.</p>
+<p>So, we should be able to reduce variance by generating pairs of negatively correlated draws from a Uniform(0, 1).</p>
+<p>One set of pairs: <span class="math inline">\((X, 1-X)\)</span> where <span class="math inline">\(X \sim\)</span> Uniform(0, 1)</p>
+<p>Both <span class="math inline">\(X\)</span> and <span class="math inline">\(1-X\)</span> have the right distribution and are negatively correlated.</p>
+<pre class="r"><code>x_first_in_pair &lt;- runif(n_sims/2) # need half as many draws
+x_second_in_pair &lt;- 1 - x_first_in_pair
+
+# a useful function in this example
+pair_average &lt;- function(x1, x2){
+  1/2 * (x1 + x2)
+}
+
+pair_averages &lt;- pair_average(x1 = exp(x_first_in_pair), 
+  x2 = exp(x_second_in_pair))
+
+mean(pair_averages) # our estimate of E(e^x)</code></pre>
+<pre><code>## [1] 1.717152</code></pre>
+<pre class="r"><code># rough CI half-width on this estimate
+(antithetic_ci_half_width &lt;- 2*sd(pair_averages)/sqrt(n_sims/2))</code></pre>
+<pre><code>## [1] 0.008014266</code></pre>
+<p>6 times smaller!</p>
+</div>
+<div id="antithetic-variables-takeaways" class="section level2">
+<h2>Antithetic variables takeaways</h2>
+<ul>
+<li>Need to be in a setting where the <span class="math inline">\(\text{E}(h(X))\)</span> is of interest</li>
+<li><span class="math inline">\(h(x)\)</span> needs to be monotone</li>
+<li>Can get big variance reductions</li>
+<li>You might only need to sample half as many points</li>
+</ul>
+</div>
+</div>
+<div id="next-week-reading" class="section level1">
+<h1>Next week reading</h1>
+<p>Wilson G, Bryan J, Cranston K, Kitzes J, Nederbragt L, et al. (2017) <em>Good enough practices in scientific computing.</em> PLOS Computational Biology 13(6): e1005510. <a href="https://doi.org/10.1371/journal.pcbi.1005510" class="uri">https://doi.org/10.1371/journal.pcbi.1005510</a></p>
+<blockquote>
+<p>a minimum set of tools and techniques that we believe every researcher can and should consider adopting.</p>
+</blockquote>
+<p>Read the Author summary, Overview, Introduction and Software sections.</p>
+<p>You may also want to review some things we touched on in class about functions in R:</p>
+<ul>
+<li><a href="http://r4ds.had.co.nz/functions.html#function-arguments">Provide defaults for detail arguments not data arguments</a></li>
+<li><a href="http://r4ds.had.co.nz/functions.html#choosing-names">Choosing names for arguments is important too</a></li>
+<li><a href="http://r4ds.had.co.nz/functions.html#dot-dot-dot">… dot-dot-dot</a></li>
+<li><a href="http://r4ds.had.co.nz/functions.html#environment">Functions can find variables in the global environment</a></li>
+</ul>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

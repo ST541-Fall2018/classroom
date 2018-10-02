@@ -29,6 +29,12 @@
 ### Week 2
 
 * Oct 2 [**Functions**](notes/04-functions-sim-size.html) ([Rmd](notes/04-functions-sim-size.Rmd))  [Pre-lecture reading](readings.html#week-2)
+* Oct 4 [**Variance Reduction**](notes/05-variance-reduction.html) ([Rmd](notes/05-variance-reduction.Rmd))  
+
+### Week 3
+
+* Oct 11 **More complicated simulations** [Pre-lecture reading](readings.html#week-3)
+
 
 ## Credits
 
