@@ -45,3 +45,21 @@ Be prepared to answer:
 
 * What are the three key steps to writing a function?
 * Do exercise 19.2.1 #3
+
+## Week 3
+
+Pre-lecture reading:
+
+Wilson G, Bryan J, Cranston K, Kitzes J, Nederbragt L, et al. (2017) *Good enough practices in scientific computing.* PLOS Computational Biology 13(6): e1005510. https://doi.org/10.1371/journal.pcbi.1005510
+
+> a minimum set of tools and techniques that we believe every researcher can and should consider adopting.
+
+Read the Author summary, Overview, Introduction and Software sections.
+
+You may also want to review some things we touched on in class about functions in R:
+
+* [Provide defaults for detail arguments not data arguments](http://r4ds.had.co.nz/functions.html#function-arguments)
+* [Choosing names for arguments is important too](http://r4ds.had.co.nz/functions.html#choosing-names)
+* [... dot-dot-dot](http://r4ds.had.co.nz/functions.html#dot-dot-dot)
+* [Functions can find variables in the global environment](http://r4ds.had.co.nz/functions.html#environment)
+
