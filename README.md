@@ -28,7 +28,7 @@
 
 ### Week 2
 
-* Oct 2 **Functions**  [Pre-lecture reading](readings.html#week-2)
+* Oct 2 [**Functions**](notes/04-functions-sim-size.html) ([Rmd](notes/04-functions-sim-size.Rmd))  [Pre-lecture reading](readings.html#week-2)
 
 ## Credits
 
