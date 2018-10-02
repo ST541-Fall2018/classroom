@@ -39,8 +39,7 @@ Be prepared to answer:
 
 Pre-lecture reading:
 
-[Functions in R4DS](r4ds.had.co.nz/functions.html
-) 19.1 through and including 19.3  *(If you are on a roll keep reading...)*
+[Functions in R4DS](http://r4ds.had.co.nz/functions.html) 19.1 through and including 19.3  *(If you are on a roll keep reading...)*
 
 Be prepared to answer:
 

@@ -266,8 +266,7 @@ You can do 1. and 2. with `for` loops, but the purrr functions abstract away the
 
 ## Reading for next week
 
-[Functions in R4DS](r4ds.had.co.nz/functions.html
-) 19.1 through and including 19.3
+[Functions in R4DS](http://r4ds.had.co.nz/functions.html) 19.1 through and including 19.3
 
 (If you are on a roll keep reading...)
 
