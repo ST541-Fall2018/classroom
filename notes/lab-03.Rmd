@@ -1,0 +1,162 @@
+---
+title: Lab 03 - Importance Sampling
+author: Charlotte Wickham
+date: Oct 5th 2018
+---
+
+```{r setup, message=FALSE}
+library(tidyverse)
+set.seed(5739)
+```
+
+## Learning Objectives
+
+In class we saw one method for decreasing the variance of a Monte Carlo estimate - antithetic variables.  In lab today you'll see another - importance sampling.
+
+Importance sampling is very closely related to the idea of rejection sampling you saw in lab last week.  Rather than throw away samples, in importance sampling we include them, but weight them in an appropriate manner so our final estimate reflects the desired density.
+
+By the end of this lab you should be able to:
+
+* Describe the steps in Importance sampling
+* Highlight the differences between Rejection Sampling and Importance Sampling
+* Provide some intuition for when Importance Sampling might provide variance reduction
+* Estimate the variance of a simulation based estimator
+
+If you want more details see Section 9.6 in [Simulation](https://ebookcentral.proquest.com/lib/osu/detail.action?docID=1044919) by Ross.
+  
+## Setting
+
+As in class this week, we'll imagine we are in a setting where we want to estimate:
+$$
+  \theta = \text{E}\left( h(X)\right)
+$$
+where $X$ is a random variable with density $f(x)$ (or equivalently c.d.f $F(x)$).
+
+To mirror last week's lab, you'll work through an example using the same desired distribution, i.e. let $X$ be a random variable with p.d.f:
+$$
+f(x) = 20 x (1 - x)^3, \quad 0 < x < 1
+$$
+(It turns out this is a Beta(2, 4), a fact we will use soon).
+
+And let's say you are interested in estimating
+$$
+p = P(X^2 > 0.8) = \text{E}(h(X))
+$$
+where 
+$$
+h(X) = \begin{cases}
+1, \quad \text{when } X^2 > 0.8 \\
+0, \quad \text{otherwise}
+\end{cases}
+$$
+
+## Motivation
+
+The naive approach would be to sample many $X$ from their distribution, 
+```{r}
+num_sims <- 1000
+x <- rbeta(num_sims, shape1 = 2, shape2 = 4)
+```
+
+Then transform each sample using $h()$, and take the sample mean:
+```{r}
+mean(x^2 > 0.8)
+```
+In this case, none of our samples satisfy $X^2 > 0.8$, and our estimate for $p$ is exactly 0.  Because the event of interest is very rare, we happened to get no instances of the event.  This is a situation where importance sampling excels.  We'll sample from another distribution where this event is more likely, then rescale in an appropriate way.  
+
+
+## Intuition
+
+Importance sampling proceeds much like rejection sampling, in that we have a proposal and target distribution.  Our target distribution is the distribution of our random variable $X$, here $f(x)$.  The proposal distribution, $g(x)$, could be chosen because it is much easier to sample from than $f(x)$, or more importantly here, chosen to reduce the variance in our estimate.
+
+Samples are taken from the proposal density, $g(x)$, and transformed by $h()$, our function of interest, then when it comes time to take the sample average to estimate the expectation, a weighted average is used, to downweight the samples that more likely under $g(x)$ than $f(x)$, and upweight the samples that are more likely under $f(x)$ than $g(x)$. 
+
+This will often lead to variance reduction when $g(x)$ results in more samples in the area of interest than a sample from $f(x)$.
+
+## Algorithm
+
+To estimate $\theta = \text{E}(h(X))$ where $X$ has p.d.f $f(X)$
+
+1. Sample $Y_1, \ldots, Y_n$ with p.d.f $g(x)$
+2. Calculate weights $w_i = \frac{f(Y_i)}{g(Y_i)}, \, i= 1, \ldots, n$.
+3. Estimate $\theta$:
+    
+    $$
+    \hat{\theta} = \frac{\sum_{i = 1}^{n}h(Y_i)w_i}{\sum_{i = 1}^{n}w_i}
+    $$
+
+## Sampling from the proposal
+
+Let's use a Uniform(0, 1) as our proposal density, and simulate many draws:
+```{r}
+Y <- runif(num_sims)
+```
+
+This should work well for variance reduction because samples from this distribution are more likely to satisfy our event.  In fact, `r mean(Y^2 > 0.8)*100`% of samples in this particular $Y$, satisfy $Y^2 > 0.8$. 
+
+**Can you derive what percentage of Uniform(0, 1) samples you would expect to satisfy the event?**
+
+## Deriving weights
+
+The weights required are a ratio of the target to proposal densities evaluated at the samples:
+```{r}
+weights <- dbeta(Y, shape1 = 2, shape2 = 4)/dunif(Y)
+```
+
+## Estimate
+
+Finally we estimate the desired expectation as a weighted average of $h(Y)$, using the built in `weighted.mean()` function:
+```{r}
+weighted.mean(Y^2 > 0.8, w = weights)
+```
+
+Not exactly zero, which is already an improvement.
+
+## How much less variable is the importance sampling estimate?
+
+**Brainstorm how we might compare the variability of the two estimates: the naive MC estimate, and the importance sampling estimate.**
+
+To empirically compare the standard deviation of the two approaches, we could simulate getting the estimates many times, and find a sample standard deviation of the many estimates.
+
+To do so, we'll use the same structure we've been using in class.  Let's first wrap up our naive estimate into a function.
+
+**You might try writing `naive_mc_estimate()` yourself before looking at the code below**
+
+```{r}
+naive_mc_estimate <- function(n_sims){
+  X <- rbeta(n_sims, shape1 = 2, shape2 = 4)
+  mean(X^2 > 0.8)
+}
+```
+
+
+We can do the same thing for the importance sampling estimate:
+```{r}
+importance_sampling_estimate <- function(num_sims){
+  Y <- runif(num_sims)
+  weights <- dbeta(Y, shape1 = 2, shape2 = 4)/dunif(Y)
+  weighted.mean(Y^2 > 0.8, weights)
+}
+```
+
+Then estimating the standard deviation for each is just a matter of combining `rerun()`, `flatten_dbl()` and `sd()`
+```{r}
+naive_estimates <- rerun(1000, 
+    naive_mc_estimate(1000))%>% 
+  flatten_dbl() 
+sd(naive_estimates)
+```
+
+```{r}
+importance_estimates <- rerun(1000, 
+    importance_sampling_estimate(1000)) %>% 
+  flatten_dbl() 
+sd(importance_estimates)
+```
+
+**Your turn**
+
+* Are the two methods both estimating the same probability?  What can you look at to give evidence of this?
+* How much smaller is the variance using importance sampling? How many samples using the naive method would you need to get a similar variance?
+* What if $X \sim$ Beta(8, 2)?  Do you think importance sampling with a Uniform proposal would still decrease the variance?
+* **Challenge** How could the two estimation functions be written to accept other proposal densities $g(x)$, target densities $g(x)$, or functions of interest $h(x)$?

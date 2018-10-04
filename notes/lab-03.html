@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Lab 03 - Importance Sampling</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Lab 03 - Importance Sampling</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Oct 5th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#learning-objectives">Learning Objectives</a></li>
+<li><a href="#setting">Setting</a></li>
+<li><a href="#motivation">Motivation</a></li>
+<li><a href="#intuition">Intuition</a></li>
+<li><a href="#algorithm">Algorithm</a></li>
+<li><a href="#sampling-from-the-proposal">Sampling from the proposal</a></li>
+<li><a href="#deriving-weights">Deriving weights</a></li>
+<li><a href="#estimate">Estimate</a></li>
+<li><a href="#how-much-less-variable-is-the-importance-sampling-estimate">How much less variable is the importance sampling estimate?</a></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+set.seed(5739)</code></pre>
+<div id="learning-objectives" class="section level2">
+<h2>Learning Objectives</h2>
+<p>In class we saw one method for decreasing the variance of a Monte Carlo estimate - antithetic variables. In lab today you’ll see another - importance sampling.</p>
+<p>Importance sampling is very closely related to the idea of rejection sampling you saw in lab last week. Rather than throw away samples, in importance sampling we include them, but weight them in an appropriate manner so our final estimate reflects the desired density.</p>
+<p>By the end of this lab you should be able to:</p>
+<ul>
+<li>Describe the steps in Importance sampling</li>
+<li>Highlight the differences between Rejection Sampling and Importance Sampling</li>
+<li>Provide some intuition for when Importance Sampling might provide variance reduction</li>
+<li>Estimate the variance of a simulation based estimator</li>
+</ul>
+<p>If you want more details see Section 9.6 in <a href="https://ebookcentral.proquest.com/lib/osu/detail.action?docID=1044919">Simulation</a> by Ross.</p>
+</div>
+<div id="setting" class="section level2">
+<h2>Setting</h2>
+<p>As in class this week, we’ll imagine we are in a setting where we want to estimate: <span class="math display">\[
+  \theta = \text{E}\left( h(X)\right)
+\]</span> where <span class="math inline">\(X\)</span> is a random variable with density <span class="math inline">\(f(x)\)</span> (or equivalently c.d.f <span class="math inline">\(F(x)\)</span>).</p>
+<p>To mirror last week’s lab, you’ll work through an example using the same desired distribution, i.e. let <span class="math inline">\(X\)</span> be a random variable with p.d.f: <span class="math display">\[
+f(x) = 20 x (1 - x)^3, \quad 0 &lt; x &lt; 1
+\]</span> (It turns out this is a Beta(2, 4), a fact we will use soon).</p>
+<p>And let’s say you are interested in estimating <span class="math display">\[
+p = P(X^2 &gt; 0.8) = \text{E}(h(X))
+\]</span> where <span class="math display">\[
+h(X) = \begin{cases}
+1, \quad \text{when } X^2 &gt; 0.8 \\
+0, \quad \text{otherwise}
+\end{cases}
+\]</span></p>
+</div>
+<div id="motivation" class="section level2">
+<h2>Motivation</h2>
+<p>The naive approach would be to sample many <span class="math inline">\(X\)</span> from their distribution,</p>
+<pre class="r"><code>num_sims &lt;- 1000
+x &lt;- rbeta(num_sims, shape1 = 2, shape2 = 4)</code></pre>
+<p>Then transform each sample using <span class="math inline">\(h()\)</span>, and take the sample mean:</p>
+<pre class="r"><code>mean(x^2 &gt; 0.8)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>In this case, none of our samples satisfy <span class="math inline">\(X^2 &gt; 0.8\)</span>, and our estimate for <span class="math inline">\(p\)</span> is exactly 0. Because the event of interest is very rare, we happened to get no instances of the event. This is a situation where importance sampling excels. We’ll sample from another distribution where this event is more likely, then rescale in an appropriate way.</p>
+</div>
+<div id="intuition" class="section level2">
+<h2>Intuition</h2>
+<p>Importance sampling proceeds much like rejection sampling, in that we have a proposal and target distribution. Our target distribution is the distribution of our random variable <span class="math inline">\(X\)</span>, here <span class="math inline">\(f(x)\)</span>. The proposal distribution, <span class="math inline">\(g(x)\)</span>, could be chosen because it is much easier to sample from than <span class="math inline">\(f(x)\)</span>, or more importantly here, chosen to reduce the variance in our estimate.</p>
+<p>Samples are taken from the proposal density, <span class="math inline">\(g(x)\)</span>, and transformed by <span class="math inline">\(h()\)</span>, our function of interest, then when it comes time to take the sample average to estimate the expectation, a weighted average is used, to downweight the samples that more likely under <span class="math inline">\(g(x)\)</span> than <span class="math inline">\(f(x)\)</span>, and upweight the samples that are more likely under <span class="math inline">\(f(x)\)</span> than <span class="math inline">\(g(x)\)</span>.</p>
+<p>This will often lead to variance reduction when <span class="math inline">\(g(x)\)</span> results in more samples in the area of interest than a sample from <span class="math inline">\(f(x)\)</span>.</p>
+</div>
+<div id="algorithm" class="section level2">
+<h2>Algorithm</h2>
+<p>To estimate <span class="math inline">\(\theta = \text{E}(h(X))\)</span> where <span class="math inline">\(X\)</span> has p.d.f <span class="math inline">\(f(X)\)</span></p>
+<ol style="list-style-type: decimal">
+<li>Sample <span class="math inline">\(Y_1, \ldots, Y_n\)</span> with p.d.f <span class="math inline">\(g(x)\)</span></li>
+<li>Calculate weights <span class="math inline">\(w_i = \frac{f(Y_i)}{g(Y_i)}, \, i= 1, \ldots, n\)</span>.</li>
+<li><p>Estimate <span class="math inline">\(\theta\)</span>:</p>
+<p><span class="math display">\[
+\hat{\theta} = \frac{\sum_{i = 1}^{n}h(Y_i)w_i}{\sum_{i = 1}^{n}w_i}
+\]</span></p></li>
+</ol>
+</div>
+<div id="sampling-from-the-proposal" class="section level2">
+<h2>Sampling from the proposal</h2>
+<p>Let’s use a Uniform(0, 1) as our proposal density, and simulate many draws:</p>
+<pre class="r"><code>Y &lt;- runif(num_sims)</code></pre>
+<p>This should work well for variance reduction because samples from this distribution are more likely to satisfy our event. In fact, 11% of samples in this particular <span class="math inline">\(Y\)</span>, satisfy <span class="math inline">\(Y^2 &gt; 0.8\)</span>.</p>
+<p><strong>Can you derive what percentage of Uniform(0, 1) samples you would expect to satisfy the event?</strong></p>
+</div>
+<div id="deriving-weights" class="section level2">
+<h2>Deriving weights</h2>
+<p>The weights required are a ratio of the target to proposal densities evaluated at the samples:</p>
+<pre class="r"><code>weights &lt;- dbeta(Y, shape1 = 2, shape2 = 4)/dunif(Y)</code></pre>
+</div>
+<div id="estimate" class="section level2">
+<h2>Estimate</h2>
+<p>Finally we estimate the desired expectation as a weighted average of <span class="math inline">\(h(Y)\)</span>, using the built in <code>weighted.mean()</code> function:</p>
+<pre class="r"><code>weighted.mean(Y^2 &gt; 0.8, w = weights)</code></pre>
+<pre><code>## [1] 0.0006193977</code></pre>
+<p>Not exactly zero, which is already an improvement.</p>
+</div>
+<div id="how-much-less-variable-is-the-importance-sampling-estimate" class="section level2">
+<h2>How much less variable is the importance sampling estimate?</h2>
+<p><strong>Brainstorm how we might compare the variability of the two estimates: the naive MC estimate, and the importance sampling estimate.</strong></p>
+<p>To empirically compare the standard deviation of the two approaches, we could simulate getting the estimates many times, and find a sample standard deviation of the many estimates.</p>
+<p>To do so, we’ll use the same structure we’ve been using in class. Let’s first wrap up our naive estimate into a function.</p>
+<p><strong>You might try writing <code>naive_mc_estimate()</code> yourself before looking at the code below</strong></p>
+<pre class="r"><code>naive_mc_estimate &lt;- function(n_sims){
+  X &lt;- rbeta(n_sims, shape1 = 2, shape2 = 4)
+  mean(X^2 &gt; 0.8)
+}</code></pre>
+<p>We can do the same thing for the importance sampling estimate:</p>
+<pre class="r"><code>importance_sampling_estimate &lt;- function(num_sims){
+  Y &lt;- runif(num_sims)
+  weights &lt;- dbeta(Y, shape1 = 2, shape2 = 4)/dunif(Y)
+  weighted.mean(Y^2 &gt; 0.8, weights)
+}</code></pre>
+<p>Then estimating the standard deviation for each is just a matter of combining <code>rerun()</code>, <code>flatten_dbl()</code> and <code>sd()</code></p>
+<pre class="r"><code>naive_estimates &lt;- rerun(1000, 
+    naive_mc_estimate(1000))%&gt;% 
+  flatten_dbl() 
+sd(naive_estimates)</code></pre>
+<pre><code>## [1] 0.0007384418</code></pre>
+<pre class="r"><code>importance_estimates &lt;- rerun(1000, 
+    importance_sampling_estimate(1000)) %&gt;% 
+  flatten_dbl() 
+sd(importance_estimates)</code></pre>
+<pre><code>## [1] 8.357217e-05</code></pre>
+<p><strong>Your turn</strong></p>
+<ul>
+<li>Are the two methods both estimating the same probability? What can you look at to give evidence of this?</li>
+<li>How much smaller is the variance using importance sampling? How many samples using the naive method would you need to get a similar variance?</li>
+<li>What if <span class="math inline">\(X \sim\)</span> Beta(8, 2)? Do you think importance sampling with a Uniform proposal would still decrease the variance?</li>
+<li><strong>Challenge</strong> How could the two estimation functions be written to accept other proposal densities <span class="math inline">\(g(x)\)</span>, target densities <span class="math inline">\(g(x)\)</span>, or functions of interest <span class="math inline">\(h(x)\)</span>?</li>
+</ul>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

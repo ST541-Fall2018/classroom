@@ -30,6 +30,7 @@
 
 * Oct 2 [**Functions**](notes/04-functions-sim-size.html) ([Rmd](notes/04-functions-sim-size.Rmd))  [Pre-lecture reading](readings.html#week-2)
 * Oct 4 [**Variance Reduction**](notes/05-variance-reduction.html) ([Rmd](notes/05-variance-reduction.Rmd))  
+* Oct 5 [**Lab 03**](notes/lab-03.html) ([Rmd](notes/lab-03.Rmd)) 
 
 ### Week 3
 
