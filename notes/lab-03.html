@@ -161,7 +161,7 @@ set.seed(5739)</code></pre>
 <div id="setting" class="section level2">
 <h2>Setting</h2>
 <p>As in class this week, we’ll imagine we are in a setting where we want to estimate: <span class="math display">\[
-  \theta = \text{E}\left( h(X)\right)
+\theta = \text{E}\left( h(X)\right)
 \]</span> where <span class="math inline">\(X\)</span> is a random variable with density <span class="math inline">\(f(x)\)</span> (or equivalently c.d.f <span class="math inline">\(F(x)\)</span>).</p>
 <p>To mirror last week’s lab, you’ll work through an example using the same desired distribution, i.e. let <span class="math inline">\(X\)</span> be a random variable with p.d.f: <span class="math display">\[
 f(x) = 20 x (1 - x)^3, \quad 0 &lt; x &lt; 1
@@ -228,8 +228,8 @@ x &lt;- rbeta(num_sims, shape1 = 2, shape2 = 4)</code></pre>
 <p>To empirically compare the standard deviation of the two approaches, we could simulate getting the estimates many times, and find a sample standard deviation of the many estimates.</p>
 <p>To do so, we’ll use the same structure we’ve been using in class. Let’s first wrap up our naive estimate into a function.</p>
 <p><strong>You might try writing <code>naive_mc_estimate()</code> yourself before looking at the code below</strong></p>
-<pre class="r"><code>naive_mc_estimate &lt;- function(n_sims){
-  X &lt;- rbeta(n_sims, shape1 = 2, shape2 = 4)
+<pre class="r"><code>naive_mc_estimate &lt;- function(num_sims){
+  X &lt;- rbeta(num_sims, shape1 = 2, shape2 = 4)
   mean(X^2 &gt; 0.8)
 }</code></pre>
 <p>We can do the same thing for the importance sampling estimate:</p>

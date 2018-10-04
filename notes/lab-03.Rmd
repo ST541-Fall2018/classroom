@@ -28,7 +28,7 @@ If you want more details see Section 9.6 in [Simulation](https://ebookcentral.pr
 
 As in class this week, we'll imagine we are in a setting where we want to estimate:
 $$
-  \theta = \text{E}\left( h(X)\right)
+\theta = \text{E}\left( h(X)\right)
 $$
 where $X$ is a random variable with density $f(x)$ (or equivalently c.d.f $F(x)$).
 
@@ -123,8 +123,8 @@ To do so, we'll use the same structure we've been using in class.  Let's first w
 **You might try writing `naive_mc_estimate()` yourself before looking at the code below**
 
 ```{r}
-naive_mc_estimate <- function(n_sims){
-  X <- rbeta(n_sims, shape1 = 2, shape2 = 4)
+naive_mc_estimate <- function(num_sims){
+  X <- rbeta(num_sims, shape1 = 2, shape2 = 4)
   mean(X^2 > 0.8)
 }
 ```
@@ -154,9 +154,11 @@ importance_estimates <- rerun(1000,
 sd(importance_estimates)
 ```
 
+
 **Your turn**
 
 * Are the two methods both estimating the same probability?  What can you look at to give evidence of this?
 * How much smaller is the variance using importance sampling? How many samples using the naive method would you need to get a similar variance?
 * What if $X \sim$ Beta(8, 2)?  Do you think importance sampling with a Uniform proposal would still decrease the variance?
 * **Challenge** How could the two estimation functions be written to accept other proposal densities $g(x)$, target densities $g(x)$, or functions of interest $h(x)$?
+
