@@ -4,9 +4,10 @@ author: Charlotte Wickham
 date: Oct 2nd 2018
 ---
 
-```{r setup}
+```{r setup, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+set.seed(181818)
 ```
 
 # From last time
@@ -88,7 +89,7 @@ max(rle(one_sequence)$lengths)
 ```
 
 All together...
-```{r}
+```{r get-longest-runs}
 num_sims <- 1000
 many_sequences <- rerun(num_sims, 
   rbinom(20, size = 1, prob = 0.5))
@@ -198,7 +199,7 @@ hist(x) # Looks good
 ```{r}
 # The `...` allow us to pass in other parameters to our inverse 
 # CDF function
-x <- sample_inverse_cdf(100, qnorm, mean = 5) 
+x <- sample_inverse_cdf(10000, qnorm, mean = 5) 
 hist(x) # Now centered at 5
 ``` 
 
@@ -243,14 +244,32 @@ The WLLN (Weak Law of Large Numbers) provides us a guarantee this will work.
 
 How accurately do we want to estimate $\theta$?
 
-**Your Turn** Can you get a confidence interval on the estimate of the length on the longest run from our earlier example?
+**Your Turn** Can you get a confidence interval on the estimate of the expected length of the longest run from our earlier example?
 
 ```{r}
 theta_hat <- mean(longest_runs)
 
+# 95%
+theta_hat + c(-1, 1) * 1.96 * (sd(longest_runs)/sqrt(num_sims))
 ```
 
 ## CLT
+
+Let $Y = h(X)$, $\mu = E(Y)$ and $\overline{Y} = \sum_{i = 1}^n h(X_i)$.
+
+Then
+$$
+\text{Var}(\hat{\theta}) = \text{Var}(\overline{Y}) \dot \sim \,  N\left(\mu, \frac{\text{Var}(Y)}{n}\right)
+$$
+for large $n$ by the Central Limit Theorem.
+
+We don't know $\text{Var}(Y)$, but we can estimate it using our simulated $Y_i$.
+
+Leads to the usual 95% CI formula:
+$$
+\overline{Y} \pm 1.96 \frac{s}{\sqrt{n}}
+$$
+where $s$ is the sample standard deviation of the $Y_i$, and $n$ the number of simulations.
 
 ## A special case: binary outcomes
 
@@ -258,7 +277,7 @@ New question: What's the probability of a run greater than 10?
 
 Want to know:
 $$
-\text{P}(h(\pmb{X}) = 1)
+p = \text{P}(h(\pmb{X}) = 1)
 $$
 where 
 $$
@@ -268,7 +287,7 @@ h(\pmb{X}) =
 0, \, \text{otherwise}
 \end{cases}
 $$
-same as asking for $\theta = \text{E}\left( h(\pmb{X})\right)$.
+same as asking for $p =\theta = \text{E}\left( h(\pmb{X})\right)$.
 
 We already have enough to get this new function of our samples:
 ```{r, results = "hide"}
@@ -277,10 +296,26 @@ longest_runs > 10
 
 Estimate $\theta$ with:
 ```{r}
-mean(longest_runs > 10)
+p_hat <- mean(longest_runs > 10)
 ```
 
 What's $Var(\hat{\theta})$ in this setting?
+
+Use result from Bernoulli random variables
+$$
+Var(\hat{p}) = p(1 - p)
+$$
+
+Leads to a CI based only on the estimated probability:
+```{r}
+p_hat + c(-1, 1) * 1.96 * (sqrt(p_hat*(1-p_hat))/sqrt(num_sims))
+```
+
+
+The mean approach still works, but will give slightly different values:
+```{r}
+p_hat + c(-1, 1) * 1.96 * (sd(longest_runs > 10)/sqrt(num_sims))
+```
 
 
 ## How big a simulation?
@@ -290,4 +325,4 @@ What's $Var(\hat{\theta})$ in this setting?
 
 ## Next time
 
-Simulating in clever ways to reduce the variance of the estimate.
+Simulating in clever ways to reduce the variance of the estimate, $\text{Var}(\hat{\theta})$.

@@ -159,15 +159,8 @@ $(document).ready(function () {
 </div>
 
 <pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ──────────────────────────────── tidyverse 1.2.1 ──</code></pre>
-<pre><code>## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
-## ✔ tibble  1.4.2     ✔ dplyr   0.7.5
-## ✔ tidyr   0.8.1     ✔ stringr 1.3.1
-## ✔ readr   1.1.1     ✔ forcats 0.3.0</code></pre>
-<pre><code>## ── Conflicts ─────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+library(tidyverse)
+set.seed(181818)</code></pre>
 <div id="from-last-time" class="section level1">
 <h1>From last time</h1>
 <div id="warm-upthe-challenge-from-last-time" class="section level2">
@@ -251,7 +244,7 @@ longest_runs &lt;- map_dbl(many_sequences,
 
 # Finally...
 mean(longest_runs)</code></pre>
-<pre><code>## [1] 4.605</code></pre>
+<pre><code>## [1] 4.639</code></pre>
 </div>
 <div id="ways-things-get-more-complicated" class="section level2">
 <h2>Ways things get more complicated</h2>
@@ -292,9 +285,9 @@ coefficient_of_variation &lt;- function(x, na.rm = FALSE, ...){
 
 x &lt;- runif(10)
 coefficient_of_variation(x = x)</code></pre>
-<pre><code>## [1] 0.6506059</code></pre>
+<pre><code>## [1] 0.4623089</code></pre>
 <pre class="r"><code>coefficient_of_variation(x = x, trim = 0.25)</code></pre>
-<pre><code>## [1] 0.6789276</code></pre>
+<pre><code>## [1] 0.4564815</code></pre>
 </div>
 <div id="exponential-inverse-transform" class="section level2">
 <h2>Exponential Inverse Transform</h2>
@@ -302,20 +295,20 @@ coefficient_of_variation(x = x)</code></pre>
 <pre class="r"><code>u &lt;- runif(1)
 lambda &lt;- 5
 (x &lt;- -1 / lambda * log(1 - u))</code></pre>
-<pre><code>## [1] 0.02938678</code></pre>
+<pre><code>## [1] 0.1018719</code></pre>
 <p><strong>Your turn</strong> Turn this into a function. What should the arguments be?</p>
 <pre class="r"><code>u &lt;- runif(1)
 lambda &lt;- 5
 (x &lt;- -1 / lambda * log(1 - u))</code></pre>
-<pre><code>## [1] 0.1685556</code></pre>
+<pre><code>## [1] 0.02019427</code></pre>
 <pre class="r"><code>sample_exp &lt;- function(n, lambda){
   u &lt;- runif(n)
   -1 / lambda * log(1 - u)
 }
 
 sample_exp(10, lambda = 5)</code></pre>
-<pre><code>##  [1] 0.2419494943 0.1907913894 0.0219580001 0.0741930745 0.2165004246
-##  [6] 0.0318073072 0.0529352761 0.2148305231 0.1695176998 0.0001640528</code></pre>
+<pre><code>##  [1] 0.1519967204 0.1512896536 0.0042851299 0.1562532665 0.2497672581
+##  [6] 0.1366965437 0.2555457133 0.0002328799 0.1706922360 0.0479803846</code></pre>
 <p><strong>Back at 9:03</strong></p>
 </div>
 <div id="inverse-transform" class="section level2">
@@ -325,27 +318,27 @@ sample_exp(10, lambda = 5)</code></pre>
 
 u &lt;- runif(1)
 exp_icdf(u, lambda = 5)</code></pre>
-<pre><code>## [1] 0.06985015</code></pre>
+<pre><code>## [1] 0.1628068</code></pre>
 <pre class="r"><code>sample_inverse_cdf &lt;- function(n, inv_cdf, ...){
   u &lt;- runif(n)
   inv_cdf(u, ...)
 }
 sample_inverse_cdf(20, exp_icdf, lambda = 5)</code></pre>
-<pre><code>##  [1] 0.377460846 0.134680430 0.090342510 0.696892194 0.252943295
-##  [6] 0.470452034 0.001856979 0.312886939 0.167484845 0.076197384
-## [11] 0.181871476 0.277986794 0.036273435 0.083352794 0.240986476
-## [16] 0.063278274 0.038729603 0.034852407 0.062547555 0.045064996</code></pre>
+<pre><code>##  [1] 0.053899622 0.025974188 0.165090472 0.711054570 0.313451911
+##  [6] 0.257789633 0.103208275 0.184061036 0.175007737 1.020635893
+## [11] 0.122751554 0.280594812 0.412539486 0.016316951 0.012855245
+## [16] 0.046939276 0.071643537 0.157593954 0.007222465 0.207302211</code></pre>
 <p><strong>Your Turn</strong> Try it to simulate 100 values from a Normal(0, 1). Hint: you can use the built-in inverse CDF function <code>qnorm()</code>.</p>
 <pre class="r"><code>qnorm(0.5) # can use the built in quantile function </code></pre>
 <pre><code>## [1] 0</code></pre>
 <pre class="r"><code>x &lt;- sample_inverse_cdf(100, qnorm) 
 hist(x) # Looks good</code></pre>
-<p><img src="04-functions-sim-size_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="04-functions-sim-size_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 <pre class="r"><code># The `...` allow us to pass in other parameters to our inverse 
 # CDF function
-x &lt;- sample_inverse_cdf(100, qnorm, mean = 5) 
+x &lt;- sample_inverse_cdf(10000, qnorm, mean = 5) 
 hist(x) # Now centered at 5</code></pre>
-<p><img src="04-functions-sim-size_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p><img src="04-functions-sim-size_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 </div>
 <div id="takeaways" class="section level2">
 <h2>Takeaways</h2>
@@ -381,30 +374,50 @@ hist(x) # Now centered at 5</code></pre>
 <div id="how-big-a-simulation-should-we-run" class="section level2">
 <h2>How big a simulation should we run?</h2>
 <p>How accurately do we want to estimate <span class="math inline">\(\theta\)</span>?</p>
-<p><strong>Your Turn</strong> Can you get a confidence interval on the estimate of the length on the longest run from our earlier example?</p>
-<pre class="r"><code>theta_hat &lt;- mean(longest_runs)</code></pre>
+<p><strong>Your Turn</strong> Can you get a confidence interval on the estimate of the expected length of the longest run from our earlier example?</p>
+<pre class="r"><code>theta_hat &lt;- mean(longest_runs)
+
+# 95%
+theta_hat + c(-1, 1) * 1.96 * (sd(longest_runs)/sqrt(num_sims))</code></pre>
+<pre><code>## [1] 4.542639 4.735361</code></pre>
 </div>
 <div id="clt" class="section level2">
 <h2>CLT</h2>
+<p>Let <span class="math inline">\(Y = h(X)\)</span>, <span class="math inline">\(\mu = E(Y)\)</span> and <span class="math inline">\(\overline{Y} = \sum_{i = 1}^n h(X_i)\)</span>.</p>
+<p>Then <span class="math display">\[
+\text{Var}(\hat{\theta}) = \text{Var}(\overline{Y}) \dot \sim \,  N\left(\mu, \frac{\text{Var}(Y)}{n}\right)
+\]</span> for large <span class="math inline">\(n\)</span> by the Central Limit Theorem.</p>
+<p>We don’t know <span class="math inline">\(\text{Var}(Y)\)</span>, but we can estimate it using our simulated <span class="math inline">\(Y_i\)</span>.</p>
+<p>Leads to the usual 95% CI formula: <span class="math display">\[
+\overline{Y} \pm 1.96 \frac{s}{\sqrt{n}}
+\]</span> where <span class="math inline">\(s\)</span> is the sample standard deviation of the <span class="math inline">\(Y_i\)</span>, and <span class="math inline">\(n\)</span> the number of simulations.</p>
 </div>
 <div id="a-special-case-binary-outcomes" class="section level2">
 <h2>A special case: binary outcomes</h2>
 <p>New question: What’s the probability of a run greater than 10?</p>
 <p>Want to know: <span class="math display">\[
-\text{P}(h(\pmb{X}) = 1)
+p = \text{P}(h(\pmb{X}) = 1)
 \]</span> where <span class="math display">\[
 h(\pmb{X}) = 
 \begin{cases}
 1, \, \text{when longest run in sequence } \pmb{X} \text{ is greater than 10}, \\
 0, \, \text{otherwise}
 \end{cases}
-\]</span> same as asking for <span class="math inline">\(\theta = \text{E}\left( h(\pmb{X})\right)\)</span>.</p>
+\]</span> same as asking for <span class="math inline">\(p =\theta = \text{E}\left( h(\pmb{X})\right)\)</span>.</p>
 <p>We already have enough to get this new function of our samples:</p>
 <pre class="r"><code>longest_runs &gt; 10</code></pre>
 <p>Estimate <span class="math inline">\(\theta\)</span> with:</p>
-<pre class="r"><code>mean(longest_runs &gt; 10)</code></pre>
-<pre><code>## [1] 0.006</code></pre>
+<pre class="r"><code>p_hat &lt;- mean(longest_runs &gt; 10)</code></pre>
 <p>What’s <span class="math inline">\(Var(\hat{\theta})\)</span> in this setting?</p>
+<p>Use result from Bernoulli random variables <span class="math display">\[
+Var(\hat{p}) = p(1 - p)
+\]</span></p>
+<p>Leads to a CI based only on the estimated probability:</p>
+<pre class="r"><code>p_hat + c(-1, 1) * 1.96 * (sqrt(p_hat*(1-p_hat))/sqrt(num_sims))</code></pre>
+<pre><code>## [1] 0.0006282772 0.0093717228</code></pre>
+<p>The mean approach still works, but will give slightly different values:</p>
+<pre class="r"><code>p_hat + c(-1, 1) * 1.96 * (sd(longest_runs &gt; 10)/sqrt(num_sims))</code></pre>
+<pre><code>## [1] 0.0006260897 0.0093739103</code></pre>
 </div>
 <div id="how-big-a-simulation" class="section level2">
 <h2>How big a simulation?</h2>
@@ -415,7 +428,7 @@ h(\pmb{X}) =
 </div>
 <div id="next-time" class="section level2">
 <h2>Next time</h2>
-<p>Simulating in clever ways to reduce the variance of the estimate.</p>
+<p>Simulating in clever ways to reduce the variance of the estimate, <span class="math inline">\(\text{Var}(\hat{\theta})\)</span>.</p>
 </div>
 </div>
 
