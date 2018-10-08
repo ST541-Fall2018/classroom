@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>More complicated simulations</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">More complicated simulations</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Oct 9th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#homework-2">Homework #2</a></li>
+<li><a href="#organization">Organization</a><ul>
+<li><a href="#good-enough-practices-for-scientific-computing">Good enough practices for scientific computing</a></li>
+<li><a href="#software">Software</a></li>
+<li><a href="#our-old-friend-the-coin-toss-sequence">Our old friend the coin toss sequence</a></li>
+<li><a href="#some-variations">Some variations</a></li>
+<li><a href="#how-does-the-expected-length-of-the-longest-run-vary-with-the-number-of-coinflips-n">How does the expected length of the longest run vary with the number of coinflips, <span class="math inline">\(n\)</span>?</a></li>
+<li><a href="#one-approach">One approach</a></li>
+<li><a href="#an-aside-on-map">An aside on map()</a></li>
+</ul></li>
+<li><a href="#key-ideas">Key ideas</a><ul>
+<li><a href="#storing-a-simulation-in-a-data-frame">Storing a simulation in a data frame</a></li>
+<li><a href="#advantages">Advantages</a></li>
+<li><a href="#build-it-up-as-we-go">Build it up as we go</a></li>
+</ul></li>
+<li><a href="#iterating-over-more-than-one-object">Iterating over more than one object</a><ul>
+<li><a href="#when-you-need-to-iterate-over-more-than-one-thing-map2-and-pmap">When you need to iterate over more than one thing <code>map2()</code> and <code>pmap()</code></a></li>
+<li><a href="#in-our-situation">In our situation</a></li>
+<li><a href="#more-complicated-simulations">More complicated simulations…</a></li>
+</ul></li>
+</ul>
+</div>
+
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE, results = &quot;hide&quot;)
+library(tidyverse)
+set.seed(181871)</code></pre>
+<div id="homework-2" class="section level2">
+<h2>Homework #2</h2>
+<p><code>findInterval()</code> and Ross’s statement about efficiency.</p>
+<p>Easiest to explore by writing functions:</p>
+<pre class="r"><code>find_int &lt;- function(n, values, probs){
+  cumulative_probs &lt;- cumsum(probs)
+  u &lt;- runif(n)
+  values[findInterval(u, cumulative_probs) + 1] 
+}</code></pre>
+<p>Check with a somewhat extreme example:</p>
+<pre class="r"><code>values &lt;- c(  1,    2,    3,    4)
+probs &lt;- c(0.05, 0.05, 0.10, 0.80)
+
+find_int(n = 1000, values, probs) %&gt;% 
+  table()</code></pre>
+<p>Ross’s suggestion for efficiency is to order by decreasing probability first, e.g.</p>
+<pre class="r"><code>ind_order &lt;- order(probs, decreasing = TRUE)
+values_ordered &lt;- values[ind_order]
+probs_ordered &lt;- probs[ind_order]
+find_int(n = 1000, values_ordered, probs_ordered) %&gt;% 
+  table()</code></pre>
+<p>Now compare timing:</p>
+<pre class="r"><code>timing_find_int &lt;- bench::press(
+  n = c(100, 1000, 10000),
+  bench::mark(
+    ordered = find_int(n, values_ordered, probs_ordered),
+    raw = find_int(n, values, probs),
+    check = FALSE
+  )
+)</code></pre>
+<pre><code>## Running with:
+##       n</code></pre>
+<pre><code>## 1   100</code></pre>
+<pre><code>## 2  1000</code></pre>
+<pre><code>## 3 10000</code></pre>
+<pre class="r"><code>timing_find_int %&gt;%
+  ggplot(aes(x = n, y = mean, 
+    color = expression, shape = expression)) +
+  geom_point() +
+  labs(x = &quot;Sample size&quot;, y = &quot;Time&quot;, 
+    title = &quot;Comparing ordering for `findInterval()` implementation&quot;) +
+  scale_x_log10()</code></pre>
+<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Hardly any difference! Why, <code>findInterval()</code> doesn’t do a sequntial search through the intervals. It does something much more efficient.</p>
+<p>Compare to the sequential search:</p>
+<pre class="r"><code>naive &lt;- function(n, values, probs){
+  cumulative_probs &lt;- cumsum(probs)
+  u &lt;- runif(n)
+  x &lt;- double(n)
+  for (i in 1:n){
+    if(u[i] &lt; cumulative_probs[1]){
+      x[i] &lt;- values[1]
+    } else if (u[i] &lt; cumulative_probs[2]){
+      x[i] &lt;- values[2]
+    } else if (u[i] &lt; cumulative_probs[3]){
+      x[i] &lt;- values[3]
+    } else {
+      x[i] &lt;- values[4]
+    }
+  }
+  x
+}</code></pre>
+<pre class="r"><code>timings &lt;- bench::press(
+  n = c(100, 1000, 10000),
+  bench::mark(
+    findint_ordered = find_int(n, values_ordered, probs_ordered),
+    findint_raw = find_int(n, values, probs),
+    naive_ordered = naive(n, values_ordered, probs_ordered),
+    naive_raw = naive(n, values, probs),
+    check = FALSE
+  )
+)</code></pre>
+<pre><code>## Running with:
+##       n</code></pre>
+<pre><code>## 1   100</code></pre>
+<pre><code>## 2  1000</code></pre>
+<pre><code>## 3 10000</code></pre>
+<pre class="r"><code>timings %&gt;% 
+  ggplot(aes(x = n, y = mean, 
+    color = expression, shape = expression)) +
+  geom_point()  +
+  labs(x = &quot;Sample size&quot;, y = &quot;Time&quot;, 
+    title = &quot;Comparing two implementations&quot;) +
+  scale_x_log10()</code></pre>
+<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Much bigger difference in a sequential search, but naive sequential search is much slower than <code>findInterval()</code> approach.</p>
+</div>
+<div id="organization" class="section level1">
+<h1>Organization</h1>
+<div id="good-enough-practices-for-scientific-computing" class="section level2">
+<h2>Good enough practices for scientific computing</h2>
+<blockquote>
+<p>This paper focuses on these first accessible skills and perspectives – the “good enough” practices for scientific computing: a minimum set of tools and techniques that we believe every researcher can and should consider adopting.</p>
+</blockquote>
+<p>Wilson G, Bryan J, Cranston K, Kitzes J, Nederbragt L, et al. (2017) <em>Good enough practices in scientific computing.</em> PLOS Computational Biology 13(6): e1005510. <a href="https://doi.org/10.1371/journal.pcbi.1005510" class="uri">https://doi.org/10.1371/journal.pcbi.1005510</a></p>
+<p>All the sections are important! We’ll interpret some sections a little differently given our scope.</p>
+<p>We’ll return to the article a few times. The project rubric will include following the practices outlined in this article.</p>
+</div>
+<div id="software" class="section level2">
+<h2>Software</h2>
+<blockquote>
+<p>The core realization in these practices is that being readable, reusable, and testable are all side effects of writing modular code, i.e., of building programs out of short, single-purpose functions with clearly-defined inputs and outputs. Much has been written on this topic, and this section focuses on practices that best balance ease of use with benefit for you and collaborators.</p>
+</blockquote>
+<blockquote>
+<p>Place a brief explanatory comment at the start of every program (2a)</p>
+</blockquote>
+<blockquote>
+<p>Decompose programs into functions (2b)</p>
+</blockquote>
+<p><strong>What’s the difference between a program and a function?</strong></p>
+<p>Rmarkdown often lets us blend the line between program and the documentation of the program. This is good, it encourages us to document as we go.</p>
+<p>Sometimes analyses will get complicated enough that a single RMarkdown document isn’t the best way to keep things organized…more on Thursday.</p>
+</div>
+<div id="our-old-friend-the-coin-toss-sequence" class="section level2">
+<h2>Our old friend the coin toss sequence</h2>
+<p>A random sequence of H’s and T’s is generated by tossing a fair coin <span class="math inline">\(n = 20\)</span> times. What’s the expected length of the longest run of consecutive heads or tails?</p>
+<p><em>Taken from Tijms, Henk. Probability: A Lively Introduction. Cambridge University Press, 2017</em></p>
+</div>
+<div id="some-variations" class="section level2">
+<h2>Some variations</h2>
+<ul>
+<li><p>How does the expected length of the longest run vary with the number of coinflips, <span class="math inline">\(n\)</span>?</p></li>
+<li><p>How does the answer change if the coin isn’t fair?</p></li>
+<li><p>How does the expected length of the longest run compare to the median length of the longest run?</p></li>
+<li><p>How does the variance of our estimate vary with the number of simulations we do?</p></li>
+</ul>
+<p><em>In each case we are adding an additional parameter to our simulation</em></p>
+</div>
+<div id="how-does-the-expected-length-of-the-longest-run-vary-with-the-number-of-coinflips-n" class="section level2">
+<h2>How does the expected length of the longest run vary with the number of coinflips, <span class="math inline">\(n\)</span>?</h2>
+<p>A useful break-down of our previous process into a few functions:</p>
+<pre class="r"><code>sim_coin_tosses &lt;- function(n_sims, n, prob){
+  # Simulates n_sims sequences of n coin tosses
+  # with heads occuring with probability prob
+  # fair, by default
+  rerun(n_sims, 
+    rbinom(n, size = 1, prob = prob))
+}
+
+max_run_length &lt;- function(x){
+  # Finds length of longest run in x
+  max(rle(x)$lengths)
+}
+
+sim_run_lengths &lt;- function(n_sims, n, prob = 0.5){
+  # Returns length of longest run in n_sims sequences
+  # of coin toss sequences of  n flips, where each flip
+  # has prob p of being heads.
+  sim_coin_tosses(n_sims, n, prob) %&gt;% 
+    map_dbl(max_run_length)
+}</code></pre>
+<p><strong>Your turn</strong> What should the output be?</p>
+<pre class="r"><code>sim_run_lengths(n_sims = 5, n = 10, prob = 1)</code></pre>
+<p>Now, <code>n</code> the number of flips is an argument to our function.</p>
+</div>
+<div id="one-approach" class="section level2">
+<h2>One approach</h2>
+<p>How does the expected length of the longest run vary with the number of coinflips, <span class="math inline">\(n\)</span>?</p>
+<p>Set up some values of <span class="math inline">\(n\)</span></p>
+<pre class="r"><code>ns &lt;- c(10, 20, 50, 100)</code></pre>
+<p>For each element in <code>ns</code> estimate the mean longest run:</p>
+<ol style="list-style-type: decimal">
+<li><p>Simulate the longest runs for each <span class="math inline">\(n\)</span>:</p>
+<pre class="r"><code>lengths_for_each_n &lt;- map(ns, 
+  ~ sim_run_lengths(n_sims = 500, n = .x))</code></pre></li>
+<li><p>Find the mean of each set of longest runs:</p>
+<pre class="r"><code>map_dbl(lengths_for_each_n, ~ mean(.x))</code></pre></li>
+</ol>
+</div>
+<div id="an-aside-on-map" class="section level2">
+<h2>An aside on map()</h2>
+<p>If the second argument takes the pattern <code>~ fun(x)</code>, you can just supply <code>fun</code> without using the formula notation:</p>
+<pre class="r"><code>map_dbl(lengths_for_each_n, ~ mean(.x)) 
+# is the same as
+map_dbl(lengths_for_each_n, mean)</code></pre>
+<p>You can supply addtional arguments to <code>map()</code> which will be passed on to the function in the second argument:</p>
+<pre class="r"><code>lengths_for_each_n &lt;- map(ns, 
+  ~ sim_run_lengths(n_sims = 500, n = .x))
+# is the same as
+lengths_for_each_n &lt;- map(ns, 
+  sim_run_lengths, 
+  n_sims = 500)</code></pre>
+</div>
+</div>
+<div id="key-ideas" class="section level1">
+<h1>Key ideas</h1>
+<ul>
+<li><p>Storing more complicated simulations in tibbles/data frames let’s you leverage other data manipulation tools (e.g. ggplot2, dplyr)</p></li>
+<li><p>Now you know <code>map()</code>, the purrr functions <code>map2()</code>, <code>pmap()</code> provide an easy extension for you to iterate over more than one object.</p></li>
+</ul>
+<div id="storing-a-simulation-in-a-data-frame" class="section level2">
+<h2>Storing a simulation in a data frame</h2>
+<p>Our current process:</p>
+<pre class="r"><code>ns &lt;- c(10, 20, 50, 100)
+lengths_for_each_n &lt;- map(ns, 
+  ~ sim_run_lengths(n_sims = 500, n = .x))
+map_dbl(lengths_for_each_n, ~ mean(.x))</code></pre>
+<p>But <code>ns</code>, <code>lengths_for_each_n</code> and our results are:</p>
+<ul>
+<li>all the same length,</li>
+<li>have corresponding elements.</li>
+</ul>
+<p>Makes sense to keep them all together and lined up.</p>
+<p>Join them up afterwards (OK, but better way soon):</p>
+<pre class="r"><code>sims &lt;- data_frame(
+  n = ns,
+  n_sims = 500,
+  run_lengths = lengths_for_each_n,
+  est = map_dbl(lengths_for_each_n, mean)
+)
+sims</code></pre>
+</div>
+<div id="advantages" class="section level2">
+<h2>Advantages</h2>
+<p>Easy manipulation with dplyr:</p>
+<pre class="r"><code>sims &lt;- sims %&gt;% 
+  mutate(
+    sd = map_dbl(run_lengths, sd)
+  )</code></pre>
+<p>Easy plotting with ggplot:</p>
+<pre class="r"><code>sims %&gt;% 
+  ggplot(aes(n, est)) +
+    geom_pointrange(aes(
+      ymin = est - 1.96*sd/sqrt(n_sims),
+      ymax = est + 1.96*sd/sqrt(n_sims))) +
+    geom_line()</code></pre>
+<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>Everything we need is in one object, easy to save for later:</p>
+<pre class="r"><code>write_rds(sims, &quot;max-run-length-by-n-simulations.rds&quot;)</code></pre>
+</div>
+<div id="build-it-up-as-we-go" class="section level2">
+<h2>Build it up as we go</h2>
+<p>A better approach is to start with a data frame from the outset:</p>
+<pre class="r"><code>sims &lt;- data_frame(
+  n = ns
+)</code></pre>
+<p>Also forces you to think about the parameters of the simulation (i.e. what should vary?)</p>
+<p>Now our operations happen within the data frame, <code>dplyr::mutate()</code> adds new columns, here one generated by a <code>map()</code> over the <code>ns</code> column:</p>
+<pre class="r"><code>sims_with_lengths &lt;- 
+  sims %&gt;% 
+    mutate(run_lengths = map(ns, sim_run_lengths, 
+      n_sims = 500))</code></pre>
+<p>Calls to <code>map_dbl()</code> or <code>map_int()</code> etc, get us columns of numbers:</p>
+<pre class="r"><code>sims_with_stats &lt;- 
+  sims_with_lengths %&gt;% 
+    mutate(
+      mean_longest_run = map_dbl(lengths_for_each_n, mean),
+      sd_longest_run = map_dbl(lengths_for_each_n, sd))
+
+sims_with_stats</code></pre>
+</div>
+</div>
+<div id="iterating-over-more-than-one-object" class="section level1">
+<h1>Iterating over more than one object</h1>
+<pre class="r"><code>ns
+(ps &lt;- seq(0.1, 0.9, by = 0.2))</code></pre>
+<p>Now what is the expected length of the longest run for every combination of <span class="math inline">\(n\)</span> and <span class="math inline">\(p\)</span>?</p>
+<pre class="r"><code>all_ns &lt;- rep(ns, each = length(ps))
+all_ps &lt;- rep(ps, times = length(ns))</code></pre>
+<div id="when-you-need-to-iterate-over-more-than-one-thing-map2-and-pmap" class="section level2">
+<h2>When you need to iterate over more than one thing <code>map2()</code> and <code>pmap()</code></h2>
+<p>Recall, this translates to “for each element of <code>.x</code>, do <code>.f</code>”:</p>
+<pre><code>map(.x, .f)</code></pre>
+<p><code>map2()</code> extends this when you need to iterate of two objects, “for each element of <code>.x</code> and <code>.y</code> do <code>.f</code>”</p>
+<pre><code>map2(.x, .y, .f)</code></pre>
+<p>But now <code>.f</code> should take two arguments.</p>
+<p>A simpler example</p>
+<pre class="r"><code>map2(.x = c(1, 2, 3), .y = c(-1, 0, 1),
+  ~ .x * .y)</code></pre>
+</div>
+<div id="in-our-situation" class="section level2">
+<h2>In our situation</h2>
+<pre class="r"><code>map2(all_ns, all_ps, 
+  ~ sim_run_lengths(10, n = .x, prob = .y)) # 10 just as an example</code></pre>
+<p>Hard to keep track of which belongs to which…so start with a data frame:</p>
+<pre class="r"><code>simulation_params &lt;- list(
+  n = ns, prob = seq(0.1, 0.9, by = 0.2)
+)
+
+runs &lt;- cross_df(simulation_params)</code></pre>
+<p>Use dplyr to add columns:</p>
+<pre class="r"><code>runs &lt;- runs %&gt;% 
+  mutate(
+    run_lengths = map2(n, prob, 
+      sim_run_lengths, n_sims = 500)) %&gt;% 
+  mutate(
+    mean_max_length = map_dbl(run_lengths, mean),
+    sd_max_length = map_dbl(run_lengths, sd),
+    n_sims = map_dbl(run_lengths, length)
+  )</code></pre>
+<p>Easy to plot and manipulate:</p>
+<pre class="r"><code>runs %&gt;% 
+  ggplot(aes(x = n, y = mean_max_length, color = factor(prob))) +
+    geom_pointrange(aes(
+      ymin = mean_max_length - 1.96*sd_max_length/sqrt(n_sims),
+      ymax = mean_max_length + 1.96*sd_max_length/sqrt(n_sims))) +
+    geom_line() </code></pre>
+<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+</div>
+<div id="more-complicated-simulations" class="section level2">
+<h2>More complicated simulations…</h2>
+<p>Switching to a dataframe, maybe use <code>pmap()</code>:</p>
+<pre class="r"><code>simulation_params_big &lt;- list(
+  n = ns, 
+  prob = seq(0.1, 0.9, by = 0.2),
+  n_sims = c(100, 1000, 10000)
+)
+
+runs_big &lt;- cross_df(simulation_params_big)</code></pre>
+<p>Use dplyr to add columns:</p>
+<pre class="r"><code>runs_big &lt;- runs_big %&gt;% 
+  mutate(
+    run_lengths = pmap(list(n = n, prob = prob, n_sims = n_sims), 
+      sim_run_lengths)) %&gt;% 
+  mutate(
+    mean_max_length = map_dbl(run_lengths, mean),
+    sd_max_length = map_dbl(run_lengths, sd)
+  )</code></pre>
+<p>Easy to plot and manipulate:</p>
+<pre class="r"><code>runs_big %&gt;% 
+  ggplot(aes(x = n, y = mean_max_length, color = factor(prob))) +
+    geom_pointrange(aes(
+      ymin = mean_max_length - 1.96*sd_max_length/sqrt(n_sims),
+      ymax = mean_max_length + 1.96*sd_max_length/sqrt(n_sims))) +
+    geom_line()  +
+  facet_wrap(~ n_sims)</code></pre>
+<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
