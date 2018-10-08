@@ -150,12 +150,12 @@ $(document).ready(function () {
 
 <pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ──────────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>## ── Attaching packages ───────────────────────── tidyverse 1.2.1 ──</code></pre>
 <pre><code>## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
 ## ✔ tibble  1.4.2     ✔ dplyr   0.7.5
 ## ✔ tidyr   0.8.1     ✔ stringr 1.3.1
 ## ✔ readr   1.1.1     ✔ forcats 0.3.0</code></pre>
-<pre><code>## ── Conflicts ─────────────────────────────────────────── tidyverse_conflicts() ──
+<pre><code>## ── Conflicts ──────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>set.seed(101991)</code></pre>
@@ -198,25 +198,43 @@ mean(longest_runs)</code></pre>
 <li>Summarize: sample variance of estimated expectations</li>
 </ol>
 <p>The first step is now simulating a complicated thing, so wrap it up into a function:</p>
-<pre class="r"><code>mc_estimate_run_length &lt;- function(num_sims){
+<pre class="r"><code>mc_estimate_run_length  &lt;- function(num_sims){
+  # estimate the expected maximum run of H or T
+  # in 20 coin flips by monte carlo
   many_sequences &lt;- rerun(num_sims, 
     rbinom(20, size = 1, prob = 0.5))
   longest_runs &lt;- map_dbl(many_sequences, 
     ~ max(rle(.)$lengths))
   mean(longest_runs)
 }
-mc_estimate_run_length(num_sims = 1000)</code></pre>
+mc_estimate_run_length(1000)</code></pre>
 <pre><code>## [1] 4.608</code></pre>
 <pre class="r"><code>many_estimates &lt;- rerun(500, mc_estimate_run_length(num_sims = 1000))
 many_estimates_flat &lt;- many_estimates %&gt;% flatten_dbl() 
-sd(many_estimates_flat)</code></pre>
+
+many_estimates_flat %&gt;% hist(breaks = 20)</code></pre>
+<p><img src="05-variance-reduction_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>sd(many_estimates_flat)</code></pre>
 <pre><code>## [1] 0.04846478</code></pre>
+<pre class="r"><code>sd(longest_runs)/sqrt(1000)</code></pre>
+<pre><code>## [1] 0.04835384</code></pre>
 <p>Compares well to our estimate that relied on the CLT (it should, the CLT should be pretty good for <span class="math inline">\(n = 1000\)</span>)</p>
+<pre class="r"><code>many_estimates %&gt;% flatten_dbl() %&gt;% sd(na.rm = TRUE) </code></pre>
+<pre><code>## [1] 0.04846478</code></pre>
+<pre class="r"><code>sd(flatten_dbl(many_estimates), na.rm = TRUE)</code></pre>
+<pre><code>## [1] 0.04846478</code></pre>
 </div>
 <div id="your-turn" class="section level2">
 <h2>Your turn</h2>
-<p>Estimate the standard deviation of our MC based estimate, when we simulate just 250 coin toss sequences in each simulation.</p>
+<p>Estimate the standard deviation of our MC based estimate, when we simulate just 250 <em>coin toss sequences</em> in each simulation.</p>
+<pre class="r"><code>many_estimates &lt;- rerun(500, mc_estimate_run_length(num_sims = 250))
+many_estimates_flat &lt;- many_estimates %&gt;% flatten_dbl() 
+many_estimates_flat %&gt;% hist(breaks = 20)</code></pre>
+<p><img src="05-variance-reduction_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre class="r"><code>sd(many_estimates_flat)</code></pre>
+<pre><code>## [1] 0.09933127</code></pre>
 <p>Does you answer agree with what the CLT might predict?</p>
+<p>Back at 8:55am</p>
 </div>
 <div id="careful-with-n" class="section level2">
 <h2>Careful with <span class="math inline">\(n\)</span></h2>
@@ -260,7 +278,7 @@ sd(many_estimates_flat)</code></pre>
 <p><strong>Intuition:</strong></p>
 <p>The average of a pair of simulated values, <span class="math display">\[
 \text{Var} \left(\frac{1}{2} \left(X_1 + X_2\right) \right)= 
-\frac{1}{2} \left( \text{Var}(X_1) + \text{Var}(X_2) + 2 \text{Cov}(X_1, X_2) \right)
+\frac{1}{4} \left( \text{Var}(X_1) + \text{Var}(X_2) + 2 \text{Cov}(X_1, X_2) \right)
 \]</span> will be smaller than the average of two independently simulated values, if <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span> are negatively correlated, i.e. <span class="math inline">\(\text{Cov}(X_1, X_2) &lt; 0\)</span>.</p>
 <p><strong>But really…</strong></p>
 <p>We actually we are interested in: <span class="math display">\[
@@ -276,10 +294,10 @@ sd(many_estimates_flat)</code></pre>
 many_x &lt;- runif(n_sims)
 exp_many_x &lt;- exp(many_x)
 mean(exp_many_x) # our estimate of E(e^x)</code></pre>
-<pre><code>## [1] 1.717975</code></pre>
+<pre><code>## [1] 1.731394</code></pre>
 <pre class="r"><code># rough CI half-width on this estimate
-(naive_ci_halfwidth &lt;- 2*sd(exp_many_x)/sqrt(n_sims))</code></pre>
-<pre><code>## [1] 0.04533721</code></pre>
+(naive_ci_halfwidth &lt;- 1.96*sd(exp_many_x)/sqrt(n_sims))</code></pre>
+<pre><code>## [1] 0.04364225</code></pre>
 <p>(Don’t need <code>rerun()</code> here, it’s easy to get many samples from a Uniform)</p>
 </div>
 <div id="the-antithetic-variable-approach" class="section level2">
@@ -300,11 +318,11 @@ pair_averages &lt;- pair_average(x1 = exp(x_first_in_pair),
   x2 = exp(x_second_in_pair))
 
 mean(pair_averages) # our estimate of E(e^x)</code></pre>
-<pre><code>## [1] 1.717152</code></pre>
+<pre><code>## [1] 1.719627</code></pre>
 <pre class="r"><code># rough CI half-width on this estimate
-(antithetic_ci_half_width &lt;- 2*sd(pair_averages)/sqrt(n_sims/2))</code></pre>
-<pre><code>## [1] 0.008014266</code></pre>
-<p>6 times smaller!</p>
+(antithetic_ci_half_width &lt;- 1.96*sd(pair_averages)/sqrt(n_sims/2))</code></pre>
+<pre><code>## [1] 0.008172898</code></pre>
+<p>5 times smaller!</p>
 </div>
 <div id="antithetic-variables-takeaways" class="section level2">
 <h2>Antithetic variables takeaways</h2>

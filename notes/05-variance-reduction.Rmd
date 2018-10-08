@@ -55,33 +55,51 @@ But...really we want to automate this.
 The first step is now simulating a complicated thing, so wrap it up into a function:
 
 ```{r}
-mc_estimate_run_length <- function(num_sims){
+mc_estimate_run_length  <- function(num_sims){
+  # estimate the expected maximum run of H or T
+  # in 20 coin flips by monte carlo
   many_sequences <- rerun(num_sims, 
     rbinom(20, size = 1, prob = 0.5))
   longest_runs <- map_dbl(many_sequences, 
     ~ max(rle(.)$lengths))
   mean(longest_runs)
 }
-mc_estimate_run_length(num_sims = 1000)
+mc_estimate_run_length(1000)
 ```
+
 
 ```{r}
 many_estimates <- rerun(500, mc_estimate_run_length(num_sims = 1000))
 many_estimates_flat <- many_estimates %>% flatten_dbl() 
+
+many_estimates_flat %>% hist(breaks = 20)
 sd(many_estimates_flat)
+```
+```{r}
+sd(longest_runs)/sqrt(1000)
 ```
 
 Compares well to our estimate that relied on the CLT (it should, the CLT should be pretty good for $n = 1000$)
 
-## Your turn
-
-Estimate the standard deviation of our MC based estimate, when we simulate just 250 coin toss sequences in each simulation.
-
 ```{r}
-
+many_estimates %>% flatten_dbl() %>% sd(na.rm = TRUE) 
+sd(flatten_dbl(many_estimates), na.rm = TRUE)
 
 ```
+
+## Your turn
+
+Estimate the standard deviation of our MC based estimate, when we simulate just 250 *coin toss sequences* in each simulation.
+
+```{r}
+many_estimates <- rerun(500, mc_estimate_run_length(num_sims = 250))
+many_estimates_flat <- many_estimates %>% flatten_dbl() 
+many_estimates_flat %>% hist(breaks = 20)
+sd(many_estimates_flat)
+```
 Does you answer agree with what the CLT might predict?
+
+Back at 8:55am
 
 ## Careful with $n$
 
@@ -134,7 +152,7 @@ Instead of generating $X_i$ independently, generate them in pairs, use the sampl
 The average of a pair of simulated values,
 $$
 \text{Var} \left(\frac{1}{2} \left(X_1 + X_2\right) \right)= 
-\frac{1}{2} \left( \text{Var}(X_1) + \text{Var}(X_2) + 2 \text{Cov}(X_1, X_2) \right)
+\frac{1}{4} \left( \text{Var}(X_1) + \text{Var}(X_2) + 2 \text{Cov}(X_1, X_2) \right)
 $$
 will be smaller than the average of two independently simulated values, if $X_1$ and $X_2$ are negatively correlated, i.e. $\text{Cov}(X_1, X_2) < 0$.
 
@@ -159,9 +177,11 @@ n_sims <- 500
 many_x <- runif(n_sims)
 exp_many_x <- exp(many_x)
 mean(exp_many_x) # our estimate of E(e^x)
+```
 
+```{r}
 # rough CI half-width on this estimate
-(naive_ci_halfwidth <- 2*sd(exp_many_x)/sqrt(n_sims))
+(naive_ci_halfwidth <- 1.96*sd(exp_many_x)/sqrt(n_sims))
 ```
 
 (Don't need `rerun()` here, it's easy to get many samples from a Uniform)
@@ -191,7 +211,7 @@ pair_averages <- pair_average(x1 = exp(x_first_in_pair),
 mean(pair_averages) # our estimate of E(e^x)
 
 # rough CI half-width on this estimate
-(antithetic_ci_half_width <- 2*sd(pair_averages)/sqrt(n_sims/2))
+(antithetic_ci_half_width <- 1.96*sd(pair_averages)/sqrt(n_sims/2))
 ```
 `r round(naive_ci_halfwidth/antithetic_ci_half_width)` times smaller!
 
