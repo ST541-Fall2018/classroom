@@ -6,7 +6,7 @@ output:
       in_header: "header.tex"
   md_document: 
     preserve_yaml: true
-date: "Sep 19 2018"
+date: "Oct 08 2018"
 subtitle: "ST441/541 Fall 2018"
 ---
 
@@ -91,19 +91,19 @@ Week 2 starting Oct 01 **Monte Carlo Methods II**
 -   Functions
 -   Iteration: for loops versus functional programming
 
-Week 3 starting Oct 08 **Optimization**
-
--   Maximum Likelihood
--   Convergence
-
-Week 4 starting Oct 15 **Organization**
+Week 3 starting Oct 08 **Organization**
 
 -   Best practices for scientific computing
 -   Handling larger simulations
 
-Week 5 starting Oct 22 **Bootstrap**
+Week 4 starting Oct 15 **Bootstrap**
 
 -   Putting things together so far
+
+Week 5 starting Oct 22 **Optimization**
+
+-   Maximum Likelihood
+-   Convergence
 
 Week 6 starting Oct 29 **Efficiency**
 
