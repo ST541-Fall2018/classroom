@@ -43,9 +43,10 @@ find_int(n = 1000, values_ordered, probs_ordered) %>%
 
 Now compare timing:
 ```{r}
-timing_find_int <- bench::press(
+library(bench)
+timing_find_int <- press(
   n = c(100, 1000, 10000),
-  bench::mark(
+  mark(
     ordered = find_int(n, values_ordered, probs_ordered),
     raw = find_int(n, values, probs),
     check = FALSE

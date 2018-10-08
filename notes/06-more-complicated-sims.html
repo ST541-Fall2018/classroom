@@ -179,9 +179,10 @@ probs_ordered &lt;- probs[ind_order]
 find_int(n = 1000, values_ordered, probs_ordered) %&gt;% 
   table()</code></pre>
 <p>Now compare timing:</p>
-<pre class="r"><code>timing_find_int &lt;- bench::press(
+<pre class="r"><code>library(bench)
+timing_find_int &lt;- press(
   n = c(100, 1000, 10000),
-  bench::mark(
+  mark(
     ordered = find_int(n, values_ordered, probs_ordered),
     raw = find_int(n, values, probs),
     check = FALSE
