@@ -34,7 +34,7 @@
 
 ### Week 3
 
-* Oct 11 [**More complicated simulations**](notes/06-more-complicated-sims.html) ([Rmd]((notes/06-more-complicated-sims.Rmd))) [Pre-lecture reading](readings.html#week-3)
+* Oct 11 [**More complicated simulations**](notes/06-more-complicated-sims.html) ([Rmd](notes/06-more-complicated-sims.Rmd)) [Pre-lecture reading](readings.html#week-3)
 
 
 ## Credits
