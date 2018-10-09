@@ -288,6 +288,10 @@ timing_find_int &lt;- press(
 </div>
 <div id="how-does-the-expected-length-of-the-longest-run-vary-with-the-number-of-coinflips-n" class="section level2">
 <h2>How does the expected length of the longest run vary with the number of coinflips, <span class="math inline">\(n\)</span>?</h2>
+<div class="figure">
+<img src="06-more-complicated-sims_files/flips-vs-longest-run.png" />
+
+</div>
 <p>A useful break-down of our previous process into a few functions:</p>
 <pre class="r"><code>sim_coin_tosses &lt;- function(n_sims, n, prob){
   # Simulates n_sims sequences of n coin tosses
@@ -383,7 +387,8 @@ sims</code></pre>
     geom_pointrange(aes(
       ymin = est - 1.96*sd/sqrt(n_sims),
       ymax = est + 1.96*sd/sqrt(n_sims))) +
-    geom_line()</code></pre>
+    geom_line() +
+    labs(x = &quot;Number of coin flips&quot;, y = &quot;Estimated expected longest run&quot;)</code></pre>
 <p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 <p>Everything we need is in one object, easy to save for later:</p>
 <pre class="r"><code>write_rds(sims, &quot;max-run-length-by-n-simulations.rds&quot;)</code></pre>
