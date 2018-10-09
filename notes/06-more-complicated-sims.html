@@ -138,8 +138,9 @@ $(document).ready(function () {
 <li><a href="#our-old-friend-the-coin-toss-sequence">Our old friend the coin toss sequence</a></li>
 <li><a href="#some-variations">Some variations</a></li>
 <li><a href="#how-does-the-expected-length-of-the-longest-run-vary-with-the-number-of-coinflips-n">How does the expected length of the longest run vary with the number of coinflips, <span class="math inline">\(n\)</span>?</a></li>
+<li><a href="#setup">Setup</a></li>
 <li><a href="#one-approach">One approach</a></li>
-<li><a href="#an-aside-on-map">An aside on map()</a></li>
+<li><a href="#an-aside-on-map-back-at-903">An aside on map() back at 9:03</a></li>
 </ul></li>
 <li><a href="#key-ideas">Key ideas</a><ul>
 <li><a href="#storing-a-simulation-in-a-data-frame">Storing a simulation in a data frame</a></li>
@@ -150,6 +151,7 @@ $(document).ready(function () {
 <li><a href="#when-you-need-to-iterate-over-more-than-one-thing-map2-and-pmap">When you need to iterate over more than one thing <code>map2()</code> and <code>pmap()</code></a></li>
 <li><a href="#in-our-situation">In our situation</a></li>
 <li><a href="#more-complicated-simulations">More complicated simulations…</a></li>
+<li><a href="#next-time">Next time</a></li>
 </ul></li>
 </ul>
 </div>
@@ -174,8 +176,9 @@ find_int(n = 1000, values, probs) %&gt;%
   table()</code></pre>
 <p>Ross’s suggestion for efficiency is to order by decreasing probability first, e.g.</p>
 <pre class="r"><code>ind_order &lt;- order(probs, decreasing = TRUE)
-values_ordered &lt;- values[ind_order]
-probs_ordered &lt;- probs[ind_order]
+(values_ordered &lt;- values[ind_order])
+(probs_ordered &lt;- probs[ind_order])
+
 find_int(n = 1000, values_ordered, probs_ordered) %&gt;% 
   table()</code></pre>
 <p>Now compare timing:</p>
@@ -268,6 +271,11 @@ timing_find_int &lt;- press(
 <p>Decompose programs into functions (2b)</p>
 </blockquote>
 <p><strong>What’s the difference between a program and a function?</strong></p>
+<ul>
+<li>programs are many functions</li>
+<li>program is complex task -&gt; e.g. simulation study</li>
+<li>program might have mutliple files, function is in a single file.</li>
+</ul>
 <p>Rmarkdown often lets us blend the line between program and the documentation of the program. This is good, it encourages us to document as we go.</p>
 <p>Sometimes analyses will get complicated enough that a single RMarkdown document isn’t the best way to keep things organized…more on Thursday.</p>
 </div>
@@ -288,10 +296,21 @@ timing_find_int &lt;- press(
 </div>
 <div id="how-does-the-expected-length-of-the-longest-run-vary-with-the-number-of-coinflips-n" class="section level2">
 <h2>How does the expected length of the longest run vary with the number of coinflips, <span class="math inline">\(n\)</span>?</h2>
+<p><strong>Your Turn</strong> What should our final data look like to construct this plot?</p>
 <div class="figure">
 <img src="06-more-complicated-sims_files/flips-vs-longest-run.png" />
 
 </div>
+<p>What we want is a 4 row data frame something like this:</p>
+<pre><code>n       est     sd      
+10      ...     ...
+20      ...     ...
+50      ...     ...
+100     ...     ...</code></pre>
+<p>New to ggplot, the best place to start is <a href="http://r4ds.had.co.nz/data-visualisation.html">Visualization in R4DS</a></p>
+</div>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
 <p>A useful break-down of our previous process into a few functions:</p>
 <pre class="r"><code>sim_coin_tosses &lt;- function(n_sims, n, prob){
   # Simulates n_sims sequences of n coin tosses
@@ -311,10 +330,10 @@ sim_run_lengths &lt;- function(n_sims, n, prob = 0.5){
   # of coin toss sequences of  n flips, where each flip
   # has prob p of being heads.
   sim_coin_tosses(n_sims, n, prob) %&gt;% 
-    map_dbl(max_run_length)
+    map_dbl(~ max_run_length(.))
 }</code></pre>
 <p><strong>Your turn</strong> What should the output be?</p>
-<pre class="r"><code>sim_run_lengths(n_sims = 5, n = 10, prob = 1)</code></pre>
+<pre class="r"><code>sim_run_lengths(n_sims = 10, n = 4, prob = 1)</code></pre>
 <p>Now, <code>n</code> the number of flips is an argument to our function.</p>
 </div>
 <div id="one-approach" class="section level2">
@@ -326,24 +345,32 @@ sim_run_lengths &lt;- function(n_sims, n, prob = 0.5){
 <ol style="list-style-type: decimal">
 <li><p>Simulate the longest runs for each <span class="math inline">\(n\)</span>:</p>
 <pre class="r"><code>lengths_for_each_n &lt;- map(ns, 
-  ~ sim_run_lengths(n_sims = 500, n = .x))</code></pre></li>
+  ~ sim_run_lengths(n_sims = 500, n = .))</code></pre></li>
 <li><p>Find the mean of each set of longest runs:</p>
-<pre class="r"><code>map_dbl(lengths_for_each_n, ~ mean(.x))</code></pre></li>
+<pre class="r"><code>map_dbl(lengths_for_each_n, ~ mean(.))</code></pre></li>
 </ol>
 </div>
-<div id="an-aside-on-map" class="section level2">
-<h2>An aside on map()</h2>
-<p>If the second argument takes the pattern <code>~ fun(x)</code>, you can just supply <code>fun</code> without using the formula notation:</p>
-<pre class="r"><code>map_dbl(lengths_for_each_n, ~ mean(.x)) 
+<div id="an-aside-on-map-back-at-903" class="section level2">
+<h2>An aside on map() back at 9:03</h2>
+<p>If the second argument takes the pattern <code>~ fun(.)</code>, you can just supply <code>fun</code> without using the formula notation:</p>
+<pre class="r"><code>map_dbl(lengths_for_each_n, ~ mean(.)) 
 # is the same as
 map_dbl(lengths_for_each_n, mean)</code></pre>
-<p>You can supply addtional arguments to <code>map()</code> which will be passed on to the function in the second argument:</p>
+<p>You can supply addtional arguments to <code>map()</code> which will be passed on to the function in the second argument. For example, pass on argument to <code>mean()</code>:</p>
+<pre class="r"><code>map_dbl(lengths_for_each_n, mean, na.rm = TRUE)</code></pre>
+<p>Or in our example:</p>
 <pre class="r"><code>lengths_for_each_n &lt;- map(ns, 
   ~ sim_run_lengths(n_sims = 500, n = .x))
 # is the same as
 lengths_for_each_n &lt;- map(ns, 
   sim_run_lengths, 
   n_sims = 500)</code></pre>
+<p>Student question: Can we do more than one thing to an element? Yes, but you end up with more complicated data structures:</p>
+<pre class="r"><code>map(lengths_for_each_n,
+  ~ list(mean(.), sd(.)))</code></pre>
+<p>I’d reccomend just doing it twice</p>
+<pre class="r"><code>map(lengths_for_each_n, mean)
+map(lengths_for_each_n, sd)</code></pre>
 </div>
 </div>
 <div id="key-ideas" class="section level1">
@@ -389,9 +416,10 @@ sims</code></pre>
       ymax = est + 1.96*sd/sqrt(n_sims))) +
     geom_line() +
     labs(x = &quot;Number of coin flips&quot;, y = &quot;Estimated expected longest run&quot;)</code></pre>
-<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 <p>Everything we need is in one object, easy to save for later:</p>
 <pre class="r"><code>write_rds(sims, &quot;max-run-length-by-n-simulations.rds&quot;)</code></pre>
+<p><code>write_rds()</code> is a function in readr.</p>
 </div>
 <div id="build-it-up-as-we-go" class="section level2">
 <h2>Build it up as we go</h2>
@@ -400,28 +428,29 @@ sims</code></pre>
   n = ns
 )</code></pre>
 <p>Also forces you to think about the parameters of the simulation (i.e. what should vary?)</p>
-<p>Now our operations happen within the data frame, <code>dplyr::mutate()</code> adds new columns, here one generated by a <code>map()</code> over the <code>ns</code> column:</p>
+<p>Now our operations happen within the data frame, <code>dplyr::mutate()</code> adds new columns, here one generated by a <code>map()</code> over the <code>n</code> column:</p>
 <pre class="r"><code>sims_with_lengths &lt;- 
   sims %&gt;% 
-    mutate(run_lengths = map(ns, sim_run_lengths, 
+    mutate(run_lengths = map(n, sim_run_lengths, 
       n_sims = 500))</code></pre>
 <p>Calls to <code>map_dbl()</code> or <code>map_int()</code> etc, get us columns of numbers:</p>
 <pre class="r"><code>sims_with_stats &lt;- 
   sims_with_lengths %&gt;% 
     mutate(
-      mean_longest_run = map_dbl(lengths_for_each_n, mean),
-      sd_longest_run = map_dbl(lengths_for_each_n, sd))
+      mean_longest_run = map_dbl(run_lengths, mean),
+      sd_longest_run = map_dbl(run_lengths, sd))
 
 sims_with_stats</code></pre>
 </div>
 </div>
 <div id="iterating-over-more-than-one-object" class="section level1">
 <h1>Iterating over more than one object</h1>
+<p><strong>Pick up here Thursday</strong></p>
 <pre class="r"><code>ns
 (ps &lt;- seq(0.1, 0.9, by = 0.2))</code></pre>
 <p>Now what is the expected length of the longest run for every combination of <span class="math inline">\(n\)</span> and <span class="math inline">\(p\)</span>?</p>
-<pre class="r"><code>all_ns &lt;- rep(ns, each = length(ps))
-all_ps &lt;- rep(ps, times = length(ns))</code></pre>
+<pre class="r"><code>(all_ns &lt;- rep(ns, each = length(ps)))
+(all_ps &lt;- rep(ps, times = length(ns)))</code></pre>
 <div id="when-you-need-to-iterate-over-more-than-one-thing-map2-and-pmap" class="section level2">
 <h2>When you need to iterate over more than one thing <code>map2()</code> and <code>pmap()</code></h2>
 <p>Recall, this translates to “for each element of <code>.x</code>, do <code>.f</code>”:</p>
@@ -460,7 +489,7 @@ runs &lt;- cross_df(simulation_params)</code></pre>
       ymin = mean_max_length - 1.96*sd_max_length/sqrt(n_sims),
       ymax = mean_max_length + 1.96*sd_max_length/sqrt(n_sims))) +
     geom_line() </code></pre>
-<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
 </div>
 <div id="more-complicated-simulations" class="section level2">
 <h2>More complicated simulations…</h2>
@@ -489,7 +518,11 @@ runs_big &lt;- cross_df(simulation_params_big)</code></pre>
       ymax = mean_max_length + 1.96*sd_max_length/sqrt(n_sims))) +
     geom_line()  +
   facet_wrap(~ n_sims)</code></pre>
-<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+</div>
+<div id="next-time" class="section level2">
+<h2>Next time</h2>
+<p>Project organization, you will work in RStudio Cloud, be prepared.</p>
 </div>
 </div>
 
