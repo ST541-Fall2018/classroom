@@ -1,0 +1,86 @@
+---
+title: Lab 04 - Project repos and practice
+author: Charlotte Wickham
+date: Oct 12th 2018
+---
+
+```{r setup, message=FALSE}
+library(tidyverse)
+set.seed(5739)
+```
+
+# Part I - Getting a project on github
+
+So far we've used github classroom to set up the homework repos as github repos.  For your project you'll need to set up your own.
+
+To practice we'll use the `cointoss` project from class.
+
+## Step 0: Get Project and git setup
+
+You can skip this step if you were following along in class and already have your own cointoss project in the cloud, with git set up.
+
+* Save a copy of the project at: https://rstudio.cloud/spaces/4116/project/106514
+
+* Create an overview of the project
+    ```{r, eval = FALSE}
+    usethis::use_readme_rmd()
+    ```
+    Edit and Knit the resulting REAMDE.Rmd file
+  
+*  Set up git
+
+    On the terminal do the usual setup,
+    ```{bash}
+    git config --global user.email "your email here"
+    git config --global user.name "your name here"
+    git config --global credential.helper 'cache --timeout 3600'
+    ```
+    
+    Then run:
+    ```{r, eval = FALSE}
+    usethis::use_git()
+    ```
+  
+## Remaining steps
+
+Follow the guide at [Happy Git with R starting at Section 18.5](http://happygitwithr.com/existing-github-last.html#make-and-connect-a-github-repo-option-2)
+
+A few key differences:
+
+* Make sure you make your repository from the class organziation page: https://github.com/ST541-Fall2018  This ensures I can see it.  
+* Use a repo name that includes your github username, e.g. `cwickham-coin-toss`
+* Make sure you set it to Private not Public
+* 18.5.4 Can be done in the Terminal tab in RStudio.
+
+At the end you have been successful if you can see the README.md on github.
+
+# Part II: Choose your own adventure
+
+There were a lot of possibly new R things in class this week: `map2()`, `pmap()`, `mutate()` from dplyr, ggplot2.  
+
+Reflect on what you struggled to understand in the code this week (you might head back to the notes to remind yourself) and pick something to learn more about.  I have some pointers to resources below.
+
+Some hints for self-directed learning in R:
+
+* Good resources will mix code and narrative.  Make sure you have RStudio open and are running the code as it is presented in your own RMarkdown file.  Don't be afriad to run larger statements line by line or peice by piece.  Keep your own notes next to the code you run.
+
+* Don't just copy-paste-run code, really **read** the code.  What functions are being called? What values are being passed as the arguments? What kinds of objects are these values? Experiment with changing the values.
+
+* Use the code from class as a guide to how you are progressing.  After working through a resource, head back to code you found challenging, and try and understand it again.  Still have questions, ask in the [class discussion](https://github.com/ST541-Fall2018/Discussion).
+
+* Repetition and practice are key.  Once you've worked through one resource, google for another.
+
+## Resources
+
+* **If you have never seen ggplot2 for making plots in R**:
+    I think the best resource is the [Visualization chapter in R4DS](http://r4ds.had.co.nz/data-visualisation.html).  The most useful sections for this class are 3.1, 3.2, 3.3 and 3.6.
+
+* **If you are new to dplyr, in particular `mutate()`**: Try the [Data transformation chapter in R4DS](http://r4ds.had.co.nz/transform.html).  To get to `mutate()` I'd start with 5.1, then skip to 5.5.  Return to 5.2, 5.3, and 5.4 if you have time.
+
+* **If you feel you haven't yet mastered `map()`**: Try the [My first functional: map() Chapter in Advanced R](https://adv-r.hadley.nz/functionals.html#map)
+
+* **If you want to master `map2()`**: Try the [Two inputs: `map2()` and friends Section in Advanced R](https://adv-r.hadley.nz/functionals.html#map2)
+
+* **If you want to master `pmap()`**: Try the [Any number of inputs: `pmap()` and friends Section in Advanced R](https://adv-r.hadley.nz/functionals.html#pmap)
+
+* **If you want to know more about data frames and tibbles**: Try [Data frames and tibbles in Advanced R](https://adv-r.hadley.nz/vectors-chap.html#tibble)

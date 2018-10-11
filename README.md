@@ -36,6 +36,7 @@
 
 * Oct 09 [**More complicated simulations**](notes/06-more-complicated-sims.html) ([Rmd](notes/06-more-complicated-sims.Rmd)) [Pre-lecture reading](readings.html#week-3)
 * Oct 11 [**Project Organization**](notes/07-project-organization.html) ([Rmd](notes/07-project-organization.Rmd)) 
+* Oct 12 [**Lab 04**](notes/lab-04.html) ([Rmd](notes/lab-04.Rmd)) 
 
 
 ## Credits

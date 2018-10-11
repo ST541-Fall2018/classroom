@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Lab 04 - Project repos and practice</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Lab 04 - Project repos and practice</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Oct 12th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#part-i---getting-a-project-on-github">Part I - Getting a project on github</a><ul>
+<li><a href="#step-0-get-project-and-git-setup">Step 0: Get Project and git setup</a></li>
+<li><a href="#remaining-steps">Remaining steps</a></li>
+</ul></li>
+<li><a href="#part-ii-choose-your-own-adventure">Part II: Choose your own adventure</a><ul>
+<li><a href="#resources">Resources</a></li>
+</ul></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+set.seed(5739)</code></pre>
+<div id="part-i---getting-a-project-on-github" class="section level1">
+<h1>Part I - Getting a project on github</h1>
+<p>So far we’ve used github classroom to set up the homework repos as github repos. For your project you’ll need to set up your own.</p>
+<p>To practice we’ll use the <code>cointoss</code> project from class.</p>
+<div id="step-0-get-project-and-git-setup" class="section level2">
+<h2>Step 0: Get Project and git setup</h2>
+<p>You can skip this step if you were following along in class and already have your own cointoss project in the cloud, with git set up.</p>
+<ul>
+<li><p>Save a copy of the project at: <a href="https://rstudio.cloud/spaces/4116/project/106514" class="uri">https://rstudio.cloud/spaces/4116/project/106514</a></p></li>
+<li><p>Create an overview of the project</p>
+<pre class="r"><code>usethis::use_readme_rmd()</code></pre>
+<p>Edit and Knit the resulting REAMDE.Rmd file</p></li>
+<li><p>Set up git</p>
+<p>On the terminal do the usual setup,</p>
+<pre class="bash"><code>git config --global user.email &quot;your email here&quot;
+git config --global user.name &quot;your name here&quot;
+git config --global credential.helper &#39;cache --timeout 3600&#39;</code></pre>
+<p>Then run:</p>
+<pre class="r"><code>usethis::use_git()</code></pre></li>
+</ul>
+</div>
+<div id="remaining-steps" class="section level2">
+<h2>Remaining steps</h2>
+<p>Follow the guide at <a href="http://happygitwithr.com/existing-github-last.html#make-and-connect-a-github-repo-option-2">Happy Git with R starting at Section 18.5</a></p>
+<p>A few key differences:</p>
+<ul>
+<li>Make sure you make your repository from the class organziation page: <a href="https://github.com/ST541-Fall2018" class="uri">https://github.com/ST541-Fall2018</a> This ensures I can see it.<br />
+</li>
+<li>Use a repo name that includes your github username, e.g. <code>cwickham-coin-toss</code></li>
+<li>Make sure you set it to Private not Public</li>
+<li>18.5.4 Can be done in the Terminal tab in RStudio.</li>
+</ul>
+<p>At the end you have been successful if you can see the README.md on github.</p>
+</div>
+</div>
+<div id="part-ii-choose-your-own-adventure" class="section level1">
+<h1>Part II: Choose your own adventure</h1>
+<p>There were a lot of possibly new R things in class this week: <code>map2()</code>, <code>pmap()</code>, <code>mutate()</code> from dplyr, ggplot2.</p>
+<p>Reflect on what you struggled to understand in the code this week (you might head back to the notes to remind yourself) and pick something to learn more about. I have some pointers to resources below.</p>
+<p>Some hints for self-directed learning in R:</p>
+<ul>
+<li><p>Good resources will mix code and narrative. Make sure you have RStudio open and are running the code as it is presented in your own RMarkdown file. Don’t be afriad to run larger statements line by line or peice by piece. Keep your own notes next to the code you run.</p></li>
+<li><p>Don’t just copy-paste-run code, really <strong>read</strong> the code. What functions are being called? What values are being passed as the arguments? What kinds of objects are these values? Experiment with changing the values.</p></li>
+<li><p>Use the code from class as a guide to how you are progressing. After working through a resource, head back to code you found challenging, and try and understand it again. Still have questions, ask in the <a href="https://github.com/ST541-Fall2018/Discussion">class discussion</a>.</p></li>
+<li><p>Repetition and practice are key. Once you’ve worked through one resource, google for another.</p></li>
+</ul>
+<div id="resources" class="section level2">
+<h2>Resources</h2>
+<ul>
+<li><p><strong>If you have never seen ggplot2 for making plots in R</strong>: I think the best resource is the <a href="http://r4ds.had.co.nz/data-visualisation.html">Visualization chapter in R4DS</a>. The most useful sections for this class are 3.1, 3.2, 3.3 and 3.6.</p></li>
+<li><p><strong>If you are new to dplyr, in particular <code>mutate()</code></strong>: Try the <a href="http://r4ds.had.co.nz/transform.html">Data transformation chapter in R4DS</a>. To get to <code>mutate()</code> I’d start with 5.1, then skip to 5.5. Return to 5.2, 5.3, and 5.4 if you have time.</p></li>
+<li><p><strong>If you feel you haven’t yet mastered <code>map()</code></strong>: Try the <a href="https://adv-r.hadley.nz/functionals.html#map">My first functional: map() Chapter in Advanced R</a></p></li>
+<li><p><strong>If you want to master <code>map2()</code></strong>: Try the <a href="https://adv-r.hadley.nz/functionals.html#map2">Two inputs: <code>map2()</code> and friends Section in Advanced R</a></p></li>
+<li><p><strong>If you want to master <code>pmap()</code></strong>: Try the <a href="https://adv-r.hadley.nz/functionals.html#pmap">Any number of inputs: <code>pmap()</code> and friends Section in Advanced R</a></p></li>
+<li><p><strong>If you want to know more about data frames and tibbles</strong>: Try <a href="https://adv-r.hadley.nz/vectors-chap.html#tibble">Data frames and tibbles in Advanced R</a></p></li>
+</ul>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
