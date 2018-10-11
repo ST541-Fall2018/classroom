@@ -394,10 +394,23 @@ map2(.x = c(1, 2, 3), .y = c(-1, 0, 1),
   ~ .x * .y)
 ```
 
+Or ask for a simple object with the `map2_***()` functions, e.g. a double vector:
+```{r}
+map2_dbl(.x = c(1, 2, 3), .y = c(-1, 0, 1),
+  ~ .x * .y)
+```
+
 ## In our situation
 
 ```{r}
 map2(all_ns, all_ps, 
+  ~ sim_run_lengths(10, n = .x, prob = .y)) # 10 just as an example
+```
+
+
+This doesn't work here, since each element is longer than length 1:
+```{r, error = TRUE}
+map2_dbl(all_ns, all_ps, 
   ~ sim_run_lengths(10, n = .x, prob = .y)) # 10 just as an example
 ```
 
@@ -414,8 +427,10 @@ Use dplyr to add columns:
 ```{r}
 runs <- runs %>% 
   mutate(
-    run_lengths = map2(n, prob, 
-      sim_run_lengths, n_sims = 500)) %>% 
+    run_lengths = map2(.x = n, .y = prob, 
+      ~ sim_run_lengths(n_sims = 500, n = .x, prob = .y))) 
+
+runs <- runs %>% 
   mutate(
     mean_max_length = map_dbl(run_lengths, mean),
     sd_max_length = map_dbl(run_lengths, sd),
@@ -459,6 +474,14 @@ runs_big <- runs_big %>%
   )
 ```
 
+A data frame is a list, so you could also do:
+```{r, eval = FALSE}
+runs_big <- cross_df(simulation_params_big)
+pmap(runs_big, 
+      sim_run_lengths) %>% 
+  bind_cols(runs_big)
+```
+
 Easy to plot and manipulate:
 ```{r}
 runs_big %>% 
@@ -474,4 +497,5 @@ runs_big %>%
 
 Project organization, you will work in RStudio Cloud, be prepared.
 
+Back at 8:53am
 

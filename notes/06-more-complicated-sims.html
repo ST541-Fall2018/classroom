@@ -461,11 +461,18 @@ sims_with_stats</code></pre>
 <p>A simpler example</p>
 <pre class="r"><code>map2(.x = c(1, 2, 3), .y = c(-1, 0, 1),
   ~ .x * .y)</code></pre>
+<p>Or ask for a simple object with the <code>map2_***()</code> functions, e.g. a double vector:</p>
+<pre class="r"><code>map2_dbl(.x = c(1, 2, 3), .y = c(-1, 0, 1),
+  ~ .x * .y)</code></pre>
 </div>
 <div id="in-our-situation" class="section level2">
 <h2>In our situation</h2>
 <pre class="r"><code>map2(all_ns, all_ps, 
   ~ sim_run_lengths(10, n = .x, prob = .y)) # 10 just as an example</code></pre>
+<p>This doesn’t work here, since each element is longer than length 1:</p>
+<pre class="r"><code>map2_dbl(all_ns, all_ps, 
+  ~ sim_run_lengths(10, n = .x, prob = .y)) # 10 just as an example</code></pre>
+<pre><code>## Error: Result 1 is not a length 1 atomic vector</code></pre>
 <p>Hard to keep track of which belongs to which…so start with a data frame:</p>
 <pre class="r"><code>simulation_params &lt;- list(
   n = ns, prob = seq(0.1, 0.9, by = 0.2)
@@ -475,8 +482,10 @@ runs &lt;- cross_df(simulation_params)</code></pre>
 <p>Use dplyr to add columns:</p>
 <pre class="r"><code>runs &lt;- runs %&gt;% 
   mutate(
-    run_lengths = map2(n, prob, 
-      sim_run_lengths, n_sims = 500)) %&gt;% 
+    run_lengths = map2(.x = n, .y = prob, 
+      ~ sim_run_lengths(n_sims = 500, n = .x, prob = .y))) 
+
+runs &lt;- runs %&gt;% 
   mutate(
     mean_max_length = map_dbl(run_lengths, mean),
     sd_max_length = map_dbl(run_lengths, sd),
@@ -489,7 +498,7 @@ runs &lt;- cross_df(simulation_params)</code></pre>
       ymin = mean_max_length - 1.96*sd_max_length/sqrt(n_sims),
       ymax = mean_max_length + 1.96*sd_max_length/sqrt(n_sims))) +
     geom_line() </code></pre>
-<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
 </div>
 <div id="more-complicated-simulations" class="section level2">
 <h2>More complicated simulations…</h2>
@@ -510,6 +519,11 @@ runs_big &lt;- cross_df(simulation_params_big)</code></pre>
     mean_max_length = map_dbl(run_lengths, mean),
     sd_max_length = map_dbl(run_lengths, sd)
   )</code></pre>
+<p>A data frame is a list, so you could also do:</p>
+<pre class="r"><code>runs_big &lt;- cross_df(simulation_params_big)
+pmap(runs_big, 
+      sim_run_lengths) %&gt;% 
+  bind_cols(runs_big)</code></pre>
 <p>Easy to plot and manipulate:</p>
 <pre class="r"><code>runs_big %&gt;% 
   ggplot(aes(x = n, y = mean_max_length, color = factor(prob))) +
@@ -518,11 +532,12 @@ runs_big &lt;- cross_df(simulation_params_big)</code></pre>
       ymax = mean_max_length + 1.96*sd_max_length/sqrt(n_sims))) +
     geom_line()  +
   facet_wrap(~ n_sims)</code></pre>
-<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+<p><img src="06-more-complicated-sims_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
 </div>
 <div id="next-time" class="section level2">
 <h2>Next time</h2>
 <p>Project organization, you will work in RStudio Cloud, be prepared.</p>
+<p>Back at 8:53am</p>
 </div>
 </div>
 
