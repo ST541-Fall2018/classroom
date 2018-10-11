@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Project Organization</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Project Organization</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Oct 11th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#project-organization">Project Organization</a><ul>
+<li><a href="#a-put-each-project-in-its-own-directory-which-is-named-after-the-project.">4a Put each project in it’s own directory, which is named after the project.</a></li>
+<li><a href="#a---with-the-coin-toss-simulation-study">4a - With the coin toss simulation study</a></li>
+<li><a href="#a-create-an-overview-of-your-project.">3a Create an overview of your project.</a></li>
+<li><a href="#your-turn">Your Turn</a></li>
+<li><a href="#h-use-a-version-control-system.">5h Use a version control system.</a></li>
+<li><a href="#d-put-project-source-code-in-the-src-directory.">4d Put project source code in the <code>src</code> directory.</a></li>
+<li><a href="#your-turn-1">Your Turn</a></li>
+<li><a href="#b-put-text-documents-associated-with-the-project-in-the-doc-directory.">4b Put text documents associated with the project in the <code>doc</code> directory.</a></li>
+<li><a href="#c-put-raw-data-and-metadata-in-a-data-directory-and-files-generated-during-cleanup-and-analysis-in-a-results-directory.">4c Put raw data and metadata in a <code>data</code> directory and files generated during cleanup and analysis in a <code>results</code> directory.</a></li>
+<li><a href="#your-turn-2">Your Turn</a></li>
+<li><a href="#keeping-your-project-portable">Keeping your project portable</a></li>
+<li><a href="#your-turn-3">Your Turn</a></li>
+<li><a href="#your-turn-4">Your Turn</a></li>
+<li><a href="#e-name-all-files-to-reflect-their-content-or-function.">4e Name all files to reflect their content or function.</a></li>
+<li><a href="#your-turn-5">Your Turn</a></li>
+</ul></li>
+</ul>
+</div>
+
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE, results = &quot;hide&quot;, eval = FALSE)
+library(tidyverse)
+set.seed(181871)</code></pre>
+<div id="project-organization" class="section level1">
+<h1>Project Organization</h1>
+<p>A <em>project</em> now refers to a collection of files and folders for one task.</p>
+<p>It could refer to a homework, a consulting project, a data analysis project, or your class project.</p>
+<p>Today we’ll look at the following reccomendations in the order in which you encounter them in practice:</p>
+<ul>
+<li>3a Create an overview of your project.</li>
+<li>4a Put each project in it’s own directory, which is named after the project.</li>
+<li>4b Put text documents associated with the project in the <code>doc</code> directory.</li>
+<li>4c Put raw data and metadata in a <code>data</code> directory and files generated during cleanup and analysis in a <code>results</code> directory.</li>
+<li>4d Put project source code in the <code>src</code> directory.</li>
+<li>4e Name all files to reflect their content or function.</li>
+<li>5h Use a version control system.</li>
+</ul>
+<p>From Wilson G, Bryan J, Cranston K, Kitzes J, Nederbragt L, et al. (2017) <em>Good enough practices in scientific computing.</em> PLOS Computational Biology 13(6): e1005510. <a href="https://doi.org/10.1371/journal.pcbi.1005510" class="uri">https://doi.org/10.1371/journal.pcbi.1005510</a></p>
+<p>Our coin toss simulation is just getting to the point where it is annoying to be all in one Rmd – especially since the simulation takes a few seconds.</p>
+<div id="a-put-each-project-in-its-own-directory-which-is-named-after-the-project." class="section level2">
+<h2>4a Put each project in it’s own directory, which is named after the project.</h2>
+<blockquote>
+<p>Like deciding when a chunk of code should be made a function, the ultimate goal of dividing research into distinct projects is to help you and others best understand your work.</p>
+</blockquote>
+<blockquote>
+<p>As a rule of thumb, divide work into projects based on the overlap in data and code files. If 2 research efforts share no data or code, they will probably be easiest to manage independently. If they share more than half of their data and code, they are probably best managed together, while if you are building tools that are used in several projects, the common code should probably be in a project of its own.</p>
+</blockquote>
+<blockquote>
+<p>The important concept is that it is useful to organize the project by the types of files and that consistency helps you effectively find and use things later.</p>
+</blockquote>
+<p>For us, this directory will also be an <strong>RStudio Project</strong> and also a <strong>git repo</strong>.</p>
+</div>
+<div id="a---with-the-coin-toss-simulation-study" class="section level2">
+<h2>4a - With the coin toss simulation study</h2>
+<p>I’ve already created the project (so I can provide some starter code).</p>
+<p><a href="https://rstudio.cloud/spaces/4116/project/106514" class="uri">https://rstudio.cloud/spaces/4116/project/106514</a></p>
+<p>RStudio Projects are a directory plus some minimal meta data contained in a .RProj file.</p>
+<p>If you need to do this for another project:</p>
+<ul>
+<li><p><strong>In a local RStudio:</strong> New Project -&gt; New Directory (Or <code>usethis::create_project()</code>)</p></li>
+<li><p><strong>Cloud:</strong> From Workspace -&gt; New project, Rename at top</p></li>
+</ul>
+<p>Both create the directory and set it up as an RStudio project.</p>
+<p>Our goal is that this directory contains everything needed for our analysis and is completely portable (this directory could be anywhere) and reproducible.</p>
+</div>
+<div id="a-create-an-overview-of-your-project." class="section level2">
+<h2>3a Create an overview of your project.</h2>
+<blockquote>
+<p>Have a short file in the project’s home directory that explains the purpose of the project. This file (generally called README, README.txt, or something similar) should contain the project’s title, a brief description, up-to-date contact information, and an example or 2 of how to run various cleaning or analysis tasks.</p>
+</blockquote>
+<p>Also a great place to remind yourself of your motivation, or a to do list of things you need to work on, or links to important resources.</p>
+</div>
+<div id="your-turn" class="section level2">
+<h2>Your Turn</h2>
+<pre class="r"><code>usethis::use_readme_rmd()</code></pre>
+<p>Edit the resulting file to include a short summary of this project. Knit it.</p>
+</div>
+<div id="h-use-a-version-control-system." class="section level2">
+<h2>5h Use a version control system.</h2>
+<p>Now is a good time to set up version control…</p>
+<p>Also read the sections: <em>What not to put under version control</em>, <em>Inadvertent Sharing</em>.</p>
+<p>Set up git credentials on Termial</p>
+<pre><code>git config --global user.email &quot;your email here&quot;
+git config --global user.name &quot;your name here&quot;
+git config --global credential.helper &#39;cache --timeout 3600&#39;</code></pre>
+<p><strong>Your Turn</strong></p>
+<pre class="r"><code>usethis::use_git()</code></pre>
+<p><strong>This doesn’t set up and link to a repo on github, you’ll learn how to to do that in lab</strong></p>
+</div>
+<div id="d-put-project-source-code-in-the-src-directory." class="section level2">
+<h2>4d Put project source code in the <code>src</code> directory.</h2>
+<blockquote>
+<p><code>src</code> contains all of the code written for the project. This includes programs written in interpreted languages such as R or Python; those written in compiled languages like Fortran, C++, or Java; as well as shell scripts, snippets of SQL used to pull information from databases; and other code needed to regenerate the results.</p>
+</blockquote>
+<p>For us, this will mostly be definitions of R functions, in which case put it in <code>R</code>, not <code>src</code>. This follows the conventions for R packages and allows us to leverage the devtools package for easy loading and documentation.</p>
+</div>
+<div id="your-turn-1" class="section level2">
+<h2>Your Turn</h2>
+<pre class="r"><code>usethis::use_r(&quot;simulation.R&quot;)</code></pre>
+<p>Creates an R script in the <code>R/</code> directory. Cut and paste the three functions from <code>sim.Rmd</code> into here.</p>
+<pre class="r"><code>usethis::use_description()</code></pre>
+<p>Creates DESCRIPTION, a file that devtools uses to recognize this as an R package.</p>
+<p>Then you can do:</p>
+<pre class="r"><code>devtools::load_all() # OR Cmd/Crtl + Shift + L</code></pre>
+<p>to load all the functions in <code>R/</code> and any documentation you’ve written (we haven’t written any yet).</p>
+</div>
+<div id="b-put-text-documents-associated-with-the-project-in-the-doc-directory." class="section level2">
+<h2>4b Put text documents associated with the project in the <code>doc</code> directory.</h2>
+<blockquote>
+<p>This includes files for manuscripts, documentation for source code, and/or an electronic lab notebook recording your experiments. Subdirectories may be created for these different classes of files in large projects.</p>
+</blockquote>
+<p>I’ve also seen suggestions for this to be called <code>analysis</code> or if you only have one file in here, it’s OK to put it in the main project directory instead.</p>
+</div>
+<div id="c-put-raw-data-and-metadata-in-a-data-directory-and-files-generated-during-cleanup-and-analysis-in-a-results-directory." class="section level2">
+<h2>4c Put raw data and metadata in a <code>data</code> directory and files generated during cleanup and analysis in a <code>results</code> directory.</h2>
+<blockquote>
+<p>where “generated files” includes intermediate results such as cleaned data sets or simulated data, as well as final results such as figures and tables. The <code>results</code> directory will usually require additional subdirectories for all but the simplest projects. Intermediate files such as cleaned data, statistical tables, and final publication-ready figures or tables should be separated clearly by file-naming conventions or placed into different subdirectories; those belonging to different papers or other publications should be grouped together.</p>
+</blockquote>
+</div>
+<div id="your-turn-2" class="section level2">
+<h2>Your Turn</h2>
+<p>Replace the three functions in sims.Rmd with <code>devtools::load_all()</code></p>
+<p>Run the code in sims.Rmd. If we were to save the resulting tibble of output where should we save it?</p>
+<p>What format should we save it in?</p>
+</div>
+<div id="keeping-your-project-portable" class="section level2">
+<h2>Keeping your project portable</h2>
+<p>Never hard code any file paths above the project directory.</p>
+<p>E.g. This is <strong>BAD</strong>, because it will never work for anyone else, or if I move my project directory:</p>
+<pre class="r"><code>setwd(&quot;/Users/wickhamc/Documents/Projects/cointoss/&quot;)
+my_data &lt;- read.csv(&quot;data/coin_data.csv&quot;)
+
+# OR also bad
+read.csv(&quot;/Users/wickhamc/Documents/Projects/cointoss/data/coin_data.csv&quot;)</code></pre>
+<p>Instead rely on RStudio projects (they set the working directory to the project directory) and the here package.</p>
+</div>
+<div id="your-turn-3" class="section level2">
+<h2>Your Turn</h2>
+<p>Run:</p>
+<pre class="r"><code>library(here)
+here(&quot;results&quot;, &quot;sim-output.rds&quot;)</code></pre>
+<p>What happens?</p>
+<p><strong>Save the simulation results into an appropriate location.</strong> Use <code>write_rds()</code>, you might need to create the appropriate directory too.</p>
+<p>Read more at: <a href="https://www.tidyverse.org/articles/2017/12/workflow-vs-script/" class="uri">https://www.tidyverse.org/articles/2017/12/workflow-vs-script/</a></p>
+<blockquote>
+<p>Any resident R script is written assuming that it will be run from a fresh R process with working directory set to the project directory. It creates everything it needs, in its own workspace or folder, and it touches nothing it did not create. For example, it does not install additional packages (another pet peeve of mine).</p>
+</blockquote>
+<blockquote>
+<p>This convention guarantees that the project can be moved around on your computer or onto other computers and will still “just work”. I argue that this is the only practical convention that creates reliable, polite behavior across different computers or users and over time. This convention is neither new, nor unique to R.</p>
+</blockquote>
+<blockquote>
+<p>It’s like agreeing that we will all drive on the left or the right. A hallmark of civilization is following conventions that constrain your behavior a little, in the name of public safety.</p>
+</blockquote>
+<p>A fresh R process is only guaranteed with a few extra settings: uncheck Restore .RData, never save workspace on exit.</p>
+<div class="figure">
+<img src="r-profile-dont-save-or-load-data.png" />
+
+</div>
+</div>
+<div id="your-turn-4" class="section level2">
+<h2>Your Turn</h2>
+<ol style="list-style-type: decimal">
+<li><p>Create a new Rmarkdown document.</p></li>
+<li><p>Load the tidyverse and here packages.</p></li>
+<li><p>Load the simulation output.</p></li>
+<li><p>Move the summary and plotting code to this new document.</p></li>
+<li><p>Save it with an appropriate name, in an appropriate place.</p></li>
+</ol>
+</div>
+<div id="e-name-all-files-to-reflect-their-content-or-function." class="section level2">
+<h2>4e Name all files to reflect their content or function.</h2>
+<blockquote>
+<p>For example, use names such as <code>bird_count_table.csv</code>, <code>manuscript.md</code>, or <code>sightings_analysis.py</code>. Do not use sequential numbers (e.g., <code>result1.csv</code>, <code>result2.csv</code>) or a location in a final manuscript (e.g., <code>fig_3_a.png</code>), since those numbers will almost certainly change as the project evolves.</p>
+</blockquote>
+<p>I sometimes use sequential prefixes in addition to a name to indicate an order of an analysis, e.g. <code>00_data-cleaning.Rmd</code>, <code>01_analysis.Rmd</code>, <code>02_reporting.Rmd</code>.</p>
+</div>
+<div id="your-turn-5" class="section level2">
+<h2>Your Turn</h2>
+<p>Our Rmarkdown document to create the simulation output is in the wrong place with a bad name … fix it.</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
