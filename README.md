@@ -41,6 +41,7 @@
 ### Week 4
 
 * Oct 16 [**Finish last Thursday's slides**]
+* Oct 18 **Bootstrap**  [Pre-lecture reading](readings.html#week-4)
 
 ## Credits
 
