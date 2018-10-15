@@ -63,3 +63,15 @@ You may also want to review some things we touched on in class about functions i
 * [... dot-dot-dot](http://r4ds.had.co.nz/functions.html#dot-dot-dot)
 * [Functions can find variables in the global environment](http://r4ds.had.co.nz/functions.html#environment)
 
+
+## Week 4
+
+[Section 1.2 Introduction](https://oregonstate.instructure.com/courses/1689180/files/folder/Readings?preview=72513399) (page 8) up to and including page 10, in Bootstrap Methods: A Guide for Practitioners and Researchers by Michael R. Chernick 
+
+Be prepared to answer the following questions:
+
+* Usually when thinking about constructing an estimate for a paramater, we make some assumptions about the population distribution.  What does the bootstrap replace the population distribution with?  Why is this a good replacement?
+
+* Why do we need a Monte Carlo approach?
+
+If you've seen the bootstrap before, you might continue reading to the end on the Introduction, paying attention to the reasons the bootstrap might not work.
