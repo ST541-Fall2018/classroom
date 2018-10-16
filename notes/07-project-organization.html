@@ -147,7 +147,9 @@ $(document).ready(function () {
 <li><a href="#your-turn-4">Your Turn</a></li>
 <li><a href="#e-name-all-files-to-reflect-their-content-or-function.">4e Name all files to reflect their content or function.</a></li>
 <li><a href="#your-turn-5">Your Turn</a></li>
+<li><a href="#adding-dependencies">Adding dependencies</a></li>
 </ul></li>
+<li><a href="#reading-for-thursday">Reading for Thursday</a></li>
 </ul>
 </div>
 
@@ -254,8 +256,19 @@ git config --global credential.helper &#39;cache --timeout 3600&#39;</code></pre
 <div id="your-turn-2" class="section level2">
 <h2>Your Turn</h2>
 <p>Replace the three functions in sims.Rmd with <code>devtools::load_all()</code></p>
-<p>Run the code in sims.Rmd. If we were to save the resulting tibble of output where should we save it?</p>
+<p>Run the code in sims.Rmd. If we were to save the resulting tibble, <code>runs_big</code> of output where should we save it?</p>
 <p>What format should we save it in?</p>
+<p>CSV is good for portablility and is human readable. Use to save cleaned data, we could use it here if we restrict saving to the columns that aren’t list columns.</p>
+<p>RDS is good for complicated data structures, quick to load. Good for svaing intermediate objects when you don’t need to share with people that don’t use R.</p>
+<p>Save RDS with <code>readr::write_rds()</code>, e.g. to save in current directory:</p>
+<pre class="r"><code>write_rds(runs_big, &quot;sims.rds&quot;)</code></pre>
+<p>When you need it later, import with <code>readr::read_rds()</code> and assign it to a variable:</p>
+<pre class="r"><code>runs_big &lt;- read_rds(&quot;sims.rds&quot;)</code></pre>
+<p>Why not RDA? Can’t give the object a name when you read it in, you have to remember what you called it when you saved it</p>
+<pre class="r"><code>x &lt;- runs_big
+save(x, file = &quot;y.rda&quot;)
+rm(x)
+load(&quot;y.rda&quot;) # where is it? It&#39;s in an object called x</code></pre>
 </div>
 <div id="keeping-your-project-portable" class="section level2">
 <h2>Keeping your project portable</h2>
@@ -312,6 +325,21 @@ here(&quot;results&quot;, &quot;sim-output.rds&quot;)</code></pre>
 <h2>Your Turn</h2>
 <p>Our Rmarkdown document to create the simulation output is in the wrong place with a bad name … fix it.</p>
 </div>
+<div id="adding-dependencies" class="section level2">
+<h2>Adding dependencies</h2>
+<p>You can formally add pacakges your project relies on with <code>usethis::use_package()</code>. This adds a line to the <code>DESCRIPTION</code> file</p>
+<pre class="r"><code>usethis::use_package(&quot;tidyverse&quot;)</code></pre>
+</div>
+</div>
+<div id="reading-for-thursday" class="section level1">
+<h1>Reading for Thursday</h1>
+<p><a href="https://oregonstate.instructure.com/courses/1689180/files/folder/Readings?preview=72513399">Section 1.2 Introduction</a> (page 8) up to and including page 10, in Bootstrap Methods: A Guide for Practitioners and Researchers by Michael R. Chernick</p>
+<p>Be prepared to answer the following questions:</p>
+<ul>
+<li><p>Usually when thinking about constructing an estimate for a paramater, we make some assumptions about the population distribution. What does the bootstrap replace the population distribution with? Why is this a good replacement?</p></li>
+<li><p>Why do we need a Monte Carlo approach?</p></li>
+</ul>
+<p>If you’ve seen the bootstrap before, you might continue reading to the end on the Introduction, paying attention to the reasons the bootstrap might not work.</p>
 </div>
 
 
