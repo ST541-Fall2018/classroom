@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Bootstrap</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Bootstrap</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Oct 17th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#setting">Setting</a></li>
+<li><a href="#example-population-mean-unknown-population-distribution">Example: Population mean, unknown population distribution</a></li>
+<li><a href="#example-population-median-known-population-distribution">Example: Population median, known population distribution</a></li>
+<li><a href="#your-turn">Your Turn</a></li>
+<li><a href="#bootstrap">Bootstrap</a></li>
+<li><a href="#bootstrap-algorithm">Bootstrap Algorithm</a></li>
+<li><a href="#one-method-for-constructing-a-confidence-interval-for-theta">One method for constructing a confidence interval for <span class="math inline">\(\theta\)</span></a></li>
+<li><a href="#implementing-the-bootstrap">Implementing the bootstrap</a></li>
+<li><a href="#example-project-on-rstudio.cloud">Example project on rstudio.cloud</a></li>
+</ul>
+</div>
+
+<div id="setting" class="section level2">
+<h2>Setting</h2>
+<p>We have an i.i.d sample <span class="math inline">\(X_1, \ldots, X_n\)</span> from some unknown population distribution.</p>
+<p>We are interested in estimating <span class="math inline">\(\theta\)</span>, some parameter of the population distribution.</p>
+<p>We use <span class="math inline">\(\hat{\theta}\)</span> some function of the sample as our estimate of <span class="math inline">\(\theta\)</span>.</p>
+<p><strong>How do we know how uncertain our estimate is? I.e. how do we construct a confidence interval for <span class="math inline">\(\theta\)</span>?</strong></p>
+<p>We need to know the sampling distribution of our estimate <span class="math inline">\(\hat{\theta}\)</span>.</p>
+<p>Recall: the <strong>sampling distribution</strong> of an estimate is the distribution of the estimate over all possible samples from the population.</p>
+</div>
+<div id="example-population-mean-unknown-population-distribution" class="section level2">
+<h2>Example: Population mean, unknown population distribution</h2>
+<p>Let <span class="math inline">\(X_1, \ldots, X_n\)</span> be an i.i.d sample from some <strong>unknown</strong> population distribution.</p>
+<p>We are interested in <span class="math inline">\(\theta = \mu\)</span> the population mean, and estimate it with <span class="math inline">\(\hat{\theta} = \overline{X}\)</span> the sample mean.</p>
+<p><strong>Your Turn</strong>: What is the sampling distribution of <span class="math inline">\(\hat{\theta}\)</span>?</p>
+<!-- An example where theory gives us (at least an asymptotic) answer. -->
+</div>
+<div id="example-population-median-known-population-distribution" class="section level2">
+<h2>Example: Population median, known population distribution</h2>
+<p>Let <span class="math inline">\(X_1, \ldots, X_n\)</span> be an i.i.d sample from some <strong>known</strong> population distribution.</p>
+<p>We are interested in <span class="math inline">\(\theta\)</span> the population median, and estimate it with <span class="math inline">\(\hat{\theta}\)</span> the sample median.</p>
+<p><strong>Your Turn</strong>: How could you use simulation to find the sampling distribution of <span class="math inline">\(\hat{\theta}\)</span>?</p>
+<!-- An example where we might rely on simulation to give us an answer. There is actually also theory for this situation... -->
+</div>
+<div id="your-turn" class="section level2">
+<h2>Your Turn</h2>
+<p><strong>Discuss with your neighbour</strong></p>
+<p>In the simulation approach we have to make some assumptions about the population distribution. What does the bootstrap replace the population distribution with? Why is this a good replacement?</p>
+</div>
+<div id="bootstrap" class="section level2">
+<h2>Bootstrap</h2>
+<p>The bootstrap is like a simulation approach, but instead of using an assumed population distribution we use our best guess of the population distribution - the distribution of the sample.</p>
+<p>The <strong>bootstrap distribution</strong> of estimate <span class="math inline">\(\hat{\theta}\)</span> is the distribution of the estimate over all possible samples from the empirical distribution function.</p>
+<p>The empirical distribution function (ecdf), is the cdf that comes from placing probability <span class="math inline">\(1/n\)</span> at each of the observed values in our sample.</p>
+<p>Sampling from the empirical distribution function is equivalent to resampling the original sample with replacement.</p>
+</div>
+<div id="bootstrap-algorithm" class="section level2">
+<h2>Bootstrap Algorithm</h2>
+<p>A Monte Carlo approach to generating the bootstrap distribution <em>(From Chernick)</em>:</p>
+<ol style="list-style-type: decimal">
+<li><p>Generate a sample with replacement from the empirical distribution (a bootstrap sample),</p></li>
+<li><p>Compute <span class="math inline">\(\hat{\theta}^*\)</span> the value of <span class="math inline">\(\hat{\theta}\)</span> obtained by using the bootstrap sample in place of the original sample,</p></li>
+<li><p>Repeat steps 1 and 2 <span class="math inline">\(k\)</span> times.</p></li>
+</ol>
+<p>Important technical detail: you should think of the distribution of <span class="math inline">\(\hat{\theta}^* - \hat{\theta}\)</span> being an estimate of the distribution of <span class="math inline">\(\hat{\theta} - \theta\)</span>, (not the distribution of <span class="math inline">\(\theta^*\)</span> being an estimate of the distribution of <span class="math inline">\(\hat{\theta}\)</span>). Why? Think about a biased estimator.</p>
+<p><strong>Your Turn</strong> Why do we need a Monte Carlo approach?</p>
+</div>
+<div id="one-method-for-constructing-a-confidence-interval-for-theta" class="section level2">
+<h2>One method for constructing a confidence interval for <span class="math inline">\(\theta\)</span></h2>
+<p>Once we have the bootstrap distribution, we use it to construct a bootstrap confidence interval.</p>
+<p><strong>Efron’s percentile method</strong></p>
+<p>Use the <span class="math inline">\(\alpha/2\)</span> and <span class="math inline">\(1-\alpha/2\)</span> quantiles of <span class="math inline">\(\hat{\theta}^*\)</span> as the endpoints in a <span class="math inline">\((1-\alpha)100\%\)</span> confidence interval for <span class="math inline">\(\theta\)</span>.</p>
+<p>Many other methods…more next week.</p>
+</div>
+<div id="implementing-the-bootstrap" class="section level2">
+<h2>Implementing the bootstrap</h2>
+<ol style="list-style-type: decimal">
+<li><strong>Use a purpose-built package, e.g. boot</strong> Handles the sampling, and confidence interval calculations for you. You still need to define a function that takes a bootstrap sample and calculates the estimate.</li>
+<li><em>Something in between</em></li>
+<li><strong>Implement from scratch yourself</strong> You implement sampling, calculate estimates and summarise yourself.</li>
+</ol>
+<p>1. less room for error. 3. useful learning experience. We’ll go with 2. today, use rsample package which fits in nicely with our current MC approach.</p>
+<p><a href="https://github.com/topepo/rsample" class="uri">https://github.com/topepo/rsample</a></p>
+<blockquote>
+<p>Note that resampled data sets created by rsample are directly accessible in a resampling object but do not contain much overhead in memory.</p>
+</blockquote>
+</div>
+<div id="example-project-on-rstudio.cloud" class="section level2">
+<h2>Example project on rstudio.cloud</h2>
+<p><a href="https://rstudio.cloud/spaces/4116/project/112636" class="uri">https://rstudio.cloud/spaces/4116/project/112636</a></p>
+<p>Also on github at: <a href="https://github.com/ST541-Fall2018/bootstrap" class="uri">https://github.com/ST541-Fall2018/bootstrap</a></p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

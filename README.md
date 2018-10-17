@@ -41,7 +41,7 @@
 ### Week 4
 
 * Oct 16 [**Finish last Thursday's slides**]
-* Oct 18 **Bootstrap**  [Pre-lecture reading](readings.html#week-4)
+* Oct 18 [**Bootstrap**](notes/08-bootstrap.html) ([Rmd](notes/08-bootstrap.Rmd))  [Pre-lecture reading](readings.html#week-4)
 
 ## Credits
 
