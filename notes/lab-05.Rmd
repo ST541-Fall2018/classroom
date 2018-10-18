@@ -1,0 +1,20 @@
+---
+title: Lab 05 - Bootstrap
+author: Charlotte Wickham
+date: Oct 19th 2018
+---
+
+You can find the bootstrap project from class at: https://rstudio.cloud/spaces/4116/project/112636
+
+1. Review the code from class that generated a bootstrap confidence interval for the median income of the husbands.  
+
+    * **Does the sample median seem to be unbiased in this example? How can you use the bootstrap distribution to justify your answer?**
+    * **One argument for the weird bootstrap distribution for the median might be that we didn't do a big enough Monte Carlo.  Try doing 5000 bootstrap samples instead, does it help?**
+    
+  
+2. Repeat the procedure to answer the questions in the *Your Turn* section at the end.  Your RMD document should be complete in that it answer all questions, so you might like to add another section for each question, or start a new document for additional questions.  Make sure the answer to each question is presented in text (a good chance to practice writing summaries).
+
+    * **Which estimators have the most symmetric sampling distributions?**
+    * **Can you compare any of the confidence intervals to theoretically motivated confidence intervals?** Compare them.
+    
+

@@ -42,6 +42,7 @@
 
 * Oct 16 [**Finish last Thursday's slides**]
 * Oct 18 [**Bootstrap**](notes/08-bootstrap.html) ([Rmd](notes/08-bootstrap.Rmd))  [Pre-lecture reading](readings.html#week-4)
+* Oct 19 [**Lab 05**](notes/lab-05.html) ([Rmd](notes/lab-05.Rmd)) 
 
 ## Credits
 
