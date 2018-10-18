@@ -4,6 +4,12 @@ author: Charlotte Wickham
 date: Oct 17th 2018
 ---
 
+## Project proposals
+
+By the end of tomorrow you will have feedback on your proposal.
+
+homework-3 github repo -> Issues tab -> I ask questions, you are free to answer in Issues, talk in person, or address as project progresses.
+
 ## Setting
 
 We have an i.i.d sample $X_1, \ldots, X_n$ from some unknown population distribution.  
