@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Bootstrap II</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Bootstrap II</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Oct 23rd 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#when-the-bootstrap-doesnt-work">When the bootstrap doesn’t work</a><ul>
+<li><a href="#an-example-of-inconsistency-the-sample-maximum">An example of inconsistency: the sample maximum</a></li>
+<li><a href="#conditions-are-met-but-sample-size-is-too-small">Conditions are met, but sample size is too small</a><ul>
+<li><a href="#truth---or-an-approximation-to-it">Truth - or an approximation to it</a></li>
+<li><a href="#the-bootstrap-performance">The bootstrap performance</a></li>
+</ul></li>
+<li><a href="#an-inappropriate-application">An inappropriate application</a></li>
+<li><a href="#parametric-bootstrap">Parametric bootstrap</a></li>
+<li><a href="#references">References</a></li>
+</ul></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+set.seed(1918482)</code></pre>
+<div id="when-the-bootstrap-doesnt-work" class="section level1">
+<h1>When the bootstrap doesn’t work</h1>
+<p>The bootstrap is an asymptotic technique: under some conditions, there is a guarantee it will work as the sample size approaches infinity.</p>
+<p>Some ways in which a bootstrap fails:</p>
+<ul>
+<li>conditions aren’t met, so there is no asymptotic guarantee,</li>
+<li>conditions are met, but sample size isn’t large enough for good practical performance, or</li>
+<li>it has been applied in an inappropriate setting.</li>
+</ul>
+<p>Examples of the first kind are usually demonstrated theoretically.</p>
+<p>Examples of the second kind are often demonstrated by simulation (and then backed up with theory about rates of convergence).</p>
+<p>The third kind can usually be identified from the description of a study.</p>
+<div id="an-example-of-inconsistency-the-sample-maximum" class="section level2">
+<h2>An example of inconsistency: the sample maximum</h2>
+<p><em>(Example 2.15 <span class="citation">Davison and Hinkley (1997)</span>)</em></p>
+<p>Let <span class="math inline">\(X_1, \ldots, X_n\)</span> be i.i.d Uniform<span class="math inline">\((0, \theta)\)</span>. Consider estimating <span class="math inline">\(\theta\)</span> with <span class="math inline">\(\hat{\theta} = \max{\{X_1, \ldots, X_n \}}\)</span> (this is the maximum likelihood estimator for this setting).</p>
+<p>It can be shown that sampling distribution of <span class="math inline">\(n(\theta - \hat{\theta})/\theta\)</span> is a standard exponential.</p>
+<p>We could approximate the bootstrap distribution of this with <span class="math inline">\(n(\hat{\theta} - \hat{\theta^*})/\hat{\theta}\)</span> where <span class="math inline">\(\hat{\theta}^*\)</span> is a the sample maximum for a bootstrap sample.</p>
+<p>This is a case where the bootstrap is inconsistent: the bootstrap distribution does not converge to the sampling distribution.</p>
+<p><strong>Outline:</strong> show <span class="math inline">\(Q^* = n(\hat{\theta} - \hat{\theta^*})/\hat{\theta}\)</span> cannot be standard exponential as <span class="math inline">\(n \rightarrow \infty\)</span>.</p>
+<p><span class="math display">\[
+\begin{aligned}
+P(Q^* = 0 \, | \, \hat{F}) &amp;=
+P(\hat{\theta}^* = \underline{\hspace{2cm}} \, | \, \hat{F}) \\
+&amp; = \, \\
+&amp;= 1 - \left( 1 - \frac{1}{n}\right)^n  \\
+&amp;\rightarrow 1 - e^{-1} 
+\end{aligned}
+\]</span></p>
+<p>Limiting dist of <span class="math inline">\(Q^*\)</span> can’t be exponential because it has a point mass at zero.</p>
+<p>Don’t bootstrap specific order statistics.</p>
+</div>
+<div id="conditions-are-met-but-sample-size-is-too-small" class="section level2">
+<h2>Conditions are met, but sample size is too small</h2>
+<p>As an example: the bootstrap estimate of the standard deviation of the sampling distribution for the median may be unreliable for small <span class="math inline">\(n\)</span>.</p>
+<p><em>(Example 2.16 <span class="citation">Davison and Hinkley (1997)</span>)</em></p>
+<p><strong>Need to demonstrate:</strong> over repeated samples of size <span class="math inline">\(n\)</span> from some population, bootstrap estimates of the standard deviation of the sampling distribution for the median, are far from the true standard deviation of the sampling distribution of the median.</p>
+<p>For our demonstration, let’s say population is Student’s t with 3 degrees of freedom, <span class="math inline">\(n = 11\)</span>.</p>
+<div id="truth---or-an-approximation-to-it" class="section level3">
+<h3>Truth - or an approximation to it</h3>
+<p>MC based estimation of the standard deviation of the sampling distribution of the median:</p>
+<pre class="r"><code>n &lt;- 11
+sample_median &lt;- rerun(1000, rt(n, df = 3)) %&gt;% 
+  map_dbl(median) </code></pre>
+<p>The sampling distribution of the sample median in this setting:</p>
+<pre class="r"><code>ggplot(mapping = aes(x = sample_median)) +
+  geom_histogram()</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="09-bootstrap-ii_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>The standard deviation of the sampling distribution of the sample median:</p>
+<pre class="r"><code>(emp_sd &lt;- sd(sample_median))</code></pre>
+<pre><code>## [1] 0.4217876</code></pre>
+</div>
+<div id="the-bootstrap-performance" class="section level3">
+<h3>The bootstrap performance</h3>
+<p>If we have a single sample from the population distribution</p>
+<pre class="r"><code>x &lt;- rt(n, df = 3)</code></pre>
+<p>We can find the bootstrap estimate of the sampling distribution</p>
+<pre class="r"><code>bootstrap_dist &lt;- rerun(250, 
+  x %&gt;% sample(replace = TRUE) %&gt;% median()) %&gt;% 
+  flatten_dbl() 
+
+ggplot(mapping = aes(x = bootstrap_dist)) +
+  geom_histogram()</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="09-bootstrap-ii_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>sd(bootstrap_dist)</code></pre>
+<pre><code>## [1] 0.4540147</code></pre>
+<p>Not too far off, but how does it perform on average?</p>
+<p>Set up data frame to hold one row for each sample from the population:</p>
+<pre class="r"><code>many_bootstraps &lt;- data_frame(
+  id = 1:1000, 
+  sample = rerun(1000, rt(n, df = 3))
+)</code></pre>
+<p>Now for each sample, generate many bootstrapped sample medians. Easiest to understand with a function for the bootstrap part:</p>
+<pre class="r"><code>bootstrap_medians &lt;- function(x, ntimes = 250){
+  rerun(ntimes,
+    x %&gt;% sample(replace = TRUE) %&gt;% median()) %&gt;% 
+  flatten_dbl()
+}</code></pre>
+<pre class="r"><code>bootstrap_medians(x)</code></pre>
+<p>Now perform that operation on every sample from the population:</p>
+<pre class="r"><code>many_bootstraps &lt;- many_bootstraps %&gt;% 
+  mutate(bootstrapped_medians = map(sample, bootstrap_medians))</code></pre>
+<p>For each sample, i.e. set of bootstrapped medians, what would we estimate the standard deviation of the sampling distribution to be:</p>
+<pre class="r"><code>many_bootstraps &lt;- many_bootstraps %&gt;% 
+  mutate(estimated_sd = map_dbl(bootstrapped_medians, sd))
+
+ggplot(many_bootstraps, aes(x = estimated_sd)) + 
+  geom_histogram() +
+  geom_vline(xintercept = emp_sd)</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="09-bootstrap-ii_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code>many_bootstraps %&gt;% pull(estimated_sd) %&gt;% mean()</code></pre>
+<pre><code>## [1] 0.4675535</code></pre>
+<p>About 10% too big on average.</p>
+<p>What about the percentile based confidence intervals?</p>
+<pre class="r"><code>many_bootstraps &lt;- many_bootstraps %&gt;% 
+  mutate(
+    ci = map(bootstrapped_medians, quantile, 
+      probs = c(0.025, 0.975)),
+    covers_true_median = map_lgl(ci, ~ .[1] &lt; 0 &amp; .[2] &gt; 0))
+many_bootstraps %&gt;% pull(covers_true_median) %&gt;% mean()</code></pre>
+<pre><code>## [1] 0.937</code></pre>
+<p>Coverage isn’t too far from 95%</p>
+<p>This kind of study also leads to comparison of CI approaches - we want good coverage with small sample sizes.</p>
+</div>
+</div>
+<div id="an-inappropriate-application" class="section level2">
+<h2>An inappropriate application</h2>
+<p>The i.i.d assumption of the samples <span class="math inline">\(X_1, \ldots, X_n\)</span> is crucial.</p>
+<p>Any dependence between the samples invalidates the resampling step which assumes, the joint CDF is <span class="math inline">\(F(x_1) \times F(x_2) \times \ldots F(x_n)\)</span>.</p>
+<p>An example, <span class="math inline">\(X_1, \ldots, X_n\)</span> are an autoregressive time series, e.g.</p>
+<pre class="r"><code>x &lt;- arima.sim(model = list(ar = 0.5), n = 50)</code></pre>
+</div>
+<div id="parametric-bootstrap" class="section level2">
+<h2>Parametric bootstrap</h2>
+<p>The method we have talked about is known as the <strong>non-parametric</strong> bootstrap, because we made no assumptions about the form of the CDF.</p>
+<p>The <strong>parametric</strong> bootstrap, is defined similarly except we specify a parametric form for the CDF, <span class="math inline">\(F_\varphi(x)\)</span>, where <span class="math inline">\(\varphi\)</span> is some unknown parameter.</p>
+<p>Then <span class="math inline">\(\varphi\)</span> is estimated with <span class="math inline">\(\hat{\varphi}\)</span> and we use the fitted CDF <span class="math inline">\(\hat{F}(x) = F_{\hat{\varphi}}(x)\)</span>, where the non-parametric bootstrap would use the empirical CDF.</p>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2>References</h2>
+<div id="refs" class="references">
+<div id="ref-davison97">
+<p>Davison, Anthony Christopher, and David Victor Hinkley. 1997. “Bootstrap Methods and Their Application.” Cambridge University Press.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

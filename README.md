@@ -44,6 +44,10 @@
 * Oct 18 [**Bootstrap**](notes/08-bootstrap.html) ([Rmd](notes/08-bootstrap.Rmd))  [Pre-lecture reading](readings.html#week-4)
 * Oct 19 [**Lab 05**](notes/lab-05.html) ([Rmd](notes/lab-05.Rmd)) 
 
+### Week 5
+
+* Oct 23 [**Bootstrap II**](notes/09-bootstrap-ii.html) ([Rmd](notes/09-bootstrap-ii.Rmd))
+
 ## Credits
 
 A big thanks to the [STAT 545 teaching team](https://github.com/STAT545-UBC) for inspiring the organization of the class website and github repo.
