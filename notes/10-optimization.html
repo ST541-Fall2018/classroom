@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Optimization</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Optimization</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Oct 25th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#optimization">Optimization</a><ul>
+<li><a href="#group-activity">Group Activity</a></li>
+<li><a href="#strategies">Strategies</a></li>
+<li><a href="#objective-of-optimization">Objective of optimization</a></li>
+</ul></li>
+<li><a href="#golden-section-search">Golden section search</a><ul>
+<li><a href="#in-r">In R</a></li>
+<li><a href="#example-median-as-a-minimiser-of-a-loss-function">Example: median as a minimiser of a loss function</a></li>
+</ul></li>
+<li><a href="#a-maximum-likelihood-example">A Maximum Likelihood Example</a><ul>
+<li><a href="#bernoulli-example">Bernoulli example</a></li>
+<li><a href="#simple-logistic-regression">Simple logistic regression</a></li>
+</ul></li>
+<li><a href="#newton-raphson">Newton-Raphson</a></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+library(here)
+set.seed(183991)</code></pre>
+<div id="optimization" class="section level1">
+<h1>Optimization</h1>
+<p>A bit of a change in topic. So far we’ve been using simulation to approximate the distribution of random variables.</p>
+<p>Optimization doesn’t involve simulation, but it is an example of another area where a compuational approach is a useful alternative to an analytical one.</p>
+<div id="group-activity" class="section level2">
+<h2>Group Activity</h2>
+<p>Imagine we have a function <span class="math inline">\(f(\cdot)\)</span>. We want to find <span class="math inline">\(x\)</span> such that <span class="math inline">\(f(x)\)</span> is as small as possible.</p>
+<p>Run the code below to get a function <code>f()</code>:</p>
+<pre class="r"><code>f &lt;- read_rds(url(&quot;http://stat541.cwick.co.nz/notes/10-f.rds&quot;))</code></pre>
+<p>In 10 minutes, the group with an <code>x</code> that gives the smallest value of <code>f(x)</code> wins.</p>
+</div>
+<div id="strategies" class="section level2">
+<h2>Strategies</h2>
+<p><em>Fill in some strategies people used</em></p>
+</div>
+<div id="objective-of-optimization" class="section level2">
+<h2>Objective of optimization</h2>
+<p>Given a function, <span class="math inline">\(f(.)\)</span> find <span class="math inline">\(x\)</span> such that <span class="math inline">\(f(x)\)</span> is as large or small as possible.</p>
+<p><strong>How do we do it analytically?</strong></p>
+<ol style="list-style-type: decimal">
+<li></li>
+<li></li>
+<li></li>
+</ol>
+<p>It is enough to consider minimization, if we want to maximise <span class="math inline">\(f(\cdot)\)</span>, then minimise <span class="math inline">\(-f(\cdot)\)</span>.</p>
+</div>
+</div>
+<div id="golden-section-search" class="section level1">
+<h1>Golden section search</h1>
+<p>Applicable to single variable functions, where we know there is a single minimum in the interval <span class="math inline">\([a, b]\)</span>.</p>
+<p><strong>Intuition</strong>: evaluate function at two interior points, this refines the interval in which the minimum must be in. Repeat until interval is small enough.</p>
+<ol style="list-style-type: decimal">
+<li>Choose two points <span class="math inline">\(x_1 &lt; x_2\)</span> inside the interval <span class="math inline">\([a, b]\)</span> and evaluate the function there.</li>
+</ol>
+<p><strong>Your Turn</strong> If <span class="math inline">\(f(x_1) &gt; f(x_2)\)</span> draw some possibilities for the function.</p>
+<ol start="2" style="list-style-type: decimal">
+<li><p>If <span class="math inline">\(f(x_1) &gt; f(x_2)\)</span> then minimum must be to the right of <span class="math inline">\(x_1\)</span>, i.e. in <span class="math inline">\([x_1, b]\)</span>, otherwise the minimum must be to left of <span class="math inline">\(x_2\)</span>, in <span class="math inline">\([a, x_2]\)</span>.</p></li>
+<li><p>Update the interval based on 2., and repeat steps 1. and 2. until the length of the interval is below some tolerance, and take <span class="math inline">\(x = (b-a)/2\)</span>.</p></li>
+</ol>
+<blockquote>
+<p>The key is to observe that regardless of how many points have been evaluated, the minimum lies within the interval defined by the two points adjacent to the point with the least value so far evaluated.</p>
+</blockquote>
+<p>– <a href="https://en.wikipedia.org/wiki/Golden-section_search" class="uri">https://en.wikipedia.org/wiki/Golden-section_search</a></p>
+<p><span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> are chosen carefully to minimise the number of points (and function evaluations) needed.</p>
+<p>Specifically if, <span class="math inline">\(\phi = \tfrac{\sqrt{5} + 1}{2}\)</span> the golden ratio, then <span class="math display">\[
+x_1 = b - (b - a)/\phi \\
+x_2 = a + (b - a)/\phi
+\]</span></p>
+<p>This ensures in our next step, one new interior point will be one of our existing interior points.</p>
+<div id="in-r" class="section level2">
+<h2>In R</h2>
+<p>The function <code>optimize()</code> uses a variation on the golden section search, you provide it a function and interval:</p>
+<pre class="r"><code># Charlotte to fill in</code></pre>
+<p><em>Comment on local versus global minima</em></p>
+</div>
+<div id="example-median-as-a-minimiser-of-a-loss-function" class="section level2">
+<h2>Example: median as a minimiser of a loss function</h2>
+<p>For <span class="math inline">\(n\)</span> odd, the sample median of <span class="math inline">\(x_1, \ldots, x_n\)</span> minimises the function <span class="math display">\[
+ g(x) = \sum_{i = 1}^n \left| x_i - x \right|
+\]</span></p>
+<p>(In words: the sample median minimises the sum of absolute deviations)</p>
+<p><strong>Your Turn</strong> Verify this for the data set: 3, 7, 8, 12, 15</p>
+<pre class="r"><code>g &lt;- function(x, data){
+  # x is a single number
+  # data is a vector of observed values
+  sum(abs(x - data))
+}</code></pre>
+</div>
+</div>
+<div id="a-maximum-likelihood-example" class="section level1">
+<h1>A Maximum Likelihood Example</h1>
+<p>Let <span class="math inline">\(Y_1, \ldots, Y_n\)</span> be i.i.d from some distribution with pdf <span class="math inline">\(f(\cdot; \theta)\)</span> where <span class="math inline">\(\theta\)</span> is an unknown parameter.</p>
+<p>Then the maximum likelihood estimate of <span class="math inline">\(\theta\)</span> is that value that maximises the likelihood given the data observed: <span class="math display">\[
+\hat{\theta} = \arg \max_{\theta} \mathcal{L}(\theta) 
+\]</span> where <span class="math inline">\(\mathcal{L}(\theta)\)</span> is the likelihood function, and in this setting, is <span class="math display">\[
+\mathcal{L}(\theta) = \prod_{i= 1}^{n} f(y_i; \theta)
+\]</span></p>
+<p>In practice it’s usually easier to usually work with the log liklihood: <span class="math display">\[
+l(\theta) = \log(\mathcal{L}(\theta)) =  \sum_{i= 1}^{n} log(f(y_i; \theta))
+\]</span></p>
+<div id="bernoulli-example" class="section level2">
+<h2>Bernoulli example</h2>
+<pre class="r"><code>y &lt;- c(0, 0, 1, 1, 0, 1, 0)</code></pre>
+<p>Let <span class="math inline">\(y_1, \ldots, y_n\)</span> be i.i.d Bernoulli(<span class="math inline">\(\pi\)</span>). What’s the maximum likelihood estimate of <span class="math inline">\(\pi\)</span>?</p>
+<p><span class="math display">\[
+f(y_i, \pi) = \pi^{y_i} (1-\pi)^{(1-y_i)}
+\]</span></p>
+<p><span class="math display">\[
+l(\pi) = \sum_{i = 1}^{n} y_i \log(\pi) + (1- y_i)\log(1- \pi)
+\]</span></p>
+<p><strong>Maximise Analytically</strong></p>
+<p><em>Left as an exercise</em> Find derivative, set to zero, solve for <span class="math inline">\(\pi\)</span>, find <span class="math inline">\(\hat{\pi} = \overline{y}\)</span></p>
+<pre class="r"><code>(pi_hat &lt;- mean(y))</code></pre>
+<pre><code>## [1] 0.4285714</code></pre>
+<p><strong>Maximise Numerically</strong></p>
+<pre class="r"><code>negative_llhood &lt;- function(pi, y){
+  -1* sum(y*log(pi) + (1-y)*log(1-pi))
+}
+optimize(negative_llhood, c(0, 1), y = y)</code></pre>
+<pre><code>## $minimum
+## [1] 0.4285707
+## 
+## $objective
+## [1] 4.780357</code></pre>
+</div>
+<div id="simple-logistic-regression" class="section level2">
+<h2>Simple logistic regression</h2>
+<p>Now imagine data come in pairs <span class="math inline">\((y_i, x_i), i = 1, \ldots, n\)</span>.</p>
+<p><span class="math inline">\(y_i \sim \text{ Bernoulli}(\pi_i)\)</span>, where</p>
+<p><span class="math display">\[
+\log{\frac{\pi_i}{1-\pi_i}} = \beta_0 + \beta_1 x_i
+\]</span></p>
+<p><em>Implies <span class="math inline">\(\pi_i = \frac{\exp(\beta_0 + \beta_1 x_i)}{1 + \exp(\beta_0 + \beta_1 x_i)}\)</span></em>.</p>
+<p>This is a simple logistic regression model.</p>
+<p><span class="math display">\[
+\mathcal{L(\beta_0, \beta_1)} = \prod_{i = 1}^{n} \pi_i^{y_i} (1-\pi_i)^{(1-y_i)}
+\]</span> <span class="math display">\[
+\mathcal{l(\beta_0, \beta_1)} =  y_i \log(\pi_i) + (1- y_i)\log(1- \pi_i)
+\]</span></p>
+<p>To find <span class="math inline">\(\hat{\beta_0}\)</span>, <span class="math inline">\(\hat{\beta_1}\)</span> need to solve: <span class="math display">\[
+\frac{\partial l}{\partial \beta_0} = 0 \\
+\frac{\partial l}{\partial \beta_1} = 0 \\
+\]</span></p>
+<p>Can’t solve analytically, do numerically. Need method for bivariate functions.</p>
+</div>
+</div>
+<div id="newton-raphson" class="section level1">
+<h1>Newton-Raphson</h1>
+<p>Usually described as a <strong>root</strong> finding method, e.g. find <span class="math inline">\(x\)</span> such that <span class="math inline">\(f(x) = 0\)</span>.</p>
+<p>Can transform to a minimization method by applying to the derivative <span class="math inline">\(f&#39;()\)</span>, and checking point is a minimum.</p>
+<p><strong>As a root finding method</strong></p>
+<p>Assume we have <span class="math inline">\(x_0\)</span> a value that is close to the root.</p>
+<p>Apply Taylor expansion to approximate <span class="math inline">\(f()\)</span>: <span class="math display">\[
+f(x) \approx f(x_0) + (x - x_0)f&#39;(x_0)
+\]</span></p>
+<p>Use this approximation to find an approximate root: <span class="math display">\[
+f(x_0) + (x - x_0)f&#39;(x_0) = 0 \\
+\implies x = x_0 - \frac{f(x_0)}{f&#39;(x_0)}
+\]</span></p>
+<p><em>Charlotte to draw picture here</em></p>
+<p><strong>Root finding algorithm</strong></p>
+<ol style="list-style-type: decimal">
+<li><p>Start with a value near the root, <span class="math inline">\(x_0\)</span></p></li>
+<li><p>Generate better values iteratively <span class="math inline">\(x_{i + 1} = x_{i} - \frac{f(x_i)}{f&#39;(x_i)}\)</span></p></li>
+<li><p>Stop when <span class="math inline">\(x_{i + 1}\)</span> isn’t very different from <span class="math inline">\(x_i\)</span></p></li>
+</ol>
+<p><strong>Minimization algorithm</strong></p>
+<ol style="list-style-type: decimal">
+<li><p>Start with a value near the minimum, <span class="math inline">\(x_0\)</span></p></li>
+<li><p>Generate better values iteratively <span class="math inline">\(x_{i + 1} = x_{i} - \frac{f&#39;(x_i)}{f&#39;&#39;(x_i)}\)</span></p></li>
+<li><p>Stop when <span class="math inline">\(x_{i + 1}\)</span> isn’t very different from <span class="math inline">\(x_i\)</span>, or <span class="math inline">\(f&#39;(x_i)\)</span> is below some small number.</p></li>
+</ol>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
