@@ -148,7 +148,7 @@ set.seed(18187)</code></pre>
 <h1>Optimizing a single variable function with <code>optimize()</code></h1>
 <p>As a motivating example let’s consider estimating the parameters in an i.i.d sample for a Cauchy distribution.</p>
 <p>The density function for a random variable with a Cauchy<span class="math inline">\((x_0, \gamma)\)</span> distribution is: <span class="math display">\[
-f(x;x_{0},\gamma) = {\frac {1}{\pi \gamma \left[1+\left({\frac {x-x_{0}}{\gamma }}\right)^{2}\right]}}={1 \over \pi \gamma }\left[{\gamma ^{2} \over (x-x_{0})^{2}+\gamma ^{2}}\right],
+f(x; x_{0},\gamma) = \frac{1}{\pi \gamma \left[1+\left(\frac{x-x_{0}}{\gamma }\right)^{2}\right]}={1 \over \pi \gamma }\left[\gamma ^{2} \over (x-x_{0})^{2}+\gamma ^{2}\right],
 \]</span> where <span class="math inline">\(x_0\)</span> is the location parameter and <span class="math inline">\(\gamma &gt; 0\)</span> is the scale parameter.</p>
 <p><strong>Your turn</strong> What’s weird about the Cauchy distribution?</p>
 <p>To illustrate we’ll work with a (largish) sample from a Cauchy with known parameters <span class="math inline">\(x_0 = 0\)</span>, and <span class="math inline">\(\gamma = 1\)</span></p>
@@ -211,12 +211,12 @@ plot(x, nllhood_cauchy(x_0 = x, y = y))</code></pre>
 <div id="a-two-parameter-problem" class="section level2">
 <h2>A two parameter problem</h2>
 <p>Now consider the same situation where both the location and scale parameters need to be estimated. The log likelihood is now, <span class="math display">\[
-\hat{\ell }(x_{0},\gamma)= -n \log(\gamma\pi ) - \sum_{i=1}^{n}\log \left(1+\left(\frac{{y_{i} - x_{0}}}{\gamma}\right)^{2}\right)
+\hat{\ell }(x_{0},\gamma)= -n \log(\gamma\pi ) - \sum_{i=1}^{n}\log \left(1+\left(\frac{y_{i} - x_{0}}{\gamma}\right)^{2}\right)
 \]</span></p>
 <p>If we proceeded analytically we’d need to find both partial derivatives (w.r.t to <span class="math inline">\(x_0\)</span> and <span class="math inline">\(\gamma\)</span>), set them to zero and solve for <span class="math inline">\(x_0\)</span> and <span class="math inline">\(\gamma\)</span> simultaneously.</p>
 <p>It turns out you need to solve: <span class="math display">\[
-\sum_{i=1}^{n}\frac{x_{i}-x_{0}}{\gamma^{2} + (x_{i} - x_{0})^{2}} = 0 \\
-\sum_{i=1}^{n}\frac{\gamma^{2}}{\gamma^{2}+ (x_{i}-x_{0})^{2}}-{\frac{n}{2}}= 0
+\sum_{i=1}^{n}\frac{y_{i}-x_{0}}{\gamma^{2} + (y_{i} - x_{0})^{2}} = 0 \\
+\sum_{i=1}^{n}\frac{\gamma^{2}}{\gamma^{2}+ (y_{i}-x_{0})^{2}}-{\frac{n}{2}}= 0
 \]</span> (taken from <a href="https://en.wikipedia.org/wiki/Cauchy_distribution#Estimation_of_parameters" class="uri">https://en.wikipedia.org/wiki/Cauchy_distribution#Estimation_of_parameters</a>). An even harder problem than the one parameter case!</p>
 <p>So, instead let’s numerically minimize the negative log likelihood. However we can’t use <code>optimize()</code> here because we need to optimize over two parameters.</p>
 </div>
