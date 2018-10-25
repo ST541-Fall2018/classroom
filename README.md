@@ -47,7 +47,7 @@
 ### Week 5
 
 * Oct 23 [**Bootstrap II**](notes/09-bootstrap-ii.html) ([Rmd](notes/09-bootstrap-ii.Rmd))
-* Oct 25 [**Optimization**](notes/10-optimization.html) ([Rmd]((notes/10-optimization.Rmd))
+* Oct 25 [**Optimization**](notes/10-optimization.html) ([Rmd](notes/10-optimization.Rmd))
 
 ## Credits
 
