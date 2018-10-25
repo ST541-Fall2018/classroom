@@ -48,6 +48,7 @@
 
 * Oct 23 [**Bootstrap II**](notes/09-bootstrap-ii.html) ([Rmd](notes/09-bootstrap-ii.Rmd))
 * Oct 25 [**Optimization**](notes/10-optimization.html) ([Rmd](notes/10-optimization.Rmd))
+* Oct 26 [**Lab 06**](notes/lab-06.html) ([Rmd](notes/lab-06.Rmd)) 
 
 ## Credits
 

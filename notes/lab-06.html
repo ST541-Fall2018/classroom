@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Lab 06 - Optimization</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Lab 06 - Optimization</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Oct 26th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#optimizing-a-single-variable-function-with-optimize">Optimizing a single variable function with <code>optimize()</code></a><ul>
+<li><a href="#mle-for-the-location-parameter">MLE for the location parameter</a></li>
+<li><a href="#a-two-parameter-problem">A two parameter problem</a></li>
+</ul></li>
+<li><a href="#optimizing-a-many-variable-function-with-optim">Optimizing a many variable function with <code>optim()</code></a><ul>
+<li><a href="#mle-estimation-of-both-parameters-in-the-cauchy-distribution">MLE estimation of both parameters in the Cauchy distribution</a></li>
+<li><a href="#mle-estimation-in-simple-logistic-regression">MLE estimation in simple logistic regression</a></li>
+</ul></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+set.seed(18187)</code></pre>
+<div id="optimizing-a-single-variable-function-with-optimize" class="section level1">
+<h1>Optimizing a single variable function with <code>optimize()</code></h1>
+<p>As a motivating example let’s consider estimating the parameters in an i.i.d sample for a Cauchy distribution.</p>
+<p>The density function for a random variable with a Cauchy<span class="math inline">\((x_0, \gamma)\)</span> distribution is: <span class="math display">\[
+f(x;x_{0},\gamma) = {\frac {1}{\pi \gamma \left[1+\left({\frac {x-x_{0}}{\gamma }}\right)^{2}\right]}}={1 \over \pi \gamma }\left[{\gamma ^{2} \over (x-x_{0})^{2}+\gamma ^{2}}\right],
+\]</span> where <span class="math inline">\(x_0\)</span> is the location parameter and <span class="math inline">\(\gamma &gt; 0\)</span> is the scale parameter.</p>
+<p><strong>Your turn</strong> What’s weird about the Cauchy distribution?</p>
+<p>To illustrate we’ll work with a (largish) sample from a Cauchy with known parameters <span class="math inline">\(x_0 = 0\)</span>, and <span class="math inline">\(\gamma = 1\)</span></p>
+<pre class="r"><code>y &lt;- rcauchy(n = 200)
+
+ggplot(mapping = aes(x = y)) +
+  geom_histogram() + 
+  labs(x = &quot;y&quot;, title = &quot;A hypothetical sample&quot;)</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="lab-06_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p><strong>Your turn</strong> If you saw this sample, what interval would you guess the true value for <span class="math inline">\(x_0\)</span> lies in?</p>
+<div id="mle-for-the-location-parameter" class="section level2">
+<h2>MLE for the location parameter</h2>
+<p>Imagine we are in a situation where <span class="math inline">\(\gamma = 1\)</span> is known, but we want to use a sample to estimate <span class="math inline">\(x_0\)</span>.</p>
+<p>An analytically approach to finding the MLE for <span class="math inline">\(x_0\)</span> would involve finding the log likelihood: <span class="math display">\[
+\hat{\ell }(x_{0},\gamma = 1)= -n \log(\pi ) - \sum_{i=1}^{n}\log \left(1+\left({y_{i} - x_{0}}\right)^{2}\right)
+\]</span></p>
+<p>Taking the derivative w.r.t <span class="math inline">\(x_0\)</span> <span class="math display">\[
+\frac{\partial \hat{\ell }(x_{0},\gamma = 1)}{\partial x_0}= \sum_{i=1}^{n}\frac{2(y_i - x_0)}{1+\left({y_{i} - x_{0}}\right)^{2}}
+\]</span></p>
+<p>And solving the equation <span class="math inline">\(\frac{\partial \ell}{\partial x_0} = 0\)</span> for <span class="math inline">\(x_0\)</span>: <span class="math display">\[
+ \sum_{i=1}^{n} \frac{2(y_i - x_0)}{1+\left({y_{i} - x_{0}}\right)^{2}} = 0
+\]</span></p>
+<p>Which is pretty hard!</p>
+<p>Alternatively we can numerically maximize the likelihood. Recall in class we used <code>optimize()</code> to minimize a single variable function, to use this here, we’ll need a function that finds the negative (<strong>why?</strong>) log likelihood given some data.</p>
+<p>One approach is to translate the log likelihood as given above:</p>
+<pre class="r"><code>nllhood_cauchy &lt;- function(x_0, y){
+  n &lt;- length(y)
+  -1 * (- n*log(pi) - sum(log(1 + (y - x_0)^2)))
+}</code></pre>
+<p>A less involved (and less error prone) way would be to use the built-in function <code>dcauchy()</code> for the Cauchy density function along with the argument <code>log = TRUE</code> to work on the log density scale:</p>
+<pre class="r"><code>nllhood_cauchy &lt;- function(x_0, y){
+  -1 * sum(dcauchy(y, location = x_0, scale = 1, log = TRUE))
+}</code></pre>
+<p>Before we minimize this function, it’s worth taking a look at it.</p>
+<p><strong>Your Turn</strong> Why doesn’t this approach work to create a plot?</p>
+<pre class="r"><code>x &lt;- seq(-10, 10, 0.1)
+plot(x, nllhood_cauchy(x_0 = x, y = y))</code></pre>
+<pre><code>## Error in xy.coords(x, y, xlabel, ylabel, log): &#39;x&#39; and &#39;y&#39; lengths differ</code></pre>
+<p>The way we have written <code>nllhood_cauchy()</code> assumes <code>x_0</code> is only ever of length 1. This makes it a little harder to use for plotting. We could rewrite our function to allow more than one value of <code>x_0</code> or we could just work a little harder to apply it to many <code>x_0</code>:</p>
+<pre class="r"><code>many_x &lt;- data_frame(x = seq(-10, 10, 0.1)) %&gt;% 
+  mutate(nllhood = map_dbl(x, nllhood_cauchy, y = y)) </code></pre>
+<p>Then plot it:</p>
+<pre class="r"><code>ggplot(many_x, aes(x, nllhood)) + 
+  geom_point() +
+  geom_line() +
+  labs(x = &quot;x_0, location parameter&quot;, y = &quot;Negative log likelihood&quot;)</code></pre>
+<p><img src="lab-06_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Looks pretty nicely behaved on our region of interest.</p>
+<p>We can then find the exact point the function is minimized (at least up to numerical error) with:</p>
+<pre class="r"><code>(mle_x0 &lt;- optimize(f = nllhood_cauchy, interval = c(-10, 10), y = y))</code></pre>
+<pre><code>## $minimum
+## [1] -0.01665738
+## 
+## $objective
+## [1] 467.0868</code></pre>
+<p>So in this case our maximum likelihood estimate of the location parameter based on this sample would be -0.0167.</p>
+<p><strong>Your turn</strong> This estimate seems reasonable since it is close to the true parameter with which we simulated the sample, but how we could we check our method is working? Brainstorm some ideas, you don’t have to implement them.</p>
+</div>
+<div id="a-two-parameter-problem" class="section level2">
+<h2>A two parameter problem</h2>
+<p>Now consider the same situation where both the location and scale parameters need to be estimated. The log likelihood is now, <span class="math display">\[
+\hat{\ell }(x_{0},\gamma)= -n \log(\gamma\pi ) - \sum_{i=1}^{n}\log \left(1+\left(\frac{{y_{i} - x_{0}}}{\gamma}\right)^{2}\right)
+\]</span></p>
+<p>If we proceeded analytically we’d need to find both partial derivatives (w.r.t to <span class="math inline">\(x_0\)</span> and <span class="math inline">\(\gamma\)</span>), set them to zero and solve for <span class="math inline">\(x_0\)</span> and <span class="math inline">\(\gamma\)</span> simultaneously.</p>
+<p>It turns out you need to solve: <span class="math display">\[
+\sum_{i=1}^{n}\frac{x_{i}-x_{0}}{\gamma^{2} + (x_{i} - x_{0})^{2}} = 0 \\
+\sum_{i=1}^{n}\frac{\gamma^{2}}{\gamma^{2}+ (x_{i}-x_{0})^{2}}-{\frac{n}{2}}= 0
+\]</span> (taken from <a href="https://en.wikipedia.org/wiki/Cauchy_distribution#Estimation_of_parameters" class="uri">https://en.wikipedia.org/wiki/Cauchy_distribution#Estimation_of_parameters</a>). An even harder problem than the one parameter case!</p>
+<p>So, instead let’s numerically minimize the negative log likelihood. However we can’t use <code>optimize()</code> here because we need to optimize over two parameters.</p>
+</div>
+</div>
+<div id="optimizing-a-many-variable-function-with-optim" class="section level1">
+<h1>Optimizing a many variable function with <code>optim()</code></h1>
+<p><code>optim()</code> is a general purpose optimizer. It implements a number of numerical optimization procedures - variations on two of which we’ll see next week in lecture. These procedures work a little differently to the Golden Section Search – rather than starting with an interval known to contain a minimum, they start from a point near the minimum. For now, we’ll use <code>method = &quot;BFGS&quot;</code>, which is closest to the Newton-Rahpson technique we’ll talk about on Tuesday.</p>
+<p>Like <code>optimize()</code>, <code>optim()</code> requires you to pass in a function to be minimized. <code>optim()</code> only optimizes over the first argument of the function, so functions of more than one variable must be written to take a vector of parameters as their first argument.</p>
+<p>For example, consider trying to minimize the function <span class="math inline">\(g(x, y) = x^2 + y^2\)</span> over <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>. To use <code>optim()</code> we’d need to define <code>g</code> like so:</p>
+<pre class="r"><code>g &lt;- function(args){
+  x &lt;- args[1]
+  y &lt;- args[2]
+  x^2 + y^2
+}</code></pre>
+<p>Then rather than supplying an interval we need to supply initial guesses for the location of the minimum. I happen to know this function has a minimum at <span class="math inline">\((x = 0, y = 0)\)</span>, so let’s try <span class="math inline">\((x = 0.1, y = 0.1)\)</span> as a guess:</p>
+<pre class="r"><code>optim(par = c(0.1, 0.1), fn = g, method = &quot;BFGS&quot;)</code></pre>
+<pre><code>## $par
+## [1] -5.967296e-16 -5.967296e-16
+## 
+## $value
+## [1] 1.780522e-31
+## 
+## $counts
+## function gradient 
+##        4        3 
+## 
+## $convergence
+## [1] 0
+## 
+## $message
+## NULL</code></pre>
+<p>(<em>Notice that <code>optim()</code> uses a different order, and different names for the arguments compared to <code>optimize()</code> - read more at <code>?optimize</code>.</em>) In addition to the values at which the minimum occurs <code>$par</code>, and the value of the function at that value <code>$value</code>, pay attention to <code>$convergence</code> which describes whether the algorithm converged, any value other that <code>0</code> indicates a problem.</p>
+<p>No problems here though.</p>
+<div id="mle-estimation-of-both-parameters-in-the-cauchy-distribution" class="section level2">
+<h2>MLE estimation of both parameters in the Cauchy distribution</h2>
+<p><strong>Your Turn</strong> Use <code>optim()</code> to find MLE estimates for both <span class="math inline">\(x_0\)</span> and <span class="math inline">\(\gamma\)</span> in a Cauchy model for the data in <code>y</code>. Recommended steps:</p>
+<ol style="list-style-type: decimal">
+<li><p>Write a function <code>nllhood_cauchy2()</code> that takes arguments <code>theta</code> and <code>y</code>, where <code>theta</code> is a two parameter vector containing <code>x_0</code> and <code>gamma</code>. Feel free to use <code>dcauchy()</code> to help you.</p></li>
+<li><p>Use <code>optim()</code> on <code>nllhood_cauchy2()</code> with guesses based on the histogram of the sample.</p></li>
+</ol>
+<p><strong>Your Turn</strong> In the output from <code>optim()</code> <code>$counts</code> counts the number of times the function and its gradient were computed. Instead of guessing starting values for <span class="math inline">\(x_0\)</span> and <span class="math inline">\(\gamma\)</span> from the plot try using the median and half the interquartile range of the sample for starting values – does the algorithm converge to the same values? Does it converge faster?</p>
+</div>
+<div id="mle-estimation-in-simple-logistic-regression" class="section level2">
+<h2>MLE estimation in simple logistic regression</h2>
+<p>Recall the setup from lecture, data come in pairs <span class="math inline">\((y_i, x_i), i = 1, \ldots, n\)</span>.</p>
+<p><span class="math inline">\(y_i \sim \text{ Bernoulli}(\pi_i)\)</span>, where</p>
+<p><span class="math display">\[
+\log{\frac{\pi_i}{1-\pi_i}} = \beta_0 + \beta_1 x_i
+\]</span></p>
+<p><em>Implies <span class="math inline">\(\pi_i = \frac{\exp(\beta_0 + \beta_1 x_i)}{1 + \exp(\beta_0 + \beta_1 x_i)}\)</span></em>.</p>
+<p>This is a simple logistic regression model.</p>
+<p><span class="math display">\[
+\mathcal{L(\beta_0, \beta_1)} = \prod_{i = 1}^{n} \pi_i^{y_i} (1-\pi_i)^{(1-y_i)}
+\]</span> <span class="math display">\[
+\mathcal{l(\beta_0, \beta_1)} =  y_i \log(\pi_i) + (1- y_i)\log(1- \pi_i)
+\]</span></p>
+<p><strong>Your Turn</strong> Write a function <code>nllhood_logistic()</code> that takes three arguments <code>beta</code> a two dimensional vector of <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span>, <code>y</code> a vector of observed responses, and <code>x</code> a corresponding vector of observed covariates.</p>
+<p>Use your function to find the MLE of <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> from fitting the model to the following data:</p>
+<pre class="r"><code>x &lt;- c(-0.12, -0.77, 0.33, 0.99, -2.09, 0.41, 1.86, -0.26, -0.43, 
+0.51, -0.93, 1.46, 0.02, -0.34, 1.57, -0.47, -1.64, -0.48, 0.3, 
+0.52, 0.92, 1.65, -0.82, 0.01, 0.02, 0.47, -0.48, -1.08, 0.04, 
+-0.87)
+y &lt;- c(0L, 0L, 1L, 1L, 0L, 1L, 1L, 1L, 0L, 1L, 0L, 1L, 1L, 0L, 1L, 
+1L, 0L, 1L, 1L, 0L, 1L, 1L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 0L)</code></pre>
+<p>You might want to compare your answer to:</p>
+<pre class="r"><code>glm(y ~ x, family = &quot;binomial&quot;)</code></pre>
+<pre><code>## 
+## Call:  glm(formula = y ~ x, family = &quot;binomial&quot;)
+## 
+## Coefficients:
+## (Intercept)            x  
+##      0.8802       2.0679  
+## 
+## Degrees of Freedom: 29 Total (i.e. Null);  28 Residual
+## Null Deviance:       39.43 
+## Residual Deviance: 27.47     AIC: 31.47</code></pre>
+<p><em>(They should agree)</em></p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
