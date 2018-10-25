@@ -164,17 +164,30 @@ set.seed(183991)</code></pre>
 </div>
 <div id="strategies" class="section level2">
 <h2>Strategies</h2>
-<p><em>Fill in some strategies people used</em></p>
+<p>Some strategies people used:</p>
+<ul>
+<li><p>Plot it, and look for minimum</p></li>
+<li><p>Guess a number, try again.</p></li>
+<li><p>Generate a large sequence, plotted function, zoomed in with new sequence and small sequence size. This is an example of a <strong>grid search</strong> - an official method of minimization, but it has a few downsides:</p></li>
+<li>It might take a long time,</li>
+<li>You might miss the minimum if it falls between your grid points.</li>
+<li><p>The global minimum might be outside your grid.</p></li>
+</ul>
+<pre class="r"><code>ggplot(data.frame(x = c(-2, 2)), aes(x = x)) + 
+  stat_function(fun = f)</code></pre>
+<p><img src="10-optimization_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
 </div>
 <div id="objective-of-optimization" class="section level2">
 <h2>Objective of optimization</h2>
 <p>Given a function, <span class="math inline">\(f(.)\)</span> find <span class="math inline">\(x\)</span> such that <span class="math inline">\(f(x)\)</span> is as large or small as possible.</p>
 <p><strong>How do we do it analytically?</strong></p>
 <ol style="list-style-type: decimal">
-<li></li>
-<li></li>
-<li></li>
+<li>Take the derivative of <span class="math inline">\(f(x)\)</span> w.r.t <span class="math inline">\(x\)</span></li>
+<li>Solve for <span class="math inline">\(f&#39;(x) = 0\)</span>, to find critical points</li>
+<li>Check 2nd derivative at critical points, <span class="math inline">\(f&#39;&#39;(x)&gt;0\)</span></li>
 </ol>
+<p>This gets you a local minima. (Might need to worry about boundary values for functions that are defined on some sub-interval of <span class="math inline">\(\mathbb{R}\)</span>)</p>
+<p>E.g. Maximum Likelihood E.g. Linear Regression, fit by minimising squared residuals</p>
 <p>It is enough to consider minimization, if we want to maximise <span class="math inline">\(f(\cdot)\)</span>, then minimise <span class="math inline">\(-f(\cdot)\)</span>.</p>
 </div>
 </div>
@@ -203,8 +216,13 @@ x_2 = a + (b - a)/\phi
 <div id="in-r" class="section level2">
 <h2>In R</h2>
 <p>The function <code>optimize()</code> uses a variation on the golden section search, you provide it a function and interval:</p>
-<pre class="r"><code># Charlotte to fill in</code></pre>
-<p><em>Comment on local versus global minima</em></p>
+<pre class="r"><code>f
+optimize(f, interval = c(0, 1))
+optimize(f, interval = c(-2, 0))
+optimize(f, interval = c(-2, 10))
+optimize(f, interval = c(-2, 2))
+optimize(f, interval = c(-2, 5))</code></pre>
+<p>If there is more that one minima in the interval, there is no guarantee you’ll find the one with a smaller value of <span class="math inline">\(f(\cdot)\)</span>, it will depend on the endpoints of the interval.</p>
 </div>
 <div id="example-median-as-a-minimiser-of-a-loss-function" class="section level2">
 <h2>Example: median as a minimiser of a loss function</h2>
@@ -216,8 +234,19 @@ x_2 = a + (b - a)/\phi
 <pre class="r"><code>g &lt;- function(x, data){
   # x is a single number
   # data is a vector of observed values
-  sum(abs(x - data))
-}</code></pre>
+  sum(abs(data - x))
+}
+g(2, c(3, 7, 8, 12, 15))</code></pre>
+<pre><code>## [1] 35</code></pre>
+<pre class="r"><code>?optimize
+optimize(g, interval = c(3, 15), data = c(3, 7, 8, 12, 15))</code></pre>
+<pre><code>## $minimum
+## [1] 8.000023
+## 
+## $objective
+## [1] 17.00002</code></pre>
+<pre class="r"><code>median( c(3, 7, 8, 12, 15))</code></pre>
+<pre><code>## [1] 8</code></pre>
 </div>
 </div>
 <div id="a-maximum-likelihood-example" class="section level1">
@@ -249,7 +278,7 @@ l(\pi) = \sum_{i = 1}^{n} y_i \log(\pi) + (1- y_i)\log(1- \pi)
 <pre class="r"><code>negative_llhood &lt;- function(pi, y){
   -1* sum(y*log(pi) + (1-y)*log(1-pi))
 }
-optimize(negative_llhood, c(0, 1), y = y)</code></pre>
+optimize(f = negative_llhood, interval = c(0, 1), y = y)</code></pre>
 <pre><code>## $minimum
 ## [1] 0.4285707
 ## 
