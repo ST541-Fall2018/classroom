@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Optimization II</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Optimization II</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Oct 30th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#newton-raphson">Newton-Raphson</a><ul>
+<li><a href="#multivariate-version">Multivariate version</a></li>
+<li><a href="#example-two-normal-mixture">Example: Two Normal Mixture</a></li>
+<li><a href="#your-turn">Your Turn</a></li>
+<li><a href="#find-mle-with-maximization">Find MLE with maximization</a></li>
+<li><a href="#things-that-go-wrong">Things that go wrong</a></li>
+<li><a href="#derivatives">Derivatives</a></li>
+<li><a href="#scaling">Scaling</a></li>
+<li><a href="#mle-and-the-hessian">MLE and the Hessian</a></li>
+<li><a href="#bounds-on-parameters">Bounds on parameters</a></li>
+</ul></li>
+<li><a href="#nelder-mead">Nelder Mead</a></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+library(here)
+set.seed(36528)</code></pre>
+<div id="newton-raphson" class="section level1">
+<h1>Newton-Raphson</h1>
+<p><em>(Moved from last Thursday’s lecture)</em></p>
+<p>Usually described as a <strong>root</strong> finding method, e.g. find <span class="math inline">\(x\)</span> such that <span class="math inline">\(f(x) = 0\)</span>.</p>
+<p>Can transform to a minimization method by applying to the derivative <span class="math inline">\(f&#39;()\)</span>, and checking point is a minimum.</p>
+<p><strong>As a root finding method</strong></p>
+<p>Assume we have <span class="math inline">\(x_0\)</span> a value that is close to the root.</p>
+<p>Apply Taylor expansion to approximate <span class="math inline">\(f()\)</span>: <span class="math display">\[
+f(x) \approx f(x_0) + (x - x_0)f&#39;(x_0)
+\]</span></p>
+<p>Use this approximation to find an approximate root: <span class="math display">\[
+f(x_0) + (x - x_0)f&#39;(x_0) = 0 \\
+\implies x = x_0 - \frac{f(x_0)}{f&#39;(x_0)}
+\]</span></p>
+<p><em>Charlotte to draw picture here</em></p>
+<p><strong>Root finding algorithm</strong></p>
+<ol style="list-style-type: decimal">
+<li><p>Start with a value near the root, <span class="math inline">\(x_0\)</span></p></li>
+<li><p>Generate better values iteratively <span class="math inline">\(x_{i + 1} = x_{i} - \frac{f(x_i)}{f&#39;(x_i)}\)</span></p></li>
+<li><p>Stop when <span class="math inline">\(x_{i + 1}\)</span> isn’t very different from <span class="math inline">\(x_i\)</span></p></li>
+</ol>
+<p><strong>Minimization algorithm</strong></p>
+<ol style="list-style-type: decimal">
+<li><p>Start with a value near the minimum, <span class="math inline">\(x_0\)</span></p></li>
+<li><p>Generate better values iteratively <span class="math inline">\(x_{i + 1} = x_{i} - \frac{f&#39;(x_i)}{f&#39;&#39;(x_i)}\)</span></p></li>
+<li><p>Stop when <span class="math inline">\(x_{i + 1}\)</span> isn’t very different from <span class="math inline">\(x_i\)</span>, or <span class="math inline">\(f&#39;(x_i)\)</span> is below some small number, or if <span class="math inline">\(i\)</span> reaches some maximum number of iterations (failure to converge).</p></li>
+</ol>
+<div id="multivariate-version" class="section level2">
+<h2>Multivariate version</h2>
+<p>Start with a guess <span class="math inline">\(\mathbf{x}_0\)</span> (a <span class="math inline">\(p \times 1\)</span> vector), then iteratively update: <span class="math display">\[
+\mathbf{x}_{i + 1} = \mathbf{x}_{i} - \mathbf{H}(\mathbf{x_i})^{-1}\nabla f(\mathbf{x}_{i})
+\]</span></p>
+<p>Where <span class="math inline">\(\nabla f()_{p \times 1}\)</span> is the gradient vector and <span class="math inline">\(H()_{p \times p}\)</span> is the Hessian matrix.</p>
+<p>In GLM, if you replace Hessian with expected value of Hessian you get something called Fisher Scoring, also know as iteratively weighted least squares.</p>
+</div>
+<div id="example-two-normal-mixture" class="section level2">
+<h2>Example: Two Normal Mixture</h2>
+<p>Consider the following sample, <span class="math inline">\(n = 250\)</span></p>
+<pre class="r"><code>ggplot(mapping = aes(x = x)) +
+  geom_histogram(binwidth = 0.25)</code></pre>
+<p><img src="11-optimization-ii_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>One model might be a two component Normal mixture: arises when with probability <span class="math inline">\(\pi\)</span> we get a value from N<span class="math inline">\((\mu_1, \sigma_1^2)\)</span>, and otherwise a sample from N<span class="math inline">\((\mu_2, \sigma_2^2)\)</span>.</p>
+<p><span class="math display">\[
+f(x; \pi, \mu_1, \mu_2, \sigma_1, \sigma_2) = \pi\phi(x; \mu_1, \sigma_1^2) +  (1- \pi)\phi(x; \mu_2, \sigma_2^2) 
+\]</span> where <span class="math inline">\(\phi(x; \mu, \simga^2)\)</span> is the density function for a Normal(<span class="math inline">\(\mu, \sigma^2)\)</span>.</p>
+</div>
+<div id="your-turn" class="section level2">
+<h2>Your Turn</h2>
+<p>Let <span class="math inline">\(\theta = (\pi, \mu_1, \mu_2, \sigma_1, \sigma_2)\)</span>.</p>
+<p>Fill in the body of the function to calculate the density function for a specified <code>theta</code> and data vector <code>x</code>:</p>
+<pre class="r"><code>dmix &lt;- function(x, theta){
+  
+} </code></pre>
+<p>Then try some more reasonable parameters to compare to the data:</p>
+<pre class="r"><code>ggplot(mapping = aes(x = x)) +
+  geom_histogram(aes(y = stat(density)), binwidth = 0.25) +
+  stat_function(fun = dmix, args = list(theta = c(0.5, -2, 2, 1, 1)))</code></pre>
+</div>
+<div id="find-mle-with-maximization" class="section level2">
+<h2>Find MLE with maximization</h2>
+<p>Need negative log likelihood:</p>
+<pre class="r"><code>nllhood_mix &lt;- function(theta, x){
+  -1 * sum(log(dmix(x, theta)))
+}</code></pre>
+<p><code>optim()</code> with <code>method = &quot;BFGS&quot;</code>, does a <strong>Quasi</strong> Newton method (swaps Hessian with an approximation).</p>
+<p><strong>Your Turn</strong> Provide starting values to the <code>par</code> argument:</p>
+<pre class="r"><code>(mle1 &lt;- optim(par = c(), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;))</code></pre>
+</div>
+<div id="things-that-go-wrong" class="section level2">
+<h2>Things that go wrong</h2>
+<pre class="r"><code>dmix &lt;- function(x, theta){
+  pi &lt;- theta[1]
+  mu &lt;- theta[2:3]
+  sigma &lt;- theta[4:5]
+  pi * dnorm(x, mean = mu[1], sd = sigma[1]) + 
+   (1 - pi) * dnorm(x, mean = mu[2], sd = sigma[2])
+} 
+optim(par = c(0.01, 1, 1, 4, 4), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)</code></pre>
+<pre><code>## $par
+## [1] -5403.857499   -46.858043     0.452832   897.067384     1.247876
+## 
+## $value
+## [1] -1728.785
+## 
+## $counts
+## function gradient 
+##      179      100 
+## 
+## $convergence
+## [1] 1
+## 
+## $message
+## NULL</code></pre>
+<p><em>Talk about adding some bounds in function</em></p>
+<pre class="r"><code>(mle &lt;- optim(par = c(0.6, -0.2, 2, 2, 1), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;))</code></pre>
+<pre><code>## $par
+## [1] 0.9362459 0.3054026 2.2488329 1.2412641 0.1166276
+## 
+## $value
+## [1] 411.6919
+## 
+## $counts
+## function gradient 
+##       71       19 
+## 
+## $convergence
+## [1] 0
+## 
+## $message
+## NULL</code></pre>
+</div>
+<div id="derivatives" class="section level2">
+<h2>Derivatives</h2>
+<p>We didn’t supply the gradient – <code>optim()</code> will numerically approximate it with a finite difference.</p>
+<blockquote>
+<p>Practical issues with general optimzation often have less to do with the optimizer than with how carefully the problem is set up.</p>
+</blockquote>
+<blockquote>
+<p>In general it is worth supplying a function to calculate derivatives if you can, although it may be quicker in a one-off problem to let the software calculate numerical derivatives.</p>
+</blockquote>
+<p>– Ripley, B. D. “Modern applied statistics with S.” Statistics and Computing, fourth ed. Springer, New York (2002).</p>
+<p>You can do it “by hand”, or for some simple functions get R to do it, see <code>?deriv</code>.</p>
+</div>
+<div id="scaling" class="section level2">
+<h2>Scaling</h2>
+<blockquote>
+<p>It is worth ensuring the problem is reasonably well scaled, so a unit step in any parameter can have a comparable cahange in size to the objective, preferably about a unit change at the optimium.</p>
+</blockquote>
+<p>– Ripley, B. D. “Modern applied statistics with S.” Statistics and Computing, fourth ed. Springer, New York (2002).</p>
+<p><strong>Your Turn</strong></p>
+<p>Using <code>nllhood()</code> experiment with some values of <code>theta</code>, how much does the likelihood change for a unit change in <code>pi</code>? Compare it to a unit change in <code>mu_1</code>.</p>
+<pre class="r"><code>nllhood_mix(theta = c(), x = x)</code></pre>
+<p><em>(It will depend on the values of the other parameters, so try some near the values you would guess from the plot)</em></p>
+<p>You can specify a scaling vector with <code>control = list(parscale = c())</code>, “Optimization is performed on <code>par/parscale</code>”:</p>
+<pre class="r"><code>optim(par = c(0.6, -0.2, 2, 2, 1), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;,
+  control = list(parscale = c(10, 1, 1, 1, 1)))</code></pre>
+<pre><code>## $par
+## [1] 0.9360004 0.3058005 2.2484975 1.2414764 0.1167027
+## 
+## $value
+## [1] 411.692
+## 
+## $counts
+## function gradient 
+##       92       23 
+## 
+## $convergence
+## [1] 0
+## 
+## $message
+## NULL</code></pre>
+</div>
+<div id="mle-and-the-hessian" class="section level2">
+<h2>MLE and the Hessian</h2>
+<p>If <span class="math inline">\(\hat{\theta}\)</span> is the MLE for <span class="math inline">\(\theta\)</span>, then for large <span class="math inline">\(n\)</span>, <span class="math display">\[
+\hat{\theta} \dot{\sim} N(\theta, I(\hat{\theta})^{-1})
+\]</span></p>
+<p>where <span class="math inline">\(I(\hat{\theta})\)</span> is the observed Fisher Information matrix, the negative Hessian of the likelihood evaluated at the MLE.</p>
+<p>Or, in other words, the standard errors for the estimates are the square root of the diagonal of the inverse observed Fisher Information.</p>
+<p>Since we minimized the negative log likelihood, the Hessian returned by <code>optim()</code> <strong>is</strong> the observed Fisher information matrix.</p>
+<pre class="r"><code>(mle &lt;- optim(par = c(0.6, -0.2, 2, 2, 1), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;,
+  hessian = TRUE))</code></pre>
+<pre><code>## $par
+## [1] 0.9362459 0.3054026 2.2488329 1.2412641 0.1166276
+## 
+## $value
+## [1] 411.6919
+## 
+## $counts
+## function gradient 
+##       71       19 
+## 
+## $convergence
+## [1] 0
+## 
+## $message
+## NULL
+## 
+## $hessian
+##            [,1]        [,2]       [,3]        [,4]      [,5]
+## [1,] 2410.73545 -133.168404 -82.539755 -123.036544 532.91237
+## [2,] -133.16840  141.886434   0.305168   -9.383503  39.56664
+## [3,]  -82.53976    0.305168 433.310427   14.567811  63.21927
+## [4,] -123.03654   -9.383503  14.567811  294.759788  37.31136
+## [5,]  532.91237   39.566643  63.219273   37.311359 367.84043</code></pre>
+<pre class="r"><code>mle$hessian %&gt;% solve() %&gt;% diag() %&gt;% sqrt()</code></pre>
+<pre><code>## [1] 0.02926314 0.09565745 0.05022398 0.06190159 0.07436482</code></pre>
+<pre class="r"><code>data.frame(
+  est = mle$par, 
+  se = mle$hessian %&gt;% solve() %&gt;% diag() %&gt;% sqrt()
+)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["est"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["se"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"0.9362459","2":"0.02926314"},{"1":"0.3054026","2":"0.09565745"},{"1":"2.2488329","2":"0.05022398"},{"1":"1.2412641","2":"0.06190159"},{"1":"0.1166276","2":"0.07436482"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<div id="bounds-on-parameters" class="section level2">
+<h2>Bounds on parameters</h2>
+<p>Use <code>method = &quot;L-BFGS-B&quot;</code> and specify <code>lower</code> and <code>upper</code>.</p>
+</div>
+</div>
+<div id="nelder-mead" class="section level1">
+<h1>Nelder Mead</h1>
+<p><code>optim()</code> with default method.</p>
+<p>No need for derivatives.</p>
+<p><strong>Idea</strong>: Evaluate function at a special arrangement of points (a simplex), then consider possible changes to the arrangement:</p>
+<ul>
+<li>Reflection</li>
+<li>Expansion</li>
+<li>Contraction</li>
+<li>Shrink</li>
+</ul>
+<p>Nice animation: <a href="https://www.benfrederickson.com/numerical-optimization/" class="uri">https://www.benfrederickson.com/numerical-optimization/</a></p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

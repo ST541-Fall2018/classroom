@@ -50,6 +50,11 @@
 * Oct 25 [**Optimization**](notes/10-optimization.html) ([Rmd](notes/10-optimization.Rmd))
 * Oct 26 [**Lab 06**](notes/lab-06.html) ([Rmd](notes/lab-06.Rmd)) 
 
+### Week 6
+
+* Oct 30 [**Optimization II**](notes/11-optimization-ii.html) ([Rmd](notes/11-optimization-ii.Rmd))
+
+
 ## Credits
 
 A big thanks to the [STAT 545 teaching team](https://github.com/STAT545-UBC) for inspiring the organization of the class website and github repo.
