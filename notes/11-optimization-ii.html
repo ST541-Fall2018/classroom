@@ -137,6 +137,10 @@ $(document).ready(function () {
 <li><a href="#your-turn">Your Turn</a></li>
 <li><a href="#find-mle-with-maximization">Find MLE with maximization</a></li>
 <li><a href="#things-that-go-wrong">Things that go wrong</a></li>
+<li><a href="#lots-of-messages">Lot’s of messages</a></li>
+<li><a href="#non-convergence">Non-convergence</a></li>
+<li><a href="#local-minima">Local minima</a></li>
+<li><a href="#our-mle-fit">Our MLE fit</a></li>
 <li><a href="#derivatives">Derivatives</a></li>
 <li><a href="#scaling">Scaling</a></li>
 <li><a href="#mle-and-the-hessian">MLE and the Hessian</a></li>
@@ -193,72 +197,163 @@ f(x_0) + (x - x_0)f&#39;(x_0) = 0 \\
 <p>One model might be a two component Normal mixture: arises when with probability <span class="math inline">\(\pi\)</span> we get a value from N<span class="math inline">\((\mu_1, \sigma_1^2)\)</span>, and otherwise a sample from N<span class="math inline">\((\mu_2, \sigma_2^2)\)</span>.</p>
 <p><span class="math display">\[
 f(x; \pi, \mu_1, \mu_2, \sigma_1, \sigma_2) = \pi\phi(x; \mu_1, \sigma_1^2) +  (1- \pi)\phi(x; \mu_2, \sigma_2^2) 
-\]</span> where <span class="math inline">\(\phi(x; \mu, \simga^2)\)</span> is the density function for a Normal(<span class="math inline">\(\mu, \sigma^2)\)</span>.</p>
+\]</span> where <span class="math inline">\(\phi(x; \mu, \sigma^2)\)</span> is the density function for a Normal(<span class="math inline">\(\mu, \sigma^2)\)</span>.</p>
 </div>
 <div id="your-turn" class="section level2">
 <h2>Your Turn</h2>
 <p>Let <span class="math inline">\(\theta = (\pi, \mu_1, \mu_2, \sigma_1, \sigma_2)\)</span>.</p>
 <p>Fill in the body of the function to calculate the density function for a specified <code>theta</code> and data vector <code>x</code>:</p>
 <pre class="r"><code>dmix &lt;- function(x, theta){
-  
-} </code></pre>
+  pi &lt;- theta[1]
+  mu_1 &lt;- theta[2]
+  mu_2 &lt;- theta[3]
+  sigma_1 &lt;- theta[4]
+  sigma_2 &lt;- theta[5]
+  pi * dnorm(x, mean = mu_1, sd = sigma_1) +
+   (1 - pi) * dnorm(x, mean = mu_2, sd = sigma_2) 
+} 
+dmix(0, c(0, 1, 1, 1, 1))</code></pre>
+<pre><code>## [1] 0.2419707</code></pre>
 <p>Then try some more reasonable parameters to compare to the data:</p>
 <pre class="r"><code>ggplot(mapping = aes(x = x)) +
   geom_histogram(aes(y = stat(density)), binwidth = 0.25) +
-  stat_function(fun = dmix, args = list(theta = c(0.5, -2, 2, 1, 1)))</code></pre>
+  stat_function(fun = dmix, args = list(theta = c(0.6, 0.2, 2, 1.5, 1)))</code></pre>
+<p><img src="11-optimization-ii_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 </div>
 <div id="find-mle-with-maximization" class="section level2">
 <h2>Find MLE with maximization</h2>
 <p>Need negative log likelihood:</p>
 <pre class="r"><code>nllhood_mix &lt;- function(theta, x){
-  -1 * sum(log(dmix(x, theta)))
+  d &lt;- dmix(x, theta)
+  -1 * sum(log(d))
 }</code></pre>
 <p><code>optim()</code> with <code>method = &quot;BFGS&quot;</code>, does a <strong>Quasi</strong> Newton method (swaps Hessian with an approximation).</p>
-<p><strong>Your Turn</strong> Provide starting values to the <code>par</code> argument:</p>
-<pre class="r"><code>(mle1 &lt;- optim(par = c(), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;))</code></pre>
+<p><strong>Your Turn</strong> Provide starting values to the <code>par</code> argument: <code>par</code> is like the <span class="math inline">\(\mathbb{x}_0\)</span> above, values for <span class="math inline">\(\theta\)</span> we think are close to the values that give the minimum:</p>
 </div>
 <div id="things-that-go-wrong" class="section level2">
 <h2>Things that go wrong</h2>
-<pre class="r"><code>dmix &lt;- function(x, theta){
-  pi &lt;- theta[1]
-  mu &lt;- theta[2:3]
-  sigma &lt;- theta[4:5]
-  pi * dnorm(x, mean = mu[1], sd = sigma[1]) + 
-   (1 - pi) * dnorm(x, mean = mu[2], sd = sigma[2])
-} 
-optim(par = c(0.01, 1, 1, 4, 4), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)</code></pre>
+<ul>
+<li><strong>Lot’s of messages</strong> - bad parameter values lead to messages with <code>NaN</code></li>
+<li><strong>Non convergence</strong> no convergence due to bad parameter values</li>
+<li><strong>Local minima</strong></li>
+</ul>
+</div>
+<div id="lots-of-messages" class="section level2">
+<h2>Lot’s of messages</h2>
+<p>This converges, <code>$convergence</code> is <code>0</code>, but we get a lot of messages about <code>NaN</code>. This happens when a call to <code>nllhood_mix()</code> returns <code>NaN</code>, mostly when using bad values for the parameters, e.g. <span class="math inline">\(\pi = -1\)</span>, or <span class="math inline">\(\sigma_1 &lt; 0\)</span>.</p>
+<pre class="r"><code>(mle1 &lt;- optim(par = c(1, 0, 1.8, 1.2, 0.7), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;))</code></pre>
 <pre><code>## $par
-## [1] -5403.857499   -46.858043     0.452832   897.067384     1.247876
-## 
-## $value
-## [1] -1728.785
-## 
-## $counts
-## function gradient 
-##      179      100 
-## 
-## $convergence
-## [1] 1
-## 
-## $message
-## NULL</code></pre>
-<p><em>Talk about adding some bounds in function</em></p>
-<pre class="r"><code>(mle &lt;- optim(par = c(0.6, -0.2, 2, 2, 1), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;))</code></pre>
-<pre><code>## $par
-## [1] 0.9362459 0.3054026 2.2488329 1.2412641 0.1166276
+## [1] 0.9362468 0.3054438 2.2488241 1.2412696 0.1166007
 ## 
 ## $value
 ## [1] 411.6919
 ## 
 ## $counts
 ## function gradient 
-##       71       19 
+##      125       41 
 ## 
 ## $convergence
 ## [1] 0
 ## 
 ## $message
 ## NULL</code></pre>
+<p><code>optim()</code> can handle this fine, so we don’t really need to worry.</p>
+<p>To avoid <code>NaN</code> warnings we could protect our function from returning values at bad parameter values:</p>
+<pre class="r"><code>nllhood_mix2 &lt;- function(theta, x){
+  d &lt;- dmix(x, theta)
+  if (any(d &lt; 0) || any(is.nan(d))){
+    return(Inf)
+  }
+  -1 * sum(log(d))
+}</code></pre>
+<p>But this does introduce some weird discontinuities in our function.</p>
+<pre class="r"><code>optim(par = c(0.4, 2, -0.2, 1, 2), fn = nllhood_mix2, x = x, 
+  method = &quot;BFGS&quot;)</code></pre>
+<pre><code>## $par
+## [1] 0.06375411 2.24883288 0.30540257 0.11662763 1.24126413
+## 
+## $value
+## [1] 411.6919
+## 
+## $counts
+## function gradient 
+##       72       19 
+## 
+## $convergence
+## [1] 0
+## 
+## $message
+## NULL</code></pre>
+<p>Or use a bounded algorithm (see below).</p>
+</div>
+<div id="non-convergence" class="section level2">
+<h2>Non-convergence</h2>
+<p>This doesn’t converge, <code>$convergence</code> is <code>1</code>,:</p>
+<pre class="r"><code>(mle2 &lt;- optim(par = c(0.5, 0, 1, 2, 1), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;))</code></pre>
+<pre><code>## $par
+## [1] -3410.0610 -6066.8409  -230.4462   550.6597   588.7451
+## 
+## $value
+## [1] -190.2385
+## 
+## $counts
+## function gradient 
+##      185      100 
+## 
+## $convergence
+## [1] 1
+## 
+## $message
+## NULL</code></pre>
+<p>This means we hit our maximum number of iterations, we can start again from where we finished:</p>
+<pre class="r"><code>optim(par = mle2$par, fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)</code></pre>
+<pre><code>## $par
+## [1] -3417.3092 -6066.8409  -213.5316   550.6597   551.9619
+## 
+## $value
+## [1] -207.3375
+## 
+## $counts
+## function gradient 
+##      100      100 
+## 
+## $convergence
+## [1] 1
+## 
+## $message
+## NULL</code></pre>
+<p>But we still don’t converge. In this case, our likelihood rapidly decreases away from the parameter space.</p>
+</div>
+<div id="local-minima" class="section level2">
+<h2>Local minima</h2>
+<p>These starting parameters converge (with reasonable values of parameters) but not to the global minimum:</p>
+<pre class="r"><code>(mle3 &lt;- optim(par = c(0.5, 1, 1, 1, 1), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;))</code></pre>
+<pre><code>## $par
+## [1] 0.5000000 0.4293384 0.4293384 1.2918282 1.2918282
+## 
+## $value
+## [1] 418.7493
+## 
+## $counts
+## function gradient 
+##       30       10 
+## 
+## $convergence
+## [1] 0
+## 
+## $message
+## NULL</code></pre>
+<pre class="r"><code>mle3$par</code></pre>
+<pre><code>## [1] 0.5000000 0.4293384 0.4293384 1.2918282 1.2918282</code></pre>
+<p>Notice the value of the negative log likelihood, 418.7, is bigger than that at the other minimum 411.7. This is a local minimum.</p>
+<p><strong>Always try a few values for the starting parameters</strong>.</p>
+</div>
+<div id="our-mle-fit" class="section level2">
+<h2>Our MLE fit</h2>
+<pre class="r"><code>ggplot(mapping = aes(x = x)) +
+  geom_histogram(aes(y = stat(density)), binwidth = 0.25) +
+  stat_function(fun = dmix, args = list(theta = mle1$par))</code></pre>
+<p><img src="11-optimization-ii_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 </div>
 <div id="derivatives" class="section level2">
 <h2>Derivatives</h2>
@@ -270,30 +365,34 @@ optim(par = c(0.01, 1, 1, 4, 4), fn = nllhood_mix, x = x, method = &quot;BFGS&qu
 <p>In general it is worth supplying a function to calculate derivatives if you can, although it may be quicker in a one-off problem to let the software calculate numerical derivatives.</p>
 </blockquote>
 <p>– Ripley, B. D. “Modern applied statistics with S.” Statistics and Computing, fourth ed. Springer, New York (2002).</p>
-<p>You can do it “by hand”, or for some simple functions get R to do it, see <code>?deriv</code>.</p>
+<p>You can do it “by hand”, or for some simple functions (include things like <code>dnorm()</code>) get R to do it, see <code>?deriv</code>.</p>
 </div>
 <div id="scaling" class="section level2">
 <h2>Scaling</h2>
 <blockquote>
-<p>It is worth ensuring the problem is reasonably well scaled, so a unit step in any parameter can have a comparable cahange in size to the objective, preferably about a unit change at the optimium.</p>
+<p>It is worth ensuring the problem is reasonably well scaled, so a unit step in any parameter can have a comparable change in size to the objective, preferably about a unit change at the optimium.</p>
 </blockquote>
 <p>– Ripley, B. D. “Modern applied statistics with S.” Statistics and Computing, fourth ed. Springer, New York (2002).</p>
 <p><strong>Your Turn</strong></p>
 <p>Using <code>nllhood()</code> experiment with some values of <code>theta</code>, how much does the likelihood change for a unit change in <code>pi</code>? Compare it to a unit change in <code>mu_1</code>.</p>
-<pre class="r"><code>nllhood_mix(theta = c(), x = x)</code></pre>
+<pre class="r"><code>nllhood_mix(theta = c(0.01, -0.2, 2, 2, 1), x = x)</code></pre>
+<pre class="r"><code>nllhood_mix(theta = c(0.09, -0.2, 2, 2, 1), x = x)</code></pre>
+<pre class="r"><code>nllhood_mix(theta = c(0.5, -0.2, 2, 2, 1), x = x)</code></pre>
+<pre class="r"><code>nllhood_mix(theta = c(0.5, 0.8, 2, 2, 1), x = x)</code></pre>
 <p><em>(It will depend on the values of the other parameters, so try some near the values you would guess from the plot)</em></p>
 <p>You can specify a scaling vector with <code>control = list(parscale = c())</code>, “Optimization is performed on <code>par/parscale</code>”:</p>
-<pre class="r"><code>optim(par = c(0.6, -0.2, 2, 2, 1), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;,
-  control = list(parscale = c(10, 1, 1, 1, 1)))</code></pre>
+<pre class="r"><code>optim(par = c(0.6, -0.2, 2, 2, 1), fn = nllhood_mix, x = x, 
+  method = &quot;BFGS&quot;,
+  control = list(parscale = c(5, 1, 1, 1, 1)))</code></pre>
 <pre><code>## $par
-## [1] 0.9360004 0.3058005 2.2484975 1.2414764 0.1167027
+## [1] 0.984634178 0.408660023 1.771180476 1.290380441 0.006545839
 ## 
 ## $value
-## [1] 411.692
+## [1] 415.3845
 ## 
 ## $counts
 ## function gradient 
-##       92       23 
+##      141       23 
 ## 
 ## $convergence
 ## [1] 0
@@ -354,7 +453,7 @@ optim(par = c(0.01, 1, 1, 4, 4), fn = nllhood_mix, x = x, method = &quot;BFGS&qu
 <div id="nelder-mead" class="section level1">
 <h1>Nelder Mead</h1>
 <p><code>optim()</code> with default method.</p>
-<p>No need for derivatives.</p>
+<p>No need for derivatives…can be slower to converge.</p>
 <p><strong>Idea</strong>: Evaluate function at a special arrangement of points (a simplex), then consider possible changes to the arrangement:</p>
 <ul>
 <li>Reflection</li>
