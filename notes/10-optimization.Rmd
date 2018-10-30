@@ -204,7 +204,7 @@ $$
 \mathcal{L(\beta_0, \beta_1)} = \prod_{i = 1}^{n} \pi_i^{y_i} (1-\pi_i)^{(1-y_i)}
 $$
 $$
-\mathcal{l(\beta_0, \beta_1)} =  y_i \log(\pi_i) + (1- y_i)\log(1- \pi_i)
+\mathcal{l(\beta_0, \beta_1)} =   \sum_{i = 1}^n y_i \log(\pi_i) + (1- y_i)\log(1- \pi_i)
 $$
 
 To find $\hat{\beta_0}$, $\hat{\beta_1}$ need to solve:

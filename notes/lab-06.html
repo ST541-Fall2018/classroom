@@ -271,7 +271,7 @@ plot(x, nllhood_cauchy(x_0 = x, y = y))</code></pre>
 <p><span class="math display">\[
 \mathcal{L(\beta_0, \beta_1)} = \prod_{i = 1}^{n} \pi_i^{y_i} (1-\pi_i)^{(1-y_i)}
 \]</span> <span class="math display">\[
-\mathcal{l(\beta_0, \beta_1)} =  y_i \log(\pi_i) + (1- y_i)\log(1- \pi_i)
+\mathcal{l(\beta_0, \beta_1)} =  \sum_{i = 1}^n y_i \log(\pi_i) + (1- y_i)\log(1- \pi_i)
 \]</span></p>
 <p><strong>Your Turn</strong> Write a function <code>nllhood_logistic()</code> that takes three arguments <code>beta</code> a two dimensional vector of <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span>, <code>y</code> a vector of observed responses, and <code>x</code> a corresponding vector of observed covariates.</p>
 <p>Use your function to find the MLE of <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> from fitting the model to the following data:</p>

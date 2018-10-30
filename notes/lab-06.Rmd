@@ -175,7 +175,7 @@ $$
 \mathcal{L(\beta_0, \beta_1)} = \prod_{i = 1}^{n} \pi_i^{y_i} (1-\pi_i)^{(1-y_i)}
 $$
 $$
-\mathcal{l(\beta_0, \beta_1)} =  y_i \log(\pi_i) + (1- y_i)\log(1- \pi_i)
+\mathcal{l(\beta_0, \beta_1)} =  \sum_{i = 1}^n y_i \log(\pi_i) + (1- y_i)\log(1- \pi_i)
 $$
 
 **Your Turn**  Write a function `nllhood_logistic()` that takes three arguments `beta` a two dimensional vector of $\beta_0$ and $\beta_1$, `y` a vector of observed responses, and `x` a corresponding vector of observed covariates.

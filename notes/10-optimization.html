@@ -144,7 +144,6 @@ $(document).ready(function () {
 <li><a href="#bernoulli-example">Bernoulli example</a></li>
 <li><a href="#simple-logistic-regression">Simple logistic regression</a></li>
 </ul></li>
-<li><a href="#newton-raphson">Newton-Raphson</a></li>
 </ul>
 </div>
 
@@ -297,7 +296,7 @@ optimize(f = negative_llhood, interval = c(0, 1), y = y)</code></pre>
 <p><span class="math display">\[
 \mathcal{L(\beta_0, \beta_1)} = \prod_{i = 1}^{n} \pi_i^{y_i} (1-\pi_i)^{(1-y_i)}
 \]</span> <span class="math display">\[
-\mathcal{l(\beta_0, \beta_1)} =  y_i \log(\pi_i) + (1- y_i)\log(1- \pi_i)
+\mathcal{l(\beta_0, \beta_1)} =   \sum_{i = 1}^n y_i \log(\pi_i) + (1- y_i)\log(1- \pi_i)
 \]</span></p>
 <p>To find <span class="math inline">\(\hat{\beta_0}\)</span>, <span class="math inline">\(\hat{\beta_1}\)</span> need to solve: <span class="math display">\[
 \frac{\partial l}{\partial \beta_0} = 0 \\
@@ -305,33 +304,6 @@ optimize(f = negative_llhood, interval = c(0, 1), y = y)</code></pre>
 \]</span></p>
 <p>Can’t solve analytically, do numerically. Need method for bivariate functions.</p>
 </div>
-</div>
-<div id="newton-raphson" class="section level1">
-<h1>Newton-Raphson</h1>
-<p>Usually described as a <strong>root</strong> finding method, e.g. find <span class="math inline">\(x\)</span> such that <span class="math inline">\(f(x) = 0\)</span>.</p>
-<p>Can transform to a minimization method by applying to the derivative <span class="math inline">\(f&#39;()\)</span>, and checking point is a minimum.</p>
-<p><strong>As a root finding method</strong></p>
-<p>Assume we have <span class="math inline">\(x_0\)</span> a value that is close to the root.</p>
-<p>Apply Taylor expansion to approximate <span class="math inline">\(f()\)</span>: <span class="math display">\[
-f(x) \approx f(x_0) + (x - x_0)f&#39;(x_0)
-\]</span></p>
-<p>Use this approximation to find an approximate root: <span class="math display">\[
-f(x_0) + (x - x_0)f&#39;(x_0) = 0 \\
-\implies x = x_0 - \frac{f(x_0)}{f&#39;(x_0)}
-\]</span></p>
-<p><em>Charlotte to draw picture here</em></p>
-<p><strong>Root finding algorithm</strong></p>
-<ol style="list-style-type: decimal">
-<li><p>Start with a value near the root, <span class="math inline">\(x_0\)</span></p></li>
-<li><p>Generate better values iteratively <span class="math inline">\(x_{i + 1} = x_{i} - \frac{f(x_i)}{f&#39;(x_i)}\)</span></p></li>
-<li><p>Stop when <span class="math inline">\(x_{i + 1}\)</span> isn’t very different from <span class="math inline">\(x_i\)</span></p></li>
-</ol>
-<p><strong>Minimization algorithm</strong></p>
-<ol style="list-style-type: decimal">
-<li><p>Start with a value near the minimum, <span class="math inline">\(x_0\)</span></p></li>
-<li><p>Generate better values iteratively <span class="math inline">\(x_{i + 1} = x_{i} - \frac{f&#39;(x_i)}{f&#39;&#39;(x_i)}\)</span></p></li>
-<li><p>Stop when <span class="math inline">\(x_{i + 1}\)</span> isn’t very different from <span class="math inline">\(x_i\)</span>, or <span class="math inline">\(f&#39;(x_i)\)</span> is below some small number.</p></li>
-</ol>
 </div>
 
 
