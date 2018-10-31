@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Efficiency</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Efficiency</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Nov 1st 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#efficiency">Efficiency</a><ul>
+<li><a href="#resources">Resources</a></li>
+</ul></li>
+<li><a href="#vectorize">Vectorize</a><ul>
+<li><a href="#compare-these-two-implementations-of-absolute-value">Compare these two implementations of absolute value</a></li>
+<li><a href="#whats-the-difference">What’s the difference?</a></li>
+<li><a href="#example---discretizing-a-numeric-variable">Example - Discretizing a numeric variable</a></li>
+<li><a href="#what-about-abs">What about <code>abs()</code>?</a></li>
+<li><a href="#motivation-doing-many-boostraps-on-the-mean">Motivation doing many boostraps on the mean</a></li>
+<li><a href="#how-does-the-timing-compare">How does the timing compare?</a></li>
+<li><a href="#consider-matrix-algebra">Consider matrix algebra</a></li>
+<li><a href="#takeways">Takeways</a></li>
+</ul></li>
+<li><a href="#fast-for-loops">Fast <code>for</code> loops</a><ul>
+<li><a href="#make-sure-objects-are-initialised-with-enough-space">Make sure objects are initialised with enough space</a></li>
+<li><a href="#implement-in-low-level-language">Implement in low level language</a></li>
+</ul></li>
+<li><a href="#do-as-little-as-possible">Do as little as possible</a><ul>
+<li><a href="#use-a-specific-method">Use a specific method</a></li>
+<li><a href="#finding-the-mean">Finding the mean</a></li>
+<li><a href="#extract-only-what-you-need">Extract only what you need</a></li>
+</ul></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+library(here)
+set.seed(84625)</code></pre>
+<div id="efficiency" class="section level1">
+<h1>Efficiency</h1>
+<p>For the next couple of lectures we’ll talk about writing fast R code.</p>
+<p>Remember correct code is your first priority, clear code your next priority, then think about making it fast if necessary.</p>
+<p><strong>Efficiency in the project rubric</strong></p>
+<ul>
+<li><p><strong>Does not meet expectations</strong>: Code includes common sources of inefficiency: unnecessary iteration, not preallocating objects in loops, etc.</p></li>
+<li><p><strong>Exceeds expectations</strong> Some effort has been made to identify and improve the efficiency of functions. May include: timing experiments, implementations in C++, reimplementations of existing functions etc.</p></li>
+</ul>
+<div id="resources" class="section level2">
+<h2>Resources</h2>
+<p><strong>Today</strong></p>
+<p>Two key techniques:</p>
+<ul>
+<li>Vectorize</li>
+<li>Do as little as possible</li>
+</ul>
+<p><a href="https://rstudio-education.github.io/hopr/speed.html"><em>Speed</em> Chapter in Hands on Programming with R</a></p>
+<p><a href="https://adv-r.hadley.nz/profiling.html#improve-perf"><em>Improving performance</em> Chapter in Advanced R</a></p>
+</div>
+</div>
+<div id="vectorize" class="section level1">
+<h1>Vectorize</h1>
+<div id="compare-these-two-implementations-of-absolute-value" class="section level2">
+<h2>Compare these two implementations of absolute value</h2>
+<p><em>(Taken from Hand’s On Programming in R)</em></p>
+<pre class="r"><code>abs_loop &lt;- function(vec){
+  for (i in 1:length(vec)) {
+    if (vec[i] &lt; 0) {
+      vec[i] &lt;- -vec[i]
+    }
+  }
+  vec
+}
+
+abs_sets &lt;- function(vec){
+  negs &lt;- vec &lt; 0
+  vec[negs] &lt;- -vec[negs] 
+  vec
+}
+
+x &lt;- rnorm(1000)</code></pre>
+<p><strong>Your Turn</strong></p>
+<ul>
+<li><p>Do they give the same answer when applied to <code>x</code>?</p></li>
+<li><p>Which is faster?</p>
+<pre class="r"><code>bench::mark(
+  abs_loop = abs_loop(x),
+  abs_sets = abs_sets(x)
+)</code></pre></li>
+</ul>
+</div>
+<div id="whats-the-difference" class="section level2">
+<h2>What’s the difference?</h2>
+<ul>
+<li><p><code>abs_loop()</code> relies on a loop to examine each element of <code>x</code></p></li>
+<li><p><code>abs_set()</code> finds all negative values of <code>x</code> as a set, and operates on them all at once</p></li>
+</ul>
+<p>The combination of <code>for</code> with <code>if</code> is a key signal, a more efficient implementation will use R’s strengths of elementwise operations and subsetting.</p>
+</div>
+<div id="example---discretizing-a-numeric-variable" class="section level2">
+<h2>Example - Discretizing a numeric variable</h2>
+<pre class="r"><code>ages &lt;- c(14, 21, 33, 19, 60)</code></pre>
+<pre class="r"><code>age_cats &lt;- character(length(ages))
+
+for (i in seq_along(ages)){
+  age &lt;- ages[i]
+  if (age &lt; 15){
+    age_cats[i] &lt;- &quot;under 15&quot;
+  } else if (age &lt; 21){
+    age_cats[i] &lt;- &quot;15 to 21&quot;
+  } else if (age &lt; 55){
+    age_cats[i] &lt;- &quot;21 to 55&quot;
+  } else {
+    age_cats[i] &lt;- &quot;over 55&quot;
+  }
+}</code></pre>
+<p><strong>Your Turn</strong> Eliminate the <code>for</code> loop by using logical operators and subsetting.</p>
+<pre class="r"><code>age_cats2 &lt;- character(length(ages))</code></pre>
+<p>Even better, use <code>cut()</code></p>
+<pre class="r"><code>cut(ages, breaks = c(0, 15, 21, 55, 150),
+  labels = c(&quot;under 15&quot;, &quot;15 to 21&quot;, &quot;21 to 55&quot;, &quot;over 55&quot;))</code></pre>
+<pre><code>## [1] under 15 15 to 21 21 to 55 15 to 21 over 55 
+## Levels: under 15 15 to 21 21 to 55 over 55</code></pre>
+</div>
+<div id="what-about-abs" class="section level2">
+<h2>What about <code>abs()</code>?</h2>
+<pre class="r"><code>bench::mark(
+  abs_loop = abs_loop(x),
+  abs_sets = abs_sets(x),
+  abs_base = abs(x)
+)</code></pre>
+<pre><code>## # A tibble: 3 x 10
+##   expression      min     mean   median      max `itr/sec` mem_alloc  n_gc
+##   &lt;chr&gt;      &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt; &lt;bch:byt&gt; &lt;dbl&gt;
+## 1 abs_loop    66.76µs  73.92µs  67.84µs    911µs    13528.    7.86KB     1
+## 2 abs_sets     6.52µs  10.39µs   8.43µs    838µs    96259.   27.46KB     5
+## 3 abs_base      517ns   1.32µs    852ns    679µs   754532.    7.86KB     1
+## # ... with 2 more variables: n_itr &lt;int&gt;, total_time &lt;bch:tm&gt;</code></pre>
+<pre class="r"><code>abs</code></pre>
+<pre><code>## function (x)  .Primitive(&quot;abs&quot;)</code></pre>
+<p>In the body of a function, <code>.Primitive</code> <code>.Internal</code> or <code>.Call</code> signify a function that is written in another lower level language. These are compiled, and are <strong>usually very fast</strong>.</p>
+<p>Reimplementing functions in R that are implemented in C (or other low level language), isn’t usually going to get you a speed up.</p>
+</div>
+<div id="motivation-doing-many-boostraps-on-the-mean" class="section level2">
+<h2>Motivation doing many boostraps on the mean</h2>
+<p>Imagine we are exploring the performance of the sample mean over samples from a specified population, for simplicity let’s just say Normal(0, 1).</p>
+<p>Our current approach for 100 simulations and a sample size of 10, might be something like:</p>
+<pre class="r"><code>set.seed(187)
+samples &lt;- rerun(1000, rnorm(n = 10))
+map_dbl(samples, mean)</code></pre>
+<p>But, it may not be the fastest approach…and although it doesn’t matter if we do this once, it might if we are repeating this over a whole set of varying settings.</p>
+<p>If you have many vectors all of same type and length, you’ll often get speed ups by working with a matrix and using vectorized functions or matrix operations.</p>
+<p>In R people often use the term “vectorized” for function that takes a vector rather than scalar (single number) approach to a problem.</p>
+<p>We can generate all our samples in once go since they are all i.i.d:</p>
+<pre class="r"><code>set.seed(187)
+samples_matrix &lt;- rnorm(n = 10*1000) %&gt;% matrix(ncol = 1000)</code></pre>
+<p>Each sample sits in a column of this matrix.</p>
+<p>Then to take the mean of each sample, we need to take the mean of each column, which we could do with a <code>for</code> loop, but, a much better option is <code>colMeans()</code> (there are also <code>rowMeans()</code>, <code>rowSums()</code> and <code>colSums()</code> functions):</p>
+<pre class="r"><code>colMeans(samples_matrix)</code></pre>
+</div>
+<div id="how-does-the-timing-compare" class="section level2">
+<h2>How does the timing compare?</h2>
+<p><strong>Your Turn</strong> I’ve extracted the two approaches into the functions below, how much faster in <code>sample_means_matrix()</code>?</p>
+<pre class="r"><code>sample_means_purrr &lt;- function(n_sims = 1000, n = 10){
+  samples &lt;- rerun(n_sims, rnorm(n = n))
+  map_dbl(samples, mean)
+}
+
+sample_means_matrix &lt;- function(n_sims = 1000, n = 10){
+  samples_matrix &lt;- rnorm(n = n_sims*n) %&gt;% matrix(ncol = n_sims)
+  colMeans(samples_matrix)
+}</code></pre>
+</div>
+<div id="consider-matrix-algebra" class="section level2">
+<h2>Consider matrix algebra</h2>
+<p>If your problem can be solved by matrix algebra (rather than looping over elements, columns or rows), you’ll often get a speed up, since the matrix operations usually call very optimized external libraries.</p>
+<p>For example, imagine fitting a regression to each column of <code>Y</code> using the explanatories in <code>X</code>:</p>
+<pre class="r"><code>nsim &lt;- 1000
+n &lt;- 30
+p &lt;- 5
+Y &lt;- rnorm(nsim*n) %&gt;% matrix(ncol = nsim)
+X &lt;- rnorm(n*p) %&gt;% matrix(ncol = p)</code></pre>
+<p><code>for</code> loop:</p>
+<pre class="r"><code>coefs &lt;- matrix(nrow = p, ncol = nsim)
+for (i in 1:nsim){
+  coefs[, i] &lt;- lm(Y[, i] ~ X - 1)$coefficients
+}</code></pre>
+<p>Matrix algebra:</p>
+<pre class="r"><code>coefs2 &lt;- solve(t(X) %*% X) %*% t(X) %*% Y</code></pre>
+<p><code>lm()</code></p>
+<pre class="r"><code>coefs3 &lt;- lm(Y ~ X - 1)$coefficients</code></pre>
+<pre class="r"><code>all.equal(coefs, coefs2)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>all.equal(coefs2, coefs3, check.attributes = FALSE)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Also see the functions <code>crossprod()</code> and <code>outer()</code>.</p>
+</div>
+<div id="takeways" class="section level2">
+<h2>Takeways</h2>
+<p>Don’t use a <code>for</code> loop when you don’t have to.</p>
+<ul>
+<li>Look for combinations of <code>for()</code> and <code>if()</code> that signal vectorization will be much more efficient</li>
+<li>Learn about vectorized functions like: <code>diff()</code>, <code>cumsum()</code>, <code>rowSums()</code>, <code>rowMeans()</code></li>
+<li>Consider how your problem might be solved with matrix algebra</li>
+</ul>
+<p>(<strong>Aside:</strong> using <code>purrr::map()</code> instead of a <code>for</code> loop doesn’t help with speed, just clarity. The technique of vectorization should reduce the need for <code>purrr::map()</code> as well.)</p>
+<p>From Advanced R:</p>
+<blockquote>
+<p>Vectorisation won’t solve every problem, and rather than torturing an existing algorithm into one that uses a vectorised approach, you’re often better off writing your own vectorised function in C++.</p>
+</blockquote>
+</div>
+</div>
+<div id="fast-for-loops" class="section level1">
+<h1>Fast <code>for</code> loops</h1>
+<p>If you must use a <code>for</code> loop, two key things to make it as fast as possible:</p>
+<ol style="list-style-type: decimal">
+<li>Do as much as possible outside the loop</li>
+<li>Make sure output objects are initialized with enough space</li>
+</ol>
+<div id="make-sure-objects-are-initialised-with-enough-space" class="section level2">
+<h2>Make sure objects are initialised with enough space</h2>
+<p><strong>Your Turn</strong> Compare the timing on these two loops:</p>
+<pre class="r"><code>loop_no_init &lt;- function(n = 1000000){
+  output &lt;- NA
+  for (i in 1:n) {
+    output[i] &lt;- i + 1
+  }
+}
+
+loop_init &lt;- function(n = 1000000){
+  output &lt;- integer(n) 
+  for (i in 1:n) {
+    output[i] &lt;- i + 1
+  }
+}</code></pre>
+</div>
+<div id="implement-in-low-level-language" class="section level2">
+<h2>Implement in low level language</h2>
+<p>An example in C++ next week</p>
+</div>
+</div>
+<div id="do-as-little-as-possible" class="section level1">
+<h1>Do as little as possible</h1>
+<div id="use-a-specific-method" class="section level2">
+<h2>Use a specific method</h2>
+<p>In R generic functions are functions whose behavior depends on the class of the object given as the first argument.</p>
+<p>This is part of the S3 system, one of R’s approaches to object oriented programming.</p>
+<p>Lot’s of functions are generic e.g. <code>mean()</code>, <code>plot()</code>, <code>summary()</code> you can tell from the help</p>
+<pre class="r"><code>?mean</code></pre>
+<p>Or when you look inside the function:</p>
+<pre class="r"><code>mean</code></pre>
+<pre><code>## function (x, ...) 
+## UseMethod(&quot;mean&quot;)
+## &lt;bytecode: 0x7fb85349ebb0&gt;
+## &lt;environment: namespace:base&gt;</code></pre>
+<p>A method for a generic function has a name like <code>generic.class</code>, you can see them with the <code>methods()</code> function:</p>
+<pre class="r"><code>methods(&quot;mean&quot;)</code></pre>
+<pre><code>## [1] mean.bench_time* mean.Date        mean.default     mean.difftime   
+## [5] mean.POSIXct     mean.POSIXlt    
+## see &#39;?methods&#39; for accessing help and source code</code></pre>
+<p>When you call a generic you lose a little time while R figures out which method to call.</p>
+</div>
+<div id="finding-the-mean" class="section level2">
+<h2>Finding the mean</h2>
+<pre class="r"><code>z &lt;- rnorm(100)</code></pre>
+<p><strong>Your Turn</strong> Compare the timing for <code>mean()</code> compared to <code>mean.default()</code></p>
+<p>Tend to be similar for large vectors.</p>
+<blockquote>
+<p>This optimisation is a little risky. While <code>mean.default()</code> is almost twice as fast, it’ll fail in surprising ways if <code>x</code> is not a numeric vector. You should only use it if you know for sure what <code>x</code> is.</p>
+</blockquote>
+<p>(Slightly different for S4 methods)</p>
+</div>
+<div id="extract-only-what-you-need" class="section level2">
+<h2>Extract only what you need</h2>
+<p>Imagine a setting where we are investigating by simulation the distribution of the Welch’s t-test statistic over various scenarios.</p>
+<p>One option:</p>
+<pre class="r"><code>simulated_data &lt;- data.frame(y = rnorm(20),  grp = rep(1:2, 10))
+t.test(y ~ grp, data = simulated_data)$statistic</code></pre>
+<pre><code>##        t 
+## 1.109222</code></pre>
+<p><strong>Your turn</strong> Look at the source for <code>t.test.default()</code>. What else, beyond finding the test statistic does the function do?</p>
+<pre class="r"><code>getAnywhere(t.test.default)</code></pre>
+<pre><code>## A single object matching &#39;t.test.default&#39; was found
+## It was found in the following places
+##   registered S3 method for t.test from namespace stats
+##   namespace:stats
+## with value
+## 
+## function (x, y = NULL, alternative = c(&quot;two.sided&quot;, &quot;less&quot;, &quot;greater&quot;), 
+##     mu = 0, paired = FALSE, var.equal = FALSE, conf.level = 0.95, 
+##     ...) 
+## {
+##     alternative &lt;- match.arg(alternative)
+##     if (!missing(mu) &amp;&amp; (length(mu) != 1 || is.na(mu))) 
+##         stop(&quot;&#39;mu&#39; must be a single number&quot;)
+##     if (!missing(conf.level) &amp;&amp; (length(conf.level) != 1 || !is.finite(conf.level) || 
+##         conf.level &lt; 0 || conf.level &gt; 1)) 
+##         stop(&quot;&#39;conf.level&#39; must be a single number between 0 and 1&quot;)
+##     if (!is.null(y)) {
+##         dname &lt;- paste(deparse(substitute(x)), &quot;and&quot;, deparse(substitute(y)))
+##         if (paired) 
+##             xok &lt;- yok &lt;- complete.cases(x, y)
+##         else {
+##             yok &lt;- !is.na(y)
+##             xok &lt;- !is.na(x)
+##         }
+##         y &lt;- y[yok]
+##     }
+##     else {
+##         dname &lt;- deparse(substitute(x))
+##         if (paired) 
+##             stop(&quot;&#39;y&#39; is missing for paired test&quot;)
+##         xok &lt;- !is.na(x)
+##         yok &lt;- NULL
+##     }
+##     x &lt;- x[xok]
+##     if (paired) {
+##         x &lt;- x - y
+##         y &lt;- NULL
+##     }
+##     nx &lt;- length(x)
+##     mx &lt;- mean(x)
+##     vx &lt;- var(x)
+##     if (is.null(y)) {
+##         if (nx &lt; 2) 
+##             stop(&quot;not enough &#39;x&#39; observations&quot;)
+##         df &lt;- nx - 1
+##         stderr &lt;- sqrt(vx/nx)
+##         if (stderr &lt; 10 * .Machine$double.eps * abs(mx)) 
+##             stop(&quot;data are essentially constant&quot;)
+##         tstat &lt;- (mx - mu)/stderr
+##         method &lt;- if (paired) 
+##             &quot;Paired t-test&quot;
+##         else &quot;One Sample t-test&quot;
+##         estimate &lt;- setNames(mx, if (paired) 
+##             &quot;mean of the differences&quot;
+##         else &quot;mean of x&quot;)
+##     }
+##     else {
+##         ny &lt;- length(y)
+##         if (nx &lt; 1 || (!var.equal &amp;&amp; nx &lt; 2)) 
+##             stop(&quot;not enough &#39;x&#39; observations&quot;)
+##         if (ny &lt; 1 || (!var.equal &amp;&amp; ny &lt; 2)) 
+##             stop(&quot;not enough &#39;y&#39; observations&quot;)
+##         if (var.equal &amp;&amp; nx + ny &lt; 3) 
+##             stop(&quot;not enough observations&quot;)
+##         my &lt;- mean(y)
+##         vy &lt;- var(y)
+##         method &lt;- paste(if (!var.equal) 
+##             &quot;Welch&quot;, &quot;Two Sample t-test&quot;)
+##         estimate &lt;- c(mx, my)
+##         names(estimate) &lt;- c(&quot;mean of x&quot;, &quot;mean of y&quot;)
+##         if (var.equal) {
+##             df &lt;- nx + ny - 2
+##             v &lt;- 0
+##             if (nx &gt; 1) 
+##                 v &lt;- v + (nx - 1) * vx
+##             if (ny &gt; 1) 
+##                 v &lt;- v + (ny - 1) * vy
+##             v &lt;- v/df
+##             stderr &lt;- sqrt(v * (1/nx + 1/ny))
+##         }
+##         else {
+##             stderrx &lt;- sqrt(vx/nx)
+##             stderry &lt;- sqrt(vy/ny)
+##             stderr &lt;- sqrt(stderrx^2 + stderry^2)
+##             df &lt;- stderr^4/(stderrx^4/(nx - 1) + stderry^4/(ny - 
+##                 1))
+##         }
+##         if (stderr &lt; 10 * .Machine$double.eps * max(abs(mx), 
+##             abs(my))) 
+##             stop(&quot;data are essentially constant&quot;)
+##         tstat &lt;- (mx - my - mu)/stderr
+##     }
+##     if (alternative == &quot;less&quot;) {
+##         pval &lt;- pt(tstat, df)
+##         cint &lt;- c(-Inf, tstat + qt(conf.level, df))
+##     }
+##     else if (alternative == &quot;greater&quot;) {
+##         pval &lt;- pt(tstat, df, lower.tail = FALSE)
+##         cint &lt;- c(tstat - qt(conf.level, df), Inf)
+##     }
+##     else {
+##         pval &lt;- 2 * pt(-abs(tstat), df)
+##         alpha &lt;- 1 - conf.level
+##         cint &lt;- qt(1 - alpha/2, df)
+##         cint &lt;- tstat + c(-cint, cint)
+##     }
+##     cint &lt;- mu + cint * stderr
+##     names(tstat) &lt;- &quot;t&quot;
+##     names(df) &lt;- &quot;df&quot;
+##     names(mu) &lt;- if (paired || !is.null(y)) 
+##         &quot;difference in means&quot;
+##     else &quot;mean&quot;
+##     attr(cint, &quot;conf.level&quot;) &lt;- conf.level
+##     rval &lt;- list(statistic = tstat, parameter = df, p.value = pval, 
+##         conf.int = cint, estimate = estimate, null.value = mu, 
+##         alternative = alternative, method = method, data.name = dname)
+##     class(rval) &lt;- &quot;htest&quot;
+##     return(rval)
+## }
+## &lt;bytecode: 0x7fb85630db60&gt;
+## &lt;environment: namespace:stats&gt;</code></pre>
+<p>Rewriting a function to do just enough work for your specific case can provide speed ups.</p>
+<p>In lab you’ll work through the <code>t.test()</code> case study.</p>
+<p>Also, see the example of the rewrite of <code>diff()</code> for the difference of adjacent values in a vector in <a href="https://adv-r.hadley.nz/profiling.html#be-lazy">Do as Little as Possible in Advanced R</a>.</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

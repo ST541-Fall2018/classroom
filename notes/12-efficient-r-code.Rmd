@@ -1,0 +1,331 @@
+---
+title: Efficiency
+author: Charlotte Wickham
+date: Nov 1st 2018
+---
+
+```{r setup, message = FALSE}
+library(tidyverse)
+library(here)
+set.seed(84625)
+```
+
+# Efficiency
+
+For the next couple of lectures we'll talk about writing fast R code.
+
+Remember correct code is your first priority, clear code your next priority, then think about making it fast if necessary.
+
+**Efficiency in the project rubric**
+
+* **Does not meet expectations**: Code includes common sources of inefficiency: unnecessary iteration, not preallocating objects in loops, etc.
+
+* **Exceeds expectations** Some effort has been made to identify and improve the efficiency of functions. May include: timing experiments, implementations in C++, reimplementations of existing functions etc.
+
+## Resources 
+
+**Today**
+
+Two key techniques:
+
+* Vectorize
+* Do as little as possible
+
+[*Speed* Chapter in Hands on Programming with R](https://rstudio-education.github.io/hopr/speed.html)
+
+[*Improving performance* Chapter in Advanced R](https://adv-r.hadley.nz/profiling.html#improve-perf)
+
+# Vectorize
+
+## Compare these two implementations of absolute value
+
+*(Taken from Hand's On Programming in R)*
+```{r}
+abs_loop <- function(vec){
+  for (i in 1:length(vec)) {
+    if (vec[i] < 0) {
+      vec[i] <- -vec[i]
+    }
+  }
+  vec
+}
+
+abs_sets <- function(vec){
+  negs <- vec < 0
+  vec[negs] <- -vec[negs] 
+  vec
+}
+
+x <- rnorm(1000)
+```
+
+**Your Turn**
+
+* Do they give the same answer when applied to `x`?
+
+* Which is faster?
+    ```{r, results = "hide"}
+    bench::mark(
+      abs_loop = abs_loop(x),
+      abs_sets = abs_sets(x)
+    )
+    ```
+
+## What's the difference?
+
+* `abs_loop()` relies on a loop to examine each element of `x`
+
+* `abs_set()` finds all negative values of `x` as a set, and operates on them all at once
+
+The combination of `for` with `if` is a key signal, a more efficient implementation will use R's strengths of elementwise operations and subsetting.
+
+## Example - Discretizing a numeric variable
+
+```{r}
+ages <- c(14, 21, 33, 19, 60)
+```
+
+```{r}
+age_cats <- character(length(ages))
+
+for (i in seq_along(ages)){
+  age <- ages[i]
+  if (age < 15){
+    age_cats[i] <- "under 15"
+  } else if (age < 21){
+    age_cats[i] <- "15 to 21"
+  } else if (age < 55){
+    age_cats[i] <- "21 to 55"
+  } else {
+    age_cats[i] <- "over 55"
+  }
+}
+```
+
+**Your Turn** Eliminate the `for` loop by using logical operators and subsetting.
+
+```{r}
+age_cats2 <- character(length(ages))
+
+
+```
+
+
+
+
+Even better, use `cut()`
+```{r}
+cut(ages, breaks = c(0, 15, 21, 55, 150),
+  labels = c("under 15", "15 to 21", "21 to 55", "over 55"))
+```
+
+## What about `abs()`?
+
+```{r}
+bench::mark(
+  abs_loop = abs_loop(x),
+  abs_sets = abs_sets(x),
+  abs_base = abs(x)
+)
+```
+
+
+```{r}
+abs
+```
+In the body of a function, `.Primitive` `.Internal` or `.Call` signify a function that is written in another lower level language.  These are compiled, and are **usually very fast**.
+
+Reimplementing functions in R that are implemented in C (or other low level language), isn't usually going to get you a speed up.
+
+## Motivation doing many boostraps on the mean
+
+Imagine we are exploring the performance of the sample mean over samples from a specified population, for simplicity let's just say Normal(0, 1).
+
+Our current approach for 100 simulations and a sample size of 10, might be something like:
+```{r, results = "hide"}
+set.seed(187)
+samples <- rerun(1000, rnorm(n = 10))
+map_dbl(samples, mean)
+```
+
+But, it may not be the fastest approach...and although it doesn't matter if we do this once, it might if we are repeating this over a whole set of varying settings.
+
+If you have many vectors all of same type and length, you'll often get speed ups by working with a matrix and using vectorized functions or matrix operations.
+
+In R people often use the term "vectorized" for function that takes a vector rather than scalar (single number) approach to a problem.  
+
+We can generate all our samples in once go since they are all i.i.d:
+```{r}
+set.seed(187)
+samples_matrix <- rnorm(n = 10*1000) %>% matrix(ncol = 1000)
+```
+Each sample sits in a column of this matrix.
+
+Then to take the mean of each sample, we need to take the mean of each column, which we could do with a `for` loop, but, a much better option is `colMeans()` (there are also `rowMeans()`, `rowSums()` and `colSums()` functions):
+```{r, results = "hide"}
+colMeans(samples_matrix)
+```
+
+## How does the timing compare?
+
+**Your Turn**  I've extracted the two approaches into the functions below, how much faster in `sample_means_matrix()`?
+
+```{r}
+sample_means_purrr <- function(n_sims = 1000, n = 10){
+  samples <- rerun(n_sims, rnorm(n = n))
+  map_dbl(samples, mean)
+}
+
+sample_means_matrix <- function(n_sims = 1000, n = 10){
+  samples_matrix <- rnorm(n = n_sims*n) %>% matrix(ncol = n_sims)
+  colMeans(samples_matrix)
+}
+```
+
+## Consider matrix algebra
+
+If your problem can be solved by matrix algebra (rather than looping over elements, columns or rows), you'll often get a speed up, since the matrix operations usually call very optimized external libraries.
+
+For example, imagine fitting a regression to each column of `Y` using the explanatories in `X`:
+```{r}
+nsim <- 1000
+n <- 30
+p <- 5
+Y <- rnorm(nsim*n) %>% matrix(ncol = nsim)
+X <- rnorm(n*p) %>% matrix(ncol = p)
+```
+
+`for` loop:
+```{r}
+coefs <- matrix(nrow = p, ncol = nsim)
+for (i in 1:nsim){
+  coefs[, i] <- lm(Y[, i] ~ X - 1)$coefficients
+}
+```
+
+Matrix algebra:
+```{r}
+coefs2 <- solve(t(X) %*% X) %*% t(X) %*% Y
+```
+
+`lm()`
+```{r}
+coefs3 <- lm(Y ~ X - 1)$coefficients
+```
+
+```{r}
+all.equal(coefs, coefs2)
+all.equal(coefs2, coefs3, check.attributes = FALSE)
+```
+
+Also see the functions `crossprod()` and `outer()`.
+
+## Takeways
+
+Don't use a `for` loop when you don't have to. 
+
+* Look for combinations of `for()` and `if()` that signal vectorization will be much more efficient
+* Learn about vectorized functions like: `diff()`, `cumsum()`, `rowSums()`, `rowMeans()`
+* Consider how your problem might be solved with matrix algebra
+
+(**Aside:** using `purrr::map()` instead of a `for` loop doesn't help with speed, just clarity. The technique of vectorization should reduce the need for `purrr::map()` as well.)
+
+From Advanced R:
+
+> Vectorisation won't solve every problem, and rather than torturing an existing algorithm into one that uses a vectorised approach, you're often better off writing your own vectorised function in C++. 
+
+# Fast `for` loops 
+
+If you must use a `for` loop, two key things to make it as fast as possible:
+
+1. Do as much as possible outside the loop
+2. Make sure output objects are initialized with enough space
+
+## Make sure objects are initialised with enough space
+
+**Your Turn** Compare the timing on these two loops:
+```{r, eval = FALSE}
+loop_no_init <- function(n = 1000000){
+  output <- NA
+  for (i in 1:n) {
+    output[i] <- i + 1
+  }
+}
+
+loop_init <- function(n = 1000000){
+  output <- integer(n) 
+  for (i in 1:n) {
+    output[i] <- i + 1
+  }
+}
+```
+
+## Implement in low level language
+
+An example in C++ next week
+
+# Do as little as possible
+
+## Use a specific method
+
+In R generic functions are functions whose behavior depends on the class of the object given as the first argument.
+
+This is part of the S3 system, one of R's approaches to object oriented programming.
+
+Lot's of functions are generic e.g. `mean()`, `plot()`, `summary()`  you can tell from the help
+```{r}
+?mean
+```
+
+Or when you look inside the function:
+```{r}
+mean
+```
+
+A method for a generic function has a name like `generic.class`, you can see them with the `methods()` function:
+```{r}
+methods("mean")
+```
+
+When you call a generic you lose a little time while R figures out which method to call.  
+
+## Finding the mean
+
+```{r}
+z <- rnorm(100)
+```
+
+**Your Turn** Compare the timing for `mean()` compared to `mean.default()`
+
+```{r}
+
+```
+
+Tend to be similar for large vectors.
+
+> This optimisation is a little risky. While `mean.default()` is almost twice as fast, it'll fail in surprising ways if `x` is not a numeric vector. You should only use it if you know for sure what `x` is.
+
+(Slightly different for S4 methods)
+
+## Extract only what you need 
+
+Imagine a setting where we are investigating by simulation the distribution of the Welch's t-test statistic over various scenarios.  
+
+One option:
+```{r}
+simulated_data <- data.frame(y = rnorm(20),  grp = rep(1:2, 10))
+t.test(y ~ grp, data = simulated_data)$statistic
+```
+
+**Your turn** Look at the source for `t.test.default()`.  What else, beyond finding the test statistic does the function do?
+```{r}
+getAnywhere(t.test.default)
+```
+
+Rewriting a function to do just enough work for your specific case can provide speed ups.
+
+In lab you'll work through the `t.test()` case study.
+
+Also, see the example of the rewrite of `diff()` for the difference of adjacent values in a vector in [Do as Little as Possible in Advanced R](https://adv-r.hadley.nz/profiling.html#be-lazy).
+
+
