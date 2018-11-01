@@ -1,0 +1,256 @@
+---
+title: Lab 07 - Efficiency - t-test case study
+author: Charlotte Wickham
+date: Nov 2nd 2018
+---
+
+```{r setup, message=FALSE}
+library(tidyverse)
+set.seed(110198)
+```
+
+In lab today you'll work through the [case study in Advanced R](https://adv-r.hadley.nz/profiling.html#t-test) on the t-test.  I've tried to use the same notation so you can read along there too, but we'll frame it in terms of a simulation study rather than a single data analysis.  
+
+## Setting 
+
+As at the end of Thursday's lecture, imagine a setting where we are investigating by simulation the distribution of the Welch's t-test statistic for a two sample comparison over various scenarios.  
+
+In lecture we saw one way to do this for one simulated data set, might be:
+```{r}
+n <- 50
+simulated_data <- data.frame(x = rnorm(n),  
+  grp = rep(1:2, each = n / 2))
+t.test(x ~ grp, data = simulated_data)$statistic
+```
+
+But we might want to do this 1000 times for our simulation, and then we need to repeat that many times for all of our scenarios...we'll end up calculating a lot of test statistics!
+
+To speed things up we'll start by storing the simulated data for each scenario in a matrix:
+```{r}
+m <- 1000 # number of simulations
+X <- rnorm(n*m) %>%  matrix(nrow = m)
+```
+where each sampled response is a row of `X`. *(In class we stored samples in the columns of a matrix, it doesn't really matter which you use, but I chose rows here to mimic the case study in Advanced R)*.
+
+Since the group labels won't change from simulated dataset to simulated data set, we can store them in a separate vector `grp`:
+```{r}
+grp <- rep(1:2, each = n / 2)
+```
+
+For the first sample, the first row of `X`, we can get the test statistic with:
+```{r}
+t.test(X[1, ] ~ grp)$statistic
+```
+
+## A baseline for all 1000 tests
+
+We could then iterate over all samples with a `for` loop:
+```{r}
+tstats <- numeric(m)
+for (i in 1:m){
+  tstats[i] <- t.test(X[i, ] ~ grp)$statistic
+}
+```
+
+Our goal is to get to this same result but with code that runs much faster.  That way, when we repeat this over all our simulation settings, we won't be waiting all day.  To get a feel for how long this code takes now, let's time one run with `system.time()`.  
+```{r}
+(baseline <- system.time({
+  tstats <- numeric(m)
+  for (i in 1:m){
+    tstats[i] <- t.test(X[i, ] ~ grp)$statistic
+  }
+}))
+```
+I get about 0.8 seconds.  Does this need to be faster?  Imagine we have five different populations, each with 4 sets of parameter values we want to investigate, that would take about 16 seconds. If we want good estimates of the quantiles of the statistic, so we should probably increase $m$ to 10,000, increasing that time by 10, and bringing our simulation time up to about 3 minutes.  It will probably take you longer than three minutes to work through this lab, so it's hard to justify all this work here.  Still it's a useful size problem to demonstrate the ideas, that hopefully help you out when you have something that is taking too long to run.
+
+## Another way to call `t.test()`
+
+**Your turn** Another way to call `t.test()`, instead of using a formula, is to pass in two vectors, one with observations from the first group, and one with observations from the second group.  For example, with the first column of `X`:
+```{r}
+t.test(X[1, grp == 1], X[1, grp == 2])$statistic
+```
+
+**Is this faster?** Fill in the line in the timing experiment below to find out:
+```{r, eval = FALSE}
+bench::mark(
+  t.test(X[1, ] ~ grp)$statistic,
+  # FILL IN LINE HERE
+)
+```
+
+You should find the non-formula approach quite a bit faster.
+
+## Avoiding method dispatch
+
+If you look at the source for `t.test()`:
+```{r}
+t.test
+```
+You'll see `t.test()` is a generic function (because it calls `UseMethod()`).  Calling `t.test()` with two vectors like:
+```{r}
+t.test(X[1, grp == 1], X[1, grp == 2])$statistic
+```
+invokes the default method `t.test.default()`.
+
+We might wonder if calling the default method directly leads to a speed up:
+```{r}
+bench::mark(
+  t.test(X[1, grp == 1], X[1, grp == 2])$statistic, 
+  stats:::t.test.default(X[1, grp == 1], X[1, grp == 2])$statistic
+)
+```
+*(The `stats:::` is neccessary to find `t.test.default()` which isn't usually accessible)*. It saves only a tiny fraction of time in this example.
+
+## Do as little as possible
+
+We saw in class `t.test.default()` does way more than we need:
+```{r, eval = FALSE}
+stats:::t.test.default
+```
+
+If we just calculate the test statistic, we might consider implementing our own version:
+```{r}
+my_t <- function(x, grp) {
+  t_stat <- function(x) {
+    m <- mean(x)
+    n <- length(x)
+    var <- sum((x - m) ^ 2) / (n - 1)
+
+    list(m = m, n = n, var = var)
+  }
+
+  g1 <- t_stat(x[grp == 1])
+  g2 <- t_stat(x[grp == 2])
+
+  se_total <- sqrt(g1$var / g1$n + g2$var / g2$n)
+  (g1$m - g2$m) / se_total
+}
+```
+
+**Your Turn** 
+
+* Verify that this does indeed find the right t-statistic (or at least same as `t.test()`) by comparing
+    ```{r, results = "hide"}
+    t.test(X[1, grp == 1], X[1, grp == 2])$statistic
+    ```
+    to
+    ```{r, results = "hide"}
+    my_t(X[1, ], grp)
+    ```
+
+* This comes directly from Advanced R, I don't think the function defined inside `my_t()`, `t_stat()` is very well named because it doesn't actually find a t-stat.  Can you think of a better name?
+
+* Is this any faster?  Compare the timing of the two different approaches.
+
+Using `my_t()`, I saw about 10-fold decrease in time for one column.
+
+## Vectorize
+
+While `my_t()` is pretty fast, we will still need to loop over all the columns of `X` to get all our statistics:
+```{r}
+tstats <- numeric(m)
+for (i in 1:m){
+  tstats[i] <- my_t(X[i, ], grp)
+}
+```
+
+To vectorize this process we will consider rewriting `my_t()` to take a matrix as its first argument, so we don't need this loop at all.  This is the process of vectorization.
+
+There are two parts to vectorizing this particular function: first calculating the summary statistics for the whole matrix without explicit iteration, then combining all the summary statistics into t-statistics in one go, rather than element by element.
+
+Let's take a look at the first problem.  Inside `my_t()`, `t_stat()`, finds the sample mean, variance and sample size for a vector of numbers.  Here I've extracted it out alone:
+```{r}
+t_stat <- function(x) {
+  m <- mean(x)
+  n <- length(x)
+  var <- sum((x - m) ^ 2) / (n - 1)
+
+  list(m = m, n = n, var = var)
+}
+```
+
+Currently it only takes a vector valued `x`, e.g.
+```{r}
+t_stat(1:10)
+```
+
+But we want it to take a matrix valued `X`.  
+
+**Your Turn** Consider this `X_small`:
+```{r}
+(X_small <- matrix(1:10, nrow = 2))
+```
+What value should the summary statistics take for each row? How would you calculate the summary statistics for each row of `X_small` without iteration? (Don't forget about `rowSums()` and `rowMeans()`)
+
+It turns out that rewriting `tstat()` to take a matrix is pretty easy in this case.  Replace `mean()` with `rowMeans()`, `length()` with `ncol()` and `sum()` with `rowSums()`:
+```{r}
+t_stat <- function(X) {
+  m <- rowMeans(X)
+  n <- ncol(X)
+  var <- rowSums((X - m) ^ 2) / (n - 1)
+
+  list(m = m, n = n, var = var)
+}
+t_stat(X_small)
+```
+
+The second part, calculating all the test statistics from all the summary statistics at once, is trivial, nothing in the code needs to change. To see why let's look at a small example, two simulations of samples of size 5:
+```{r}
+(X_small_2 <- rnorm(10*2) %>% matrix(nrow = 2))
+(grp_small <- rep(1:2, each = 5))
+```
+
+In `my_t()` we first get the summary stats for each group, where now we can use our new `t_stat()` function that takes a matrix as input:
+```{r}
+(g1 <- t_stat(X_small_2[, grp_small == 1]))
+(g2 <- t_stat(X_small_2[, grp_small == 2]))
+```
+Notice the `$mean` and `$var` in these outputs are now vectors.  Then we put the summary stats into a t-stat:
+```{r}
+se_total <- sqrt(g1$var / g1$n + g2$var / g2$n)
+(g1$m - g2$m) / se_total
+```
+Notice how this all works seamlessly with our summary output that is vector valued, since arithmetic works elementwise.
+
+So, finally all together in our function we have:
+```{r}
+rowtstat <- function(X, grp){
+  t_stat <- function(X) {
+    m <- rowMeans(X)
+    n <- ncol(X)
+    var <- rowSums((X - m) ^ 2) / (n - 1)
+
+    list(m = m, n = n, var = var)
+  }
+
+  g1 <- t_stat(X[, grp == 1])
+  g2 <- t_stat(X[, grp == 2])
+
+  se_total <- sqrt(g1$var / g1$n + g2$var / g2$n)
+  (g1$m - g2$m) / se_total
+}
+```
+
+And we can calculate all our t-stats at once with:
+```{r, results = "hide"}
+rowtstat(X, grp)
+```
+
+How much faster is this than where we started?
+
+```{r}
+(vectorized <- system.time(rowtstat(X, grp)))
+baseline/vectorized
+```
+
+I get about an 800 fold speed up!
+
+## Summary
+
+The big speed ups in this problem came from **doing as little as possible** and **vectorizing** our function.
+
+To practice doing as little as possible, **rewrite the `diff()` function for the specific case of differences between adjacent values in a vector.**
+
+You can try on your own or follow along with the example in Advanced R that starts just before [this code](https://adv-r.hadley.nz/profiling.html#cb944).
+
+

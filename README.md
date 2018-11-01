@@ -54,6 +54,7 @@
 
 * Oct 30 [**Optimization II**](notes/11-optimization-ii.html) ([Rmd](notes/11-optimization-ii.Rmd))
 * Nov 1 [**Efficiency**](notes/12-efficient-r-code.html) ([Rmd](notes/12-efficient-r-code.Rmd))
+* Nov 2 [**Lab 07**](notes/lab-07.html) ([Rmd](notes/lab-07.Rmd)) 
 
 ## Credits
 

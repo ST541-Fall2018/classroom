@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Lab 07 - Efficiency - t-test case study</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Lab 07 - Efficiency - t-test case study</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Nov 2nd 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#setting">Setting</a></li>
+<li><a href="#a-baseline-for-all-1000-tests">A baseline for all 1000 tests</a></li>
+<li><a href="#another-way-to-call-t.test">Another way to call <code>t.test()</code></a></li>
+<li><a href="#avoiding-method-dispatch">Avoiding method dispatch</a></li>
+<li><a href="#do-as-little-as-possible">Do as little as possible</a></li>
+<li><a href="#vectorize">Vectorize</a></li>
+<li><a href="#summary">Summary</a></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+set.seed(110198)</code></pre>
+<p>In lab today you’ll work through the <a href="https://adv-r.hadley.nz/profiling.html#t-test">case study in Advanced R</a> on the t-test. I’ve tried to use the same notation so you can read along there too, but we’ll frame it in terms of a simulation study rather than a single data analysis.</p>
+<div id="setting" class="section level2">
+<h2>Setting</h2>
+<p>As at the end of Thursday’s lecture, imagine a setting where we are investigating by simulation the distribution of the Welch’s t-test statistic for a two sample comparison over various scenarios.</p>
+<p>In lecture we saw one way to do this for one simulated data set, might be:</p>
+<pre class="r"><code>n &lt;- 50
+simulated_data &lt;- data.frame(x = rnorm(n),  
+  grp = rep(1:2, each = n / 2))
+t.test(x ~ grp, data = simulated_data)$statistic</code></pre>
+<pre><code>##          t 
+## -0.1294392</code></pre>
+<p>But we might want to do this 1000 times for our simulation, and then we need to repeat that many times for all of our scenarios…we’ll end up calculating a lot of test statistics!</p>
+<p>To speed things up we’ll start by storing the simulated data for each scenario in a matrix:</p>
+<pre class="r"><code>m &lt;- 1000 # number of simulations
+X &lt;- rnorm(n*m) %&gt;%  matrix(nrow = m)</code></pre>
+<p>where each sampled response is a row of <code>X</code>. <em>(In class we stored samples in the columns of a matrix, it doesn’t really matter which you use, but I chose rows here to mimic the case study in Advanced R)</em>.</p>
+<p>Since the group labels won’t change from simulated dataset to simulated data set, we can store them in a separate vector <code>grp</code>:</p>
+<pre class="r"><code>grp &lt;- rep(1:2, each = n / 2)</code></pre>
+<p>For the first sample, the first row of <code>X</code>, we can get the test statistic with:</p>
+<pre class="r"><code>t.test(X[1, ] ~ grp)$statistic</code></pre>
+<pre><code>##          t 
+## 0.06803985</code></pre>
+</div>
+<div id="a-baseline-for-all-1000-tests" class="section level2">
+<h2>A baseline for all 1000 tests</h2>
+<p>We could then iterate over all samples with a <code>for</code> loop:</p>
+<pre class="r"><code>tstats &lt;- numeric(m)
+for (i in 1:m){
+  tstats[i] &lt;- t.test(X[i, ] ~ grp)$statistic
+}</code></pre>
+<p>Our goal is to get to this same result but with code that runs much faster. That way, when we repeat this over all our simulation settings, we won’t be waiting all day. To get a feel for how long this code takes now, let’s time one run with <code>system.time()</code>.</p>
+<pre class="r"><code>(baseline &lt;- system.time({
+  tstats &lt;- numeric(m)
+  for (i in 1:m){
+    tstats[i] &lt;- t.test(X[i, ] ~ grp)$statistic
+  }
+}))</code></pre>
+<pre><code>##    user  system elapsed 
+##   0.677   0.014   0.704</code></pre>
+<p>I get about 0.8 seconds. Does this need to be faster? Imagine we have five different populations, each with 4 sets of parameter values we want to investigate, that would take about 16 seconds. If we want good estimates of the quantiles of the statistic, so we should probably increase <span class="math inline">\(m\)</span> to 10,000, increasing that time by 10, and bringing our simulation time up to about 3 minutes. It will probably take you longer than three minutes to work through this lab, so it’s hard to justify all this work here. Still it’s a useful size problem to demonstrate the ideas, that hopefully help you out when you have something that is taking too long to run.</p>
+</div>
+<div id="another-way-to-call-t.test" class="section level2">
+<h2>Another way to call <code>t.test()</code></h2>
+<p><strong>Your turn</strong> Another way to call <code>t.test()</code>, instead of using a formula, is to pass in two vectors, one with observations from the first group, and one with observations from the second group. For example, with the first column of <code>X</code>:</p>
+<pre class="r"><code>t.test(X[1, grp == 1], X[1, grp == 2])$statistic</code></pre>
+<pre><code>##          t 
+## 0.06803985</code></pre>
+<p><strong>Is this faster?</strong> Fill in the line in the timing experiment below to find out:</p>
+<pre class="r"><code>bench::mark(
+  t.test(X[1, ] ~ grp)$statistic,
+  # FILL IN LINE HERE
+)</code></pre>
+<p>You should find the non-formula approach quite a bit faster.</p>
+</div>
+<div id="avoiding-method-dispatch" class="section level2">
+<h2>Avoiding method dispatch</h2>
+<p>If you look at the source for <code>t.test()</code>:</p>
+<pre class="r"><code>t.test</code></pre>
+<pre><code>## function (x, ...) 
+## UseMethod(&quot;t.test&quot;)
+## &lt;bytecode: 0x7ffd3842e500&gt;
+## &lt;environment: namespace:stats&gt;</code></pre>
+<p>You’ll see <code>t.test()</code> is a generic function (because it calls <code>UseMethod()</code>). Calling <code>t.test()</code> with two vectors like:</p>
+<pre class="r"><code>t.test(X[1, grp == 1], X[1, grp == 2])$statistic</code></pre>
+<pre><code>##          t 
+## 0.06803985</code></pre>
+<p>invokes the default method <code>t.test.default()</code>.</p>
+<p>We might wonder if calling the default method directly leads to a speed up:</p>
+<pre class="r"><code>bench::mark(
+  t.test(X[1, grp == 1], X[1, grp == 2])$statistic, 
+  stats:::t.test.default(X[1, grp == 1], X[1, grp == 2])$statistic
+)</code></pre>
+<pre><code>## # A tibble: 2 x 10
+##   expression        min  mean median   max `itr/sec` mem_alloc  n_gc n_itr
+##   &lt;chr&gt;           &lt;bch&gt; &lt;bch&gt; &lt;bch:&gt; &lt;bch&gt;     &lt;dbl&gt; &lt;bch:byt&gt; &lt;dbl&gt; &lt;int&gt;
+## 1 t.test(X[1, gr… 135µs 163µs  148µs 720µs     6147.    1.95KB     8  2874
+## 2 stats:::t.test… 136µs 162µs  148µs 747µs     6155.    1.95KB     8  2887
+## # ... with 1 more variable: total_time &lt;bch:tm&gt;</code></pre>
+<p><em>(The <code>stats:::</code> is neccessary to find <code>t.test.default()</code> which isn’t usually accessible)</em>. It saves only a tiny fraction of time in this example.</p>
+</div>
+<div id="do-as-little-as-possible" class="section level2">
+<h2>Do as little as possible</h2>
+<p>We saw in class <code>t.test.default()</code> does way more than we need:</p>
+<pre class="r"><code>stats:::t.test.default</code></pre>
+<p>If we just calculate the test statistic, we might consider implementing our own version:</p>
+<pre class="r"><code>my_t &lt;- function(x, grp) {
+  t_stat &lt;- function(x) {
+    m &lt;- mean(x)
+    n &lt;- length(x)
+    var &lt;- sum((x - m) ^ 2) / (n - 1)
+
+    list(m = m, n = n, var = var)
+  }
+
+  g1 &lt;- t_stat(x[grp == 1])
+  g2 &lt;- t_stat(x[grp == 2])
+
+  se_total &lt;- sqrt(g1$var / g1$n + g2$var / g2$n)
+  (g1$m - g2$m) / se_total
+}</code></pre>
+<p><strong>Your Turn</strong></p>
+<ul>
+<li><p>Verify that this does indeed find the right t-statistic (or at least same as <code>t.test()</code>) by comparing</p>
+<pre class="r"><code>t.test(X[1, grp == 1], X[1, grp == 2])$statistic</code></pre>
+<p>to</p>
+<pre class="r"><code>my_t(X[1, ], grp)</code></pre></li>
+<li><p>This comes directly from Advanced R, I don’t think the function defined inside <code>my_t()</code>, <code>t_stat()</code> is very well named because it doesn’t actually find a t-stat. Can you think of a better name?</p></li>
+<li><p>Is this any faster? Compare the timing of the two different approaches.</p></li>
+</ul>
+<p>Using <code>my_t()</code>, I saw about 10-fold decrease in time for one column.</p>
+</div>
+<div id="vectorize" class="section level2">
+<h2>Vectorize</h2>
+<p>While <code>my_t()</code> is pretty fast, we will still need to loop over all the columns of <code>X</code> to get all our statistics:</p>
+<pre class="r"><code>tstats &lt;- numeric(m)
+for (i in 1:m){
+  tstats[i] &lt;- my_t(X[i, ], grp)
+}</code></pre>
+<p>To vectorize this process we will consider rewriting <code>my_t()</code> to take a matrix as its first argument, so we don’t need this loop at all. This is the process of vectorization.</p>
+<p>There are two parts to vectorizing this particular function: first calculating the summary statistics for the whole matrix without explicit iteration, then combining all the summary statistics into t-statistics in one go, rather than element by element.</p>
+<p>Let’s take a look at the first problem. Inside <code>my_t()</code>, <code>t_stat()</code>, finds the sample mean, variance and sample size for a vector of numbers. Here I’ve extracted it out alone:</p>
+<pre class="r"><code>t_stat &lt;- function(x) {
+  m &lt;- mean(x)
+  n &lt;- length(x)
+  var &lt;- sum((x - m) ^ 2) / (n - 1)
+
+  list(m = m, n = n, var = var)
+}</code></pre>
+<p>Currently it only takes a vector valued <code>x</code>, e.g.</p>
+<pre class="r"><code>t_stat(1:10)</code></pre>
+<pre><code>## $m
+## [1] 5.5
+## 
+## $n
+## [1] 10
+## 
+## $var
+## [1] 9.166667</code></pre>
+<p>But we want it to take a matrix valued <code>X</code>.</p>
+<p><strong>Your Turn</strong> Consider this <code>X_small</code>:</p>
+<pre class="r"><code>(X_small &lt;- matrix(1:10, nrow = 2))</code></pre>
+<pre><code>##      [,1] [,2] [,3] [,4] [,5]
+## [1,]    1    3    5    7    9
+## [2,]    2    4    6    8   10</code></pre>
+<p>What value should the summary statistics take for each row? How would you calculate the summary statistics for each row of <code>X_small</code> without iteration? (Don’t forget about <code>rowSums()</code> and <code>rowMeans()</code>)</p>
+<p>It turns out that rewriting <code>tstat()</code> to take a matrix is pretty easy in this case. Replace <code>mean()</code> with <code>rowMeans()</code>, <code>length()</code> with <code>ncol()</code> and <code>sum()</code> with <code>rowSums()</code>:</p>
+<pre class="r"><code>t_stat &lt;- function(X) {
+  m &lt;- rowMeans(X)
+  n &lt;- ncol(X)
+  var &lt;- rowSums((X - m) ^ 2) / (n - 1)
+
+  list(m = m, n = n, var = var)
+}
+t_stat(X_small)</code></pre>
+<pre><code>## $m
+## [1] 5 6
+## 
+## $n
+## [1] 5
+## 
+## $var
+## [1] 10 10</code></pre>
+<p>The second part, calculating all the test statistics from all the summary statistics at once, is trivial, nothing in the code needs to change. To see why let’s look at a small example, two simulations of samples of size 5:</p>
+<pre class="r"><code>(X_small_2 &lt;- rnorm(10*2) %&gt;% matrix(nrow = 2))</code></pre>
+<pre><code>##            [,1]      [,2]       [,3]       [,4]      [,5]       [,6]
+## [1,] -0.1097008 0.6356523 -0.3434283 -2.4112491 -1.794208 -0.4374895
+## [2,] -0.7523242 1.2191510 -0.2925083 -0.2150426  1.278475 -0.4110206
+##           [,7]      [,8]      [,9]     [,10]
+## [1,] 1.2394871 2.4416019 -1.549356 1.2139859
+## [2,] 0.1028582 0.6904261 -1.791601 0.6232802</code></pre>
+<pre class="r"><code>(grp_small &lt;- rep(1:2, each = 5))</code></pre>
+<pre><code>##  [1] 1 1 1 1 1 2 2 2 2 2</code></pre>
+<p>In <code>my_t()</code> we first get the summary stats for each group, where now we can use our new <code>t_stat()</code> function that takes a matrix as input:</p>
+<pre class="r"><code>(g1 &lt;- t_stat(X_small_2[, grp_small == 1]))</code></pre>
+<pre><code>## $m
+## [1] -0.8045868  0.2475501
+## 
+## $n
+## [1] 5
+## 
+## $var
+## [1] 1.5826342 0.8780545</code></pre>
+<pre class="r"><code>(g2 &lt;- t_stat(X_small_2[, grp_small == 2]))</code></pre>
+<pre><code>## $m
+## [1]  0.5816460 -0.1572114
+## 
+## $n
+## [1] 5
+## 
+## $var
+## [1] 2.467962 1.032735</code></pre>
+<p>Notice the <code>$mean</code> and <code>$var</code> in these outputs are now vectors. Then we put the summary stats into a t-stat:</p>
+<pre class="r"><code>se_total &lt;- sqrt(g1$var / g1$n + g2$var / g2$n)
+(g1$m - g2$m) / se_total</code></pre>
+<pre><code>## [1] -1.5401452  0.6547535</code></pre>
+<p>Notice how this all works seamlessly with our summary output that is vector valued, since arithmetic works elementwise.</p>
+<p>So, finally all together in our function we have:</p>
+<pre class="r"><code>rowtstat &lt;- function(X, grp){
+  t_stat &lt;- function(X) {
+    m &lt;- rowMeans(X)
+    n &lt;- ncol(X)
+    var &lt;- rowSums((X - m) ^ 2) / (n - 1)
+
+    list(m = m, n = n, var = var)
+  }
+
+  g1 &lt;- t_stat(X[, grp == 1])
+  g2 &lt;- t_stat(X[, grp == 2])
+
+  se_total &lt;- sqrt(g1$var / g1$n + g2$var / g2$n)
+  (g1$m - g2$m) / se_total
+}</code></pre>
+<p>And we can calculate all our t-stats at once with:</p>
+<pre class="r"><code>rowtstat(X, grp)</code></pre>
+<p>How much faster is this than where we started?</p>
+<pre class="r"><code>(vectorized &lt;- system.time(rowtstat(X, grp)))</code></pre>
+<pre><code>##    user  system elapsed 
+##   0.001   0.000   0.001</code></pre>
+<pre class="r"><code>baseline/vectorized</code></pre>
+<pre><code>##    user  system elapsed 
+##     677     Inf     704</code></pre>
+<p>I get about an 800 fold speed up!</p>
+</div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<p>The big speed ups in this problem came from <strong>doing as little as possible</strong> and <strong>vectorizing</strong> our function.</p>
+<p>To practice doing as little as possible, <strong>rewrite the <code>diff()</code> function for the specific case of differences between adjacent values in a vector.</strong></p>
+<p>You can try on your own or follow along with the example in Advanced R that starts just before <a href="https://adv-r.hadley.nz/profiling.html#cb944">this code</a>.</p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
