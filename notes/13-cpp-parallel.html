@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>C++ and Parallelization</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">C++ and Parallelization</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Nov 6th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#c">C++</a><ul>
+<li><a href="#rcpp">Rcpp</a></li>
+<li><a href="#spot-the-difference">Spot the difference</a></li>
+<li><a href="#r-vs.c">R vs. C++</a></li>
+<li><a href="#using-a-c-function-in-r">Using a C++ function in R</a></li>
+<li><a href="#types-in-c">Types in C++</a></li>
+<li><a href="#another-spot-the-difference">Another spot the difference</a></li>
+<li><a href="#a-function-with-a-for-loop">A function with a <code>for</code> loop</a></li>
+<li><a href="#your-turn">Your Turn</a></li>
+<li><a href="#speed">Speed</a></li>
+<li><a href="#rcpp-sugar">Rcpp sugar</a></li>
+<li><a href="#c-stl">C++ STL</a></li>
+</ul></li>
+<li><a href="#parallelization">Parallelization</a><ul>
+<li><a href="#quick-talk-about-multiple-cores-multiple-processors-and-clusters">Quick talk about multiple cores, multiple processors and clusters</a></li>
+<li><a href="#two-parts-to-running-in-parallel">Two parts to running in parallel</a></li>
+<li><a href="#an-example">An example</a></li>
+</ul></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+library(here)
+set.seed(18973)</code></pre>
+<div id="c" class="section level1">
+<h1>C++</h1>
+<p>A lower level compiled language which means a much lower overhead on <code>for</code> loops.</p>
+<p>Writing a function in C++ may bring big speed improvements for things like:</p>
+<ul>
+<li>Loops that aren’t easily vectorised</li>
+<li>Problems that involve calling functions millions of times</li>
+<li>Advanced data structures or algorithms R doesn’t provide</li>
+</ul>
+<p>We don’t have time to learn whole new language, but I want to expose you to a little C++, so you know how to get started and can see the benefits.</p>
+<p>Mostly you would use C++ to write small self contained functions, that are called from your R scripts. I.e. rewrite just a few functions that are called often (or are inefficient) not the whole simulation/analysis.</p>
+<p>Resource: <a href="https://adv-r.hadley.nz/rcpp.html" class="uri">https://adv-r.hadley.nz/rcpp.html</a></p>
+<div id="rcpp" class="section level2">
+<h2>Rcpp</h2>
+<p>An R package that makes it easy to connect a C++ definition of a function to R:</p>
+<pre class="r"><code>library(Rcpp)</code></pre>
+<p><strong>On your own machine</strong>: You’ll need a working C++ compiler, see <a href="https://adv-r.hadley.nz/rcpp.html#prerequistes" class="uri">https://adv-r.hadley.nz/rcpp.html#prerequistes</a></p>
+</div>
+<div id="spot-the-difference" class="section level2">
+<h2>Spot the difference</h2>
+<p>Here are two functions that do the same thing, one implemented in R and one implemented in C++.</p>
+<p>In R:</p>
+<pre class="r"><code>add &lt;- function(x, y, z){
+  x + y + z
+}</code></pre>
+<p>In C++:</p>
+<pre class="cpp"><code>int add(int x, int y, int z) {
+  int sum = x + y + z;
+  return sum;
+}</code></pre>
+<p><strong>Your Turn</strong> Brainstorm the ways the two function definitions are different.</p>
+</div>
+<div id="r-vs.c" class="section level2">
+<h2>R vs. C++</h2>
+<p>Differences:</p>
+<ul>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+</ul>
+</div>
+<div id="using-a-c-function-in-r" class="section level2">
+<h2>Using a C++ function in R</h2>
+<p>Three possibilities:</p>
+<ol style="list-style-type: decimal">
+<li><p>Pass the definition inside <code>'</code> to <code>cppFunction()</code>:</p>
+<pre class="r"><code>cppFunction(&#39;int add(int x, int y, int z) {
+  int sum = x + y + z;
+  return sum;
+}&#39;)</code></pre></li>
+<li><p>Put the definition (plus some additional lines) into a special <code>Rcpp</code> code chunk in your RMarkdown (look at the RMD version of these notes to see this in action):</p>
+<pre class="cpp"><code>#include &lt;Rcpp.h&gt;
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+int add(int x, int y, int z) {
+  int sum = x + y + z;
+  return sum;
+}</code></pre></li>
+<li><p>Put the definition (and the same additional lines) into their own file, e.g. <code>file.cpp</code> and use <code>sourceCpp()</code>:</p>
+<pre class="r"><code>sourceCpp(&quot;path/to/file.cpp&quot;)</code></pre></li>
+</ol>
+<p>Either way, then the function, <code>add()</code> in this case, can be used just like any R function:</p>
+<pre class="r"><code>add</code></pre>
+<pre><code>## function (x, y, z) 
+## .Call(&lt;pointer: 0x11470c210&gt;, x, y, z)</code></pre>
+<pre class="r"><code>add(1, 2, 3)</code></pre>
+<pre><code>## [1] 6</code></pre>
+</div>
+<div id="types-in-c" class="section level2">
+<h2>Types in C++</h2>
+<p>In C++ scalars (single numbers) are a different type to vectors.</p>
+<p>C++ types:</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>integer</th>
+<th>double</th>
+<th>character</th>
+<th>logical</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Scalar</td>
+<td><code>int</code></td>
+<td><code>double</code></td>
+<td><code>String</code></td>
+<td><code>bool</code></td>
+</tr>
+<tr class="even">
+<td>Vector</td>
+<td><code>IntegerVector</code></td>
+<td><code>NumericVector</code></td>
+<td><code>CharacterVector</code></td>
+<td><code>LogicalVector</code></td>
+</tr>
+<tr class="odd">
+<td>Matrix</td>
+<td><code>IntegerMatrix</code></td>
+<td><code>NumericMatrix</code></td>
+<td><code>CharacterMatrix</code></td>
+<td><code>LogicalMatrix</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="another-spot-the-difference" class="section level2">
+<h2>Another spot the difference</h2>
+<p><code>signR()</code> defined in R:</p>
+<pre class="r"><code>signR &lt;- function(x) {
+  if (x &gt; 0) {
+    1
+  } else if (x == 0) {
+    0
+  } else {
+    -1
+  }
+}</code></pre>
+<p><code>signC()</code> defined in C++:</p>
+<pre class="cpp"><code>#include &lt;Rcpp.h&gt;
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+int signC(int x) {
+  if (x &gt; 0) {
+    return 1;
+  } else if (x == 0) {
+    return 0;
+  } else {
+    return -1;
+  }
+}</code></pre>
+<p><strong>Your Turn</strong> How are <code>if</code> statements different in C++?</p>
+</div>
+<div id="a-function-with-a-for-loop" class="section level2">
+<h2>A function with a <code>for</code> loop</h2>
+<pre class="cpp"><code>#include &lt;Rcpp.h&gt;
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+double sumC(NumericVector x) {
+  int n = x.size(); 
+  double total = 0;
+  for(int i = 0; i &lt; n; ++i) {
+    total += x[i];
+  }
+  return total;
+}</code></pre>
+<p>In C++:</p>
+<ul>
+<li><p>you call a method with <code>object_name.method_name()</code>, e.g. <code>x.size()</code> calls the <code>size()</code> method associated with the object <code>x</code> - in this case the length of the vector.</p></li>
+<li><p><code>for</code> loops look like <code>for(init; check; increment)</code>:</p>
+<ul>
+<li><code>init</code> the initial value(s) <code>int i = 1</code>, remembering to define its type.</li>
+<li><code>check</code> the value against a stopping rule <code>i &lt; n</code></li>
+<li><code>increment</code> the value for the next iteration <code>++i</code> means <code>i = i + 1</code></li>
+</ul></li>
+<li><p><strong>Vector indicies start at 0</strong>. <strong>VECTOR INDICIES START AT 0!</strong></p></li>
+<li><p>There are modify in place operations <code>total += x[i]</code> is equivalent to <code>total = total + x[i]</code></p></li>
+</ul>
+</div>
+<div id="your-turn" class="section level2">
+<h2>Your Turn</h2>
+<p>Can you figure out what this function does? What is the equivalent in base R?</p>
+<pre class="cpp"><code>#include &lt;Rcpp.h&gt;
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+NumericVector f2(NumericVector x) {
+  int n = x.size();
+  NumericVector out(n);
+
+  out[0] = x[0];
+  for(int i = 1; i &lt; n; ++i) {
+    out[i] = out[i - 1] + x[i];
+  }
+  return out;
+}</code></pre>
+</div>
+<div id="speed" class="section level2">
+<h2>Speed</h2>
+<p>Remember the <code>abs()</code> example from last week:</p>
+<pre class="r"><code>abs_loop &lt;- function(vec){
+  for (i in 1:length(vec)) {
+    if (vec[i] &lt; 0) {
+      vec[i] &lt;- -vec[i]
+    }
+  }
+  vec
+}
+
+abs_sets &lt;- function(vec){
+  negs &lt;- vec &lt; 0
+  vec[negs] &lt;- -vec[negs] 
+  vec
+}</code></pre>
+<p>Here’s a C++ version:</p>
+<pre class="cpp"><code>#include &lt;Rcpp.h&gt;
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+NumericVector absC(NumericVector x){
+  int n = x.size();
+  for(int i = 0; i &lt; n; i++){
+    if(x[i] &lt; 0){
+      x[i] *= -1;
+    } 
+  }
+  return x;
+}</code></pre>
+<pre class="r"><code>x &lt;- -50:50
+bench::mark(
+  abs_loop = abs_loop(x),
+  abs_sets = abs_sets(x),
+  absC = absC(x),
+  abs_base = abs(x))</code></pre>
+<pre><code>## # A tibble: 4 x 10
+##   expression      min     mean   median      max `itr/sec` mem_alloc  n_gc
+##   &lt;chr&gt;      &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt; &lt;bch:byt&gt; &lt;dbl&gt;
+## 1 abs_loop     6.75µs   7.81µs   7.13µs 127.35µs   128046.   49.12KB     0
+## 2 abs_sets     1.89µs   4.04µs   4.25µs    2.2ms   247720.    2.95KB     1
+## 3 absC         1.27µs   3.98µs   4.04µs   1.07ms   251154.    3.33KB     0
+## 4 abs_base      157ns 506.29ns    172ns  38.51µs  1975170.      456B     0
+## # ... with 2 more variables: n_itr &lt;int&gt;, total_time &lt;bch:tm&gt;</code></pre>
+<p>Despite operating one element at a time, the C++ version is about as fast as the set version. Still not as fast as the base version.</p>
+</div>
+<div id="rcpp-sugar" class="section level2">
+<h2>Rcpp sugar</h2>
+<p>A part of the Rcpp package to make translating code easier.</p>
+<p><em>Rcpp sugar</em> “bring[s] a subset of the high-level R syntax in C++.”</p>
+<p>Arithmetic and logical operators are vectorized</p>
+<p>Access to common vectorized functions in R like: <code>any()</code>, <code>ifelse()</code>, <code>is.na()</code></p>
+<p>Access to common distribution functions</p>
+</div>
+<div id="c-stl" class="section level2">
+<h2>C++ STL</h2>
+<p>A software library for the C++ with common algorithms and data structures.</p>
+<p>E.g. <code>std::max()</code>, <code>std::random_shuffle()</code>, <code>std::partial_sort()</code></p>
+</div>
+</div>
+<div id="parallelization" class="section level1">
+<h1>Parallelization</h1>
+<p><strong>Embarrasingly</strong> parallel problems</p>
+<blockquote>
+<p>is one where little or no effort is needed to separate the problem into a number of parallel tasks</p>
+</blockquote>
+<p>– <a href="https://en.wikipedia.org/wiki/Embarrassingly_parallel" class="uri">https://en.wikipedia.org/wiki/Embarrassingly_parallel</a></p>
+<p>Simulation studies often fall into this category:</p>
+<ul>
+<li>simulating 100 processes, in 10 parallel tasks is the same as simulating 1000 processes in 1 task.</li>
+<li>or applying a method to 1000 simulated data sets, could be done in 10 parallel tasks each applying the method to a 100 simulated data sets.</li>
+</ul>
+<div id="quick-talk-about-multiple-cores-multiple-processors-and-clusters" class="section level2">
+<h2>Quick talk about multiple cores, multiple processors and clusters</h2>
+<p>What do they share?</p>
+<p>On my machine</p>
+<pre class="r"><code>parallel::detectCores()</code></pre>
+<pre><code>## [1] 4</code></pre>
+</div>
+<div id="two-parts-to-running-in-parallel" class="section level2">
+<h2>Two parts to running in parallel</h2>
+<p><em>(Charlotte’s rough conceptual breakdown)</em></p>
+<p><strong>Setup</strong> specify what parallel means on your set up, i.e. use multiple cores, background sessions, remote computers, a cluster etc.</p>
+<p><strong>Execute</strong> changes to your code that make use of the parallel set up. (Technically, explicit parallelism as opposed to implicit parallelism).</p>
+<p>Lot’s of R packages available: <a href="https://cran.r-project.org/web/views/HighPerformanceComputing.html" class="uri">https://cran.r-project.org/web/views/HighPerformanceComputing.html</a></p>
+</div>
+<div id="an-example" class="section level2">
+<h2>An example</h2>
+<p><strong>Your turn</strong>: Start reading the readme at: <a href="https://github.com/DavisVaughan/furrr" class="uri">https://github.com/DavisVaughan/furrr</a></p>
+<p>What is the goal of the package? What packages does it build on?</p>
+<p><strong>Your turn</strong>: Scroll down to the first example. What does it illustrate?</p>
+<p><strong>Your turn</strong>: Keep reading the examples, what changes to get the map operation to run in parallel? How does the author provide proof that it is running in parallel?</p>
+<p><strong>Your turn</strong>: Try running the example on your own, can you replicate the timings?</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

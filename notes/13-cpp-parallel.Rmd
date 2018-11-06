@@ -1,0 +1,331 @@
+---
+title: C++ and Parallelization
+author: Charlotte Wickham
+date: Nov 6th 2018
+---
+
+```{r setup, message = FALSE}
+library(tidyverse)
+library(here)
+set.seed(18973)
+```
+
+# C++
+
+A lower level compiled language which means a much lower overhead on `for` loops.
+
+Writing a function in C++ may bring big speed improvements for things like:
+
+* Loops that aren't easily vectorised
+* Problems that involve calling functions millions of times
+* Advanced data structures or algorithms R doesn't provide
+
+We don't have time to learn whole new language, but I want to expose you to a little C++, so you know how to get started and can see the benefits.
+
+Mostly you would use C++ to write small self contained functions, that are called from your R scripts.  I.e. rewrite just a few functions that are called often (or are inefficient) not the whole simulation/analysis.
+
+Resource: https://adv-r.hadley.nz/rcpp.html
+
+## Rcpp
+
+An R package that makes it easy to connect a C++ definition of a function to R:
+```{r}
+library(Rcpp)
+```
+
+**On your own machine**: You'll need a working C++ compiler, see 
+https://adv-r.hadley.nz/rcpp.html#prerequistes
+
+## Spot the difference
+
+Here are two functions that do the same thing, one implemented in R and one implemented in C++.
+
+In R:
+```r
+add <- function(x, y, z){
+  x + y + z
+}
+```
+
+In C++:
+```cpp
+int add(int x, int y, int z) {
+  int sum = x + y + z;
+  return sum;
+}
+```
+
+**Your Turn** Brainstorm the ways the two function definitions are different.
+
+## R vs. C++
+
+Differences:
+
+*
+*
+*
+*
+*
+
+## Using a C++ function in R
+
+Three possibilities:
+
+1. Pass the definition inside `'` to `cppFunction()`:
+    ```{r}
+    cppFunction('int add(int x, int y, int z) {
+      int sum = x + y + z;
+      return sum;
+    }')
+    ```
+
+2. Put the definition (plus some additional lines) into a special `Rcpp` code chunk in your RMarkdown (look at the RMD version of these notes to see this in action):
+    ```{Rcpp}
+    #include <Rcpp.h>
+    using namespace Rcpp;
+    
+    // [[Rcpp::export]]
+    int add(int x, int y, int z) {
+      int sum = x + y + z;
+      return sum;
+    }
+    ```
+
+3. Put the definition (and the same additional lines) into their own file, e.g. `file.cpp` and use `sourceCpp()`:
+    ```{r, eval = FALSE}
+    sourceCpp("path/to/file.cpp")
+    ```
+
+Either way, then the function, `add()` in this case, can be used just like any R function:
+```{r}
+add
+```
+
+```{r}
+add(1, 2, 3)
+```
+
+## Types in C++
+
+In C++ scalars (single numbers) are a different type to vectors.
+
+C++ types:
+
+|        | integer         |  double          | character          | logical         |
+|--------|-----------------|------------------|--------------------|-----------------|
+| Scalar | `int`           | `double`         | `String`           | `bool`          |
+| Vector | `IntegerVector` | `NumericVector`  | `CharacterVector`  | `LogicalVector` |
+| Matrix | `IntegerMatrix` | `NumericMatrix`  | `CharacterMatrix`  | `LogicalMatrix` |
+
+## Another spot the difference
+
+`signR()` defined in R:
+```{r}
+signR <- function(x) {
+  if (x > 0) {
+    1
+  } else if (x == 0) {
+    0
+  } else {
+    -1
+  }
+}
+```
+
+`signC()` defined in C++:
+```{Rcpp}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+int signC(int x) {
+  if (x > 0) {
+    return 1;
+  } else if (x == 0) {
+    return 0;
+  } else {
+    return -1;
+  }
+}
+```
+
+**Your Turn** How are `if` statements different in C++?
+
+## A function with a `for` loop
+
+```{Rcpp}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+double sumC(NumericVector x) {
+  int n = x.size(); 
+  double total = 0;
+  for(int i = 0; i < n; ++i) {
+    total += x[i];
+  }
+  return total;
+}
+```
+
+In C++:
+
+* you call a method with `object_name.method_name()`, e.g. `x.size()` calls the `size()` method associated with the object `x` - in this case the length of the vector.
+
+* `for` loops look like `for(init; check; increment)`:
+
+    * `init` the initial value(s) `int i = 1`, remembering to define its type.
+    * `check` the value against a stopping rule `i < n`
+    * `increment` the value for the next iteration `++i` means `i = i + 1`
+
+* **Vector indicies start at 0**. **VECTOR INDICIES START AT 0!**
+
+* There are modify in place operations `total += x[i]` is equivalent to `total = total + x[i]`
+
+## Your Turn
+
+Can you figure out what this function does?  What is the equivalent in base R?
+
+```{Rcpp, eval = FALSE}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+NumericVector f2(NumericVector x) {
+  int n = x.size();
+  NumericVector out(n);
+
+  out[0] = x[0];
+  for(int i = 1; i < n; ++i) {
+    out[i] = out[i - 1] + x[i];
+  }
+  return out;
+}
+```
+
+## Speed 
+
+Remember the `abs()` example from last week:
+
+```{r}
+abs_loop <- function(vec){
+  for (i in 1:length(vec)) {
+    if (vec[i] < 0) {
+      vec[i] <- -vec[i]
+    }
+  }
+  vec
+}
+
+abs_sets <- function(vec){
+  negs <- vec < 0
+  vec[negs] <- -vec[negs] 
+  vec
+}
+```
+
+Here's a C++ version:
+```{Rcpp}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+NumericVector absC(NumericVector x){
+  int n = x.size();
+  for(int i = 0; i < n; i++){
+    if(x[i] < 0){
+      x[i] *= -1;
+    } 
+  }
+  return x;
+}
+```
+
+```{r}
+x <- -50:50
+bench::mark(
+  abs_loop = abs_loop(x),
+  abs_sets = abs_sets(x),
+  absC = absC(x),
+  abs_base = abs(x))
+```
+
+Despite operating one element at a time, the C++ version is about as fast as the set version.  Still not as fast as the base version.
+
+## Rcpp sugar
+
+A part of the Rcpp package to make translating code easier. 
+
+*Rcpp sugar* "bring[s] a subset of the high-level R syntax in C++."
+
+Arithmetic and logical operators are vectorized
+
+Access to common vectorized functions in R like: `any()`, `ifelse()`, `is.na()`
+
+Access to common distribution functions
+
+## C++ STL
+
+A software library for the C++ with common algorithms and data structures.
+
+E.g. `std::max()`,  `std::random_shuffle()`, `std::partial_sort()`
+
+
+# Parallelization
+
+**Embarrasingly** parallel problems
+
+> is one where little or no effort is needed to separate the problem into a number of parallel tasks
+
+-- https://en.wikipedia.org/wiki/Embarrassingly_parallel
+
+Simulation studies often fall into this category: 
+
+* simulating 100 processes, in 10 parallel tasks is the same as simulating 1000 processes in 1 task.
+* or applying a method to 1000 simulated data sets, could be done in 10 parallel tasks each applying the method to a 100 simulated data sets.
+
+## Quick talk about multiple cores, multiple processors and clusters
+
+What do they share?
+
+On my machine
+```{r}
+parallel::detectCores()
+```
+
+## Two parts to running in parallel
+
+*(Charlotte's rough conceptual breakdown)*
+
+**Setup** specify what parallel means on your set up, i.e. use multiple cores, background sessions, remote computers, a cluster etc.
+
+**Execute** changes to your code that make use of the parallel set up. (Technically, explicit parallelism as opposed to implicit parallelism).
+
+Lot's of R packages available: https://cran.r-project.org/web/views/HighPerformanceComputing.html
+
+## An example
+
+**Your turn**: Start reading the readme at: https://github.com/DavisVaughan/furrr
+
+What is the goal of the package? What packages does it build on?
+
+**Your turn**: Scroll down to the first example.  What does it illustrate?
+
+
+**Your turn**: Keep reading the examples, what changes to get the map operation to run in parallel? How does the author provide proof that it is running in parallel?
+
+**Your turn**: Try running the example on your own, can you replicate the timings?
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

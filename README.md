@@ -56,6 +56,21 @@
 * Nov 1 [**Efficiency**](notes/12-efficient-r-code.html) ([Rmd](notes/12-efficient-r-code.Rmd))
 * Nov 2 [**Lab 07**](notes/lab-07.html) ([Rmd](notes/lab-07.Rmd)) 
 
+### Week 7
+
+* Nov 6 [**C++ and parallelization**](notes/13-cpp-parallel.html) ([Rmd](notes/13-cpp-parallel.Rmd))
+
+### Week 8
+
+### Week 9
+
+* Nov 22 **Thanksgiving** - no class
+
+### Week 10
+
+* Nov 26 **Project Presentations**
+* Nov 29 **Project Presentations**
+
 ## Credits
 
 A big thanks to the [STAT 545 teaching team](https://github.com/STAT545-UBC) for inspiring the organization of the class website and github repo.
