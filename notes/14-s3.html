@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>S3 Object Oriented Programming in R</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">S3 Object Oriented Programming in R</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Nov 8th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#motivation">Motivation</a></li>
+<li><a href="#object-oriented-programming-oop">Object Oriented Programming (OOP)</a><ul>
+<li><a href="#s3">S3</a></li>
+<li><a href="#why-use-bother">Why use bother?</a></li>
+<li><a href="#orientation">Orientation</a></li>
+<li><a href="#methods">Methods</a></li>
+<li><a href="#print-is-a-generic"><code>print()</code> is a generic</a></li>
+<li><a href="#class-doesnt-get-any-special-treatment"><code>class</code> doesn’t get any special treatment</a></li>
+<li><a href="#to-build-a-new-object">To build a new object</a></li>
+</ul></li>
+<li><a href="#back-to-our-goal">Back to our goal</a><ul>
+<li><a href="#a-constructor">A constructor</a></li>
+<li><a href="#a-helper">A helper</a></li>
+<li><a href="#our-first-method-print.optimum">Our first method <code>print.optimum()</code></a></li>
+<li><a href="#better-output">Better output</a></li>
+<li><a href="#another-method">Another method</a></li>
+<li><a href="#fyi-stats4mle">FYI stats4::mle()</a></li>
+</ul></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+library(here)
+library(sloop)
+set.seed(36528)</code></pre>
+<div id="motivation" class="section level1">
+<h1>Motivation</h1>
+<p>Some code from last week:</p>
+<pre class="r"><code># some fake data
+true_pi &lt;- 0.8
+true_mu &lt;- c(0,   2)
+true_sigma &lt;- c(1,   0.5)
+n &lt;- 250
+pop &lt;- rbinom(n, size = 1, prob = 1 - true_pi) + 1
+x &lt;- rnorm(n, mean = true_mu[pop], sd = true_sigma[pop])
+
+dmix &lt;- function(x, theta){
+  pi &lt;- theta[1]
+  mu_1 &lt;- theta[2]
+  mu_2 &lt;- theta[3]
+  sigma_1 &lt;- theta[4]
+  sigma_2 &lt;- theta[5]
+  pi * dnorm(x, mean = mu_1, sd = sigma_1) +
+   (1 - pi) * dnorm(x, mean = mu_2, sd = sigma_2) 
+}
+nllhood_mix &lt;- function(theta, x){
+  d &lt;- dmix(x, theta)
+  -1 * sum(log(d))
+}</code></pre>
+<p>Recall:</p>
+<pre class="r"><code>mle1 &lt;- optim(par = c(1, 0, 1.8, 1.2, 0.7), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)
+mle1</code></pre>
+<pre><code>## $par
+## [1] 0.9362468 0.3054438 2.2488241 1.2412696 0.1166007
+## 
+## $value
+## [1] 411.6919
+## 
+## $counts
+## function gradient 
+##      125       41 
+## 
+## $convergence
+## [1] 0
+## 
+## $message
+## NULL</code></pre>
+<pre class="r"><code>mle2 &lt;- optim(par = c(0.5, 0, 1, 2, 1), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)
+mle2</code></pre>
+<pre><code>## $par
+## [1] -3410.0610 -6066.8409  -230.4462   550.6597   588.7451
+## 
+## $value
+## [1] -190.2385
+## 
+## $counts
+## function gradient 
+##      185      100 
+## 
+## $convergence
+## [1] 1
+## 
+## $message
+## NULL</code></pre>
+<p><strong>Your Turn</strong> What do you do with this output? How might you improve what the output looks like to help you as a user?</p>
+<p><strong>Our goal</strong>:</p>
+</div>
+<div id="object-oriented-programming-oop" class="section level1">
+<h1>Object Oriented Programming (OOP)</h1>
+<p>A programming paradigm where objects are central. Two important terms:</p>
+<ul>
+<li><p><strong>Class</strong> defines what an object is</p></li>
+<li><p><strong>Methods</strong> describe what an object can do</p></li>
+</ul>
+<p>Gives us a way to have the same function operate differently on different classes of object, e.g. <code>summary()</code></p>
+<pre class="r"><code>z &lt;- factor(sample(letters[1:5], size = 10, replace = TRUE))
+y &lt;- rnorm(n = 10)
+summary(z)</code></pre>
+<pre><code>## a b c d e 
+## 1 2 3 3 1</code></pre>
+<pre class="r"><code>summary(y)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -1.6029 -0.3881  0.3527  0.2827  1.0383  2.3370</code></pre>
+<p>There is more than one OOP system in R, we’ll focus on S3.</p>
+<div id="s3" class="section level2">
+<h2>S3</h2>
+<p>The most common OO system R. Also the simplest.</p>
+<blockquote>
+<p>S3 allows your functions to return rich results with user-friendly display and programmer-friendly internals. S3 is used throughout base R, so it’s important to master if you want to extend base R functions to work with new types of input.</p>
+</blockquote>
+<p>– <a href="https://adv-r.hadley.nz/oo.html">Advanced R</a></p>
+</div>
+<div id="why-use-bother" class="section level2">
+<h2>Why use bother?</h2>
+<p><strong>Primarily</strong> to make your functions easier to use (for you or others), by creating a new class and defining some methods:</p>
+<ul>
+<li>Have your functions print nice output</li>
+<li>Implement methods for familiar functions, e.g. <code>plot()</code>, <code>summary()</code></li>
+</ul>
+<p><strong>More advanced</strong> make it easy for others to extend your work for other data types, by supplying generic functions.</p>
+</div>
+<div id="orientation" class="section level2">
+<h2>Orientation</h2>
+<p>As our functions get more complicated they need to return complicated things.</p>
+<p>E.g. Linear models</p>
+<pre class="r"><code>mod &lt;- lm(mpg ~ wt, data = mtcars)
+str(mod)</code></pre>
+<pre><code>## List of 12
+##  $ coefficients : Named num [1:2] 37.29 -5.34
+##   ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;(Intercept)&quot; &quot;wt&quot;
+##  $ residuals    : Named num [1:32] -2.28 -0.92 -2.09 1.3 -0.2 ...
+##   ..- attr(*, &quot;names&quot;)= chr [1:32] &quot;Mazda RX4&quot; &quot;Mazda RX4 Wag&quot; &quot;Datsun 710&quot; &quot;Hornet 4 Drive&quot; ...
+##  $ effects      : Named num [1:32] -113.65 -29.116 -1.661 1.631 0.111 ...
+##   ..- attr(*, &quot;names&quot;)= chr [1:32] &quot;(Intercept)&quot; &quot;wt&quot; &quot;&quot; &quot;&quot; ...
+##  $ rank         : int 2
+##  $ fitted.values: Named num [1:32] 23.3 21.9 24.9 20.1 18.9 ...
+##   ..- attr(*, &quot;names&quot;)= chr [1:32] &quot;Mazda RX4&quot; &quot;Mazda RX4 Wag&quot; &quot;Datsun 710&quot; &quot;Hornet 4 Drive&quot; ...
+##  $ assign       : int [1:2] 0 1
+##  $ qr           :List of 5
+##   ..$ qr   : num [1:32, 1:2] -5.657 0.177 0.177 0.177 0.177 ...
+##   .. ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. .. ..$ : chr [1:32] &quot;Mazda RX4&quot; &quot;Mazda RX4 Wag&quot; &quot;Datsun 710&quot; &quot;Hornet 4 Drive&quot; ...
+##   .. .. ..$ : chr [1:2] &quot;(Intercept)&quot; &quot;wt&quot;
+##   .. ..- attr(*, &quot;assign&quot;)= int [1:2] 0 1
+##   ..$ qraux: num [1:2] 1.18 1.05
+##   ..$ pivot: int [1:2] 1 2
+##   ..$ tol  : num 1e-07
+##   ..$ rank : int 2
+##   ..- attr(*, &quot;class&quot;)= chr &quot;qr&quot;
+##  $ df.residual  : int 30
+##  $ xlevels      : Named list()
+##  $ call         : language lm(formula = mpg ~ wt, data = mtcars)
+##  $ terms        :Classes &#39;terms&#39;, &#39;formula&#39;  language mpg ~ wt
+##   .. ..- attr(*, &quot;variables&quot;)= language list(mpg, wt)
+##   .. ..- attr(*, &quot;factors&quot;)= int [1:2, 1] 0 1
+##   .. .. ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. .. .. ..$ : chr [1:2] &quot;mpg&quot; &quot;wt&quot;
+##   .. .. .. ..$ : chr &quot;wt&quot;
+##   .. ..- attr(*, &quot;term.labels&quot;)= chr &quot;wt&quot;
+##   .. ..- attr(*, &quot;order&quot;)= int 1
+##   .. ..- attr(*, &quot;intercept&quot;)= int 1
+##   .. ..- attr(*, &quot;response&quot;)= int 1
+##   .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: R_GlobalEnv&gt; 
+##   .. ..- attr(*, &quot;predvars&quot;)= language list(mpg, wt)
+##   .. ..- attr(*, &quot;dataClasses&quot;)= Named chr [1:2] &quot;numeric&quot; &quot;numeric&quot;
+##   .. .. ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;mpg&quot; &quot;wt&quot;
+##  $ model        :&#39;data.frame&#39;:   32 obs. of  2 variables:
+##   ..$ mpg: num [1:32] 21 21 22.8 21.4 18.7 18.1 14.3 24.4 22.8 19.2 ...
+##   ..$ wt : num [1:32] 2.62 2.88 2.32 3.21 3.44 ...
+##   ..- attr(*, &quot;terms&quot;)=Classes &#39;terms&#39;, &#39;formula&#39;  language mpg ~ wt
+##   .. .. ..- attr(*, &quot;variables&quot;)= language list(mpg, wt)
+##   .. .. ..- attr(*, &quot;factors&quot;)= int [1:2, 1] 0 1
+##   .. .. .. ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. .. .. .. ..$ : chr [1:2] &quot;mpg&quot; &quot;wt&quot;
+##   .. .. .. .. ..$ : chr &quot;wt&quot;
+##   .. .. ..- attr(*, &quot;term.labels&quot;)= chr &quot;wt&quot;
+##   .. .. ..- attr(*, &quot;order&quot;)= int 1
+##   .. .. ..- attr(*, &quot;intercept&quot;)= int 1
+##   .. .. ..- attr(*, &quot;response&quot;)= int 1
+##   .. .. ..- attr(*, &quot;.Environment&quot;)=&lt;environment: R_GlobalEnv&gt; 
+##   .. .. ..- attr(*, &quot;predvars&quot;)= language list(mpg, wt)
+##   .. .. ..- attr(*, &quot;dataClasses&quot;)= Named chr [1:2] &quot;numeric&quot; &quot;numeric&quot;
+##   .. .. .. ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;mpg&quot; &quot;wt&quot;
+##  - attr(*, &quot;class&quot;)= chr &quot;lm&quot;</code></pre>
+<p>Complicated objects are built on top of simple objects (vectors, matrices, lists etc.) with the additional of attributes.</p>
+<p>E.g. <code>lm()</code> returns a list along with the a <code>class</code> attribute.</p>
+<p>The <code>class</code> attribute is special, it’s how R knows what kind of object something is.</p>
+<p>Use <code>class()</code> to see the class,</p>
+<pre class="r"><code>class(mod) # the class of this object</code></pre>
+<pre><code>## [1] &quot;lm&quot;</code></pre>
+<p><code>typeof()</code> to see the base type the object is built on,</p>
+<pre class="r"><code>typeof(mod) # the base type this object is built on</code></pre>
+<pre><code>## [1] &quot;list&quot;</code></pre>
+<p>and <code>attributes()</code> to see all attributes:</p>
+<pre class="r"><code>attributes(mod)</code></pre>
+<pre><code>## $names
+##  [1] &quot;coefficients&quot;  &quot;residuals&quot;     &quot;effects&quot;       &quot;rank&quot;         
+##  [5] &quot;fitted.values&quot; &quot;assign&quot;        &quot;qr&quot;            &quot;df.residual&quot;  
+##  [9] &quot;xlevels&quot;       &quot;call&quot;          &quot;terms&quot;         &quot;model&quot;        
+## 
+## $class
+## [1] &quot;lm&quot;</code></pre>
+<p><strong>Your turn</strong> What class is <code>z</code>? What base object is it built on? What other attributes does this object have?</p>
+<pre class="r"><code>z &lt;- factor(sample(letters[1:5], size = 10, replace = TRUE))</code></pre>
+</div>
+<div id="methods" class="section level2">
+<h2>Methods</h2>
+<p>In S3 methods are associated with generic functions (generics for short).</p>
+<p>This is different to most other OO languages out there, which use encapsulated OO - the methods are associated with the object.</p>
+<p>When an S3 generic function is called, it looks at the class of the object passed to it, and searches for the appropriate method, of the form <code>generic.class</code>, e.g.</p>
+<pre class="r"><code>summary(mod) # calls summary.lm</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = mpg ~ wt, data = mtcars)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -4.5432 -2.3647 -0.1252  1.4096  6.8727 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  37.2851     1.8776  19.858  &lt; 2e-16 ***
+## wt           -5.3445     0.5591  -9.559 1.29e-10 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 3.046 on 30 degrees of freedom
+## Multiple R-squared:  0.7528, Adjusted R-squared:  0.7446 
+## F-statistic: 91.38 on 1 and 30 DF,  p-value: 1.294e-10</code></pre>
+<p>looks for finds and calls <code>summary.lm()</code></p>
+<p>This process is known as method dispatch. You can see the process with <code>s3_dispatch()</code> in the <code>sloop</code> package:</p>
+<pre class="r"><code>s3_dispatch(summary(mod))</code></pre>
+<pre><code>## =&gt; summary.lm
+##  * summary.default</code></pre>
+<p><code>=&gt;</code> the method that is called, <code>*</code> a method that is defined but not called.</p>
+<p>If you want to know if a function is a generic you can use <code>ftype()</code> in sloop</p>
+<pre class="r"><code>ftype(summary)</code></pre>
+<pre><code>## [1] &quot;S3&quot;      &quot;generic&quot;</code></pre>
+<pre class="r"><code>ftype(summary.lm)</code></pre>
+<pre><code>## [1] &quot;S3&quot;     &quot;method&quot;</code></pre>
+<p><strong>Your turn</strong> You can use <code>.</code> in a name in R without it being a method. Can you figure out if <code>t.test()</code> is the <code>t</code> method for objects of class <code>test</code>? What about <code>t.data.frame()</code>?</p>
+</div>
+<div id="print-is-a-generic" class="section level2">
+<h2><code>print()</code> is a generic</h2>
+<pre class="r"><code>ftype(print)</code></pre>
+<pre><code>## [1] &quot;S3&quot;      &quot;generic&quot;</code></pre>
+<p>It gets called when you ask for an object</p>
+<pre class="r"><code>mod # is the same as</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = mpg ~ wt, data = mtcars)
+## 
+## Coefficients:
+## (Intercept)           wt  
+##      37.285       -5.344</code></pre>
+<pre class="r"><code>print(mod)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = mpg ~ wt, data = mtcars)
+## 
+## Coefficients:
+## (Intercept)           wt  
+##      37.285       -5.344</code></pre>
+<p>Behind the scenes it finds the <code>print.lm()</code> function</p>
+<pre class="r"><code>s3_dispatch(print(mod))</code></pre>
+<pre><code>## =&gt; print.lm
+##  * print.default</code></pre>
+</div>
+<div id="class-doesnt-get-any-special-treatment" class="section level2">
+<h2><code>class</code> doesn’t get any special treatment</h2>
+<p>You can set the class of an object just like any usual assignment:</p>
+<pre class="r"><code>class(mod) &lt;- &quot;table&quot;
+mod</code></pre>
+<pre><code>##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        coefficients 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                37.285126, -5.344472 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           residuals 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     -2.2826106, -0.9197704, -2.0859521, 1.2973499, -0.2001440, -0.6932545, -3.9053627, 4.1637381, 2.3499593, 0.2998560, -1.1001440, 0.8668731, -0.0502472, -1.8830236, 1.1733496, 2.1032876, 5.9810744, 6.8727113, 1.7461954, 6.4219792, -2.6110037, -2.9725862, -3.7268663, -3.4623553, 2.4643670, 0.3564263, 0.1520430, 1.2010593, -4.5431513, -2.7809399, -3.2053627, -1.0274952 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             effects 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    -113.6497374, -29.1157217, -1.6613339, 1.6313943, 0.1111305, -0.3840041, -3.6072442, 4.5003125, 2.6905817, 0.6111305, -0.7888695, 1.1143917, 0.2316793, -1.6061571, 1.3014525, 2.2137818, 6.0995633, 7.3094734, 2.2421594, 6.8956792, -2.2010595, -2.6694078, -3.4150859, -3.1915608, 2.7346556, 0.8200064, 0.5948771, 1.7073457, -4.2045529, -2.4018616, -2.9072442, -0.6494289 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                rank 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   2 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       fitted.values 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         23.282611, 21.919770, 24.885952, 20.102650, 18.900144, 18.793255, 18.205363, 20.236262, 20.450041, 18.900144, 18.900144, 15.533127, 17.350247, 17.083024, 9.226650, 8.296712, 8.718926, 25.527289, 28.653805, 27.478021, 24.111004, 18.472586, 18.926866, 16.762355, 16.735633, 26.943574, 25.847957, 29.198941, 20.343151, 22.480940, 18.205363, 22.427495 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              assign 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                0, 1 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  qr 
+## -5.656854249, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, 0.176776695, -18.199514334, 5.447820482, 0.148230003, -0.016055881, -0.057356801, -0.061027994, -0.081219555, -0.011466889, -0.004124504, -0.057356801, -0.057356801, -0.172999378, -0.110589098, -0.119767081, -0.389599760, -0.421539139, -0.407037927, 0.170257160, 0.277639553, 0.237256431, 0.121613854, -0.072041573, -0.056439003, -0.130780659, -0.131698458, 0.218900467, 0.181270739, 0.296362637, -0.007795696, 0.065628162, -0.081219555, 0.063792566, 1.176776695, 1.046354399, 1.000000000, 2.000000000, 0.000000100, 2.000000000 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         df.residual 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  30 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             xlevels 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                NULL 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                call 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               lm(formula = mpg ~ wt, data = mtcars) 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               terms 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            mpg ~ wt 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               model 
+##                                                                                                                                                                                                                                                                                                                                                                                                                                                                      21.000, 21.000, 22.800, 21.400, 18.700, 18.100, 14.300, 24.400, 22.800, 19.200, 17.800, 16.400, 17.300, 15.200, 10.400, 10.400, 14.700, 32.400, 30.400, 33.900, 21.500, 15.500, 15.200, 13.300, 19.200, 27.300, 26.000, 30.400, 15.800, 19.700, 15.000, 21.400, 2.620, 2.875, 2.320, 3.215, 3.440, 3.460, 3.570, 3.190, 3.150, 3.440, 3.440, 4.070, 3.730, 3.780, 5.250, 5.424, 5.345, 2.200, 1.615, 1.835, 2.465, 3.520, 3.435, 3.840, 3.845, 1.935, 2.140, 1.513, 3.170, 2.770, 3.570, 2.780</code></pre>
+<p>But you probably wouldn’t want to…</p>
+<p>If we remove the class of <code>mod</code></p>
+<pre class="r"><code>class(mod) &lt;- NULL
+mod </code></pre>
+<pre><code>## $coefficients
+## (Intercept)          wt 
+##   37.285126   -5.344472 
+## 
+## $residuals
+##           Mazda RX4       Mazda RX4 Wag          Datsun 710 
+##          -2.2826106          -0.9197704          -2.0859521 
+##      Hornet 4 Drive   Hornet Sportabout             Valiant 
+##           1.2973499          -0.2001440          -0.6932545 
+##          Duster 360           Merc 240D            Merc 230 
+##          -3.9053627           4.1637381           2.3499593 
+##            Merc 280           Merc 280C          Merc 450SE 
+##           0.2998560          -1.1001440           0.8668731 
+##          Merc 450SL         Merc 450SLC  Cadillac Fleetwood 
+##          -0.0502472          -1.8830236           1.1733496 
+## Lincoln Continental   Chrysler Imperial            Fiat 128 
+##           2.1032876           5.9810744           6.8727113 
+##         Honda Civic      Toyota Corolla       Toyota Corona 
+##           1.7461954           6.4219792          -2.6110037 
+##    Dodge Challenger         AMC Javelin          Camaro Z28 
+##          -2.9725862          -3.7268663          -3.4623553 
+##    Pontiac Firebird           Fiat X1-9       Porsche 914-2 
+##           2.4643670           0.3564263           0.1520430 
+##        Lotus Europa      Ford Pantera L        Ferrari Dino 
+##           1.2010593          -4.5431513          -2.7809399 
+##       Maserati Bora          Volvo 142E 
+##          -3.2053627          -1.0274952 
+## 
+## $effects
+##  (Intercept)           wt                                        
+## -113.6497374  -29.1157217   -1.6613339    1.6313943    0.1111305 
+##                                                                  
+##   -0.3840041   -3.6072442    4.5003125    2.6905817    0.6111305 
+##                                                                  
+##   -0.7888695    1.1143917    0.2316793   -1.6061571    1.3014525 
+##                                                                  
+##    2.2137818    6.0995633    7.3094734    2.2421594    6.8956792 
+##                                                                  
+##   -2.2010595   -2.6694078   -3.4150859   -3.1915608    2.7346556 
+##                                                                  
+##    0.8200064    0.5948771    1.7073457   -4.2045529   -2.4018616 
+##                           
+##   -2.9072442   -0.6494289 
+## 
+## $rank
+## [1] 2
+## 
+## $fitted.values
+##           Mazda RX4       Mazda RX4 Wag          Datsun 710 
+##           23.282611           21.919770           24.885952 
+##      Hornet 4 Drive   Hornet Sportabout             Valiant 
+##           20.102650           18.900144           18.793255 
+##          Duster 360           Merc 240D            Merc 230 
+##           18.205363           20.236262           20.450041 
+##            Merc 280           Merc 280C          Merc 450SE 
+##           18.900144           18.900144           15.533127 
+##          Merc 450SL         Merc 450SLC  Cadillac Fleetwood 
+##           17.350247           17.083024            9.226650 
+## Lincoln Continental   Chrysler Imperial            Fiat 128 
+##            8.296712            8.718926           25.527289 
+##         Honda Civic      Toyota Corolla       Toyota Corona 
+##           28.653805           27.478021           24.111004 
+##    Dodge Challenger         AMC Javelin          Camaro Z28 
+##           18.472586           18.926866           16.762355 
+##    Pontiac Firebird           Fiat X1-9       Porsche 914-2 
+##           16.735633           26.943574           25.847957 
+##        Lotus Europa      Ford Pantera L        Ferrari Dino 
+##           29.198941           20.343151           22.480940 
+##       Maserati Bora          Volvo 142E 
+##           18.205363           22.427495 
+## 
+## $assign
+## [1] 0 1
+## 
+## $qr
+## $qr
+##                     (Intercept)            wt
+## Mazda RX4            -5.6568542 -18.199514334
+## Mazda RX4 Wag         0.1767767   5.447820482
+## Datsun 710            0.1767767   0.148230003
+## Hornet 4 Drive        0.1767767  -0.016055881
+## Hornet Sportabout     0.1767767  -0.057356801
+## Valiant               0.1767767  -0.061027994
+## Duster 360            0.1767767  -0.081219555
+## Merc 240D             0.1767767  -0.011466889
+## Merc 230              0.1767767  -0.004124504
+## Merc 280              0.1767767  -0.057356801
+## Merc 280C             0.1767767  -0.057356801
+## Merc 450SE            0.1767767  -0.172999378
+## Merc 450SL            0.1767767  -0.110589098
+## Merc 450SLC           0.1767767  -0.119767081
+## Cadillac Fleetwood    0.1767767  -0.389599760
+## Lincoln Continental   0.1767767  -0.421539139
+## Chrysler Imperial     0.1767767  -0.407037927
+## Fiat 128              0.1767767   0.170257160
+## Honda Civic           0.1767767   0.277639553
+## Toyota Corolla        0.1767767   0.237256431
+## Toyota Corona         0.1767767   0.121613854
+## Dodge Challenger      0.1767767  -0.072041573
+## AMC Javelin           0.1767767  -0.056439003
+## Camaro Z28            0.1767767  -0.130780659
+## Pontiac Firebird      0.1767767  -0.131698458
+## Fiat X1-9             0.1767767   0.218900467
+## Porsche 914-2         0.1767767   0.181270739
+## Lotus Europa          0.1767767   0.296362637
+## Ford Pantera L        0.1767767  -0.007795696
+## Ferrari Dino          0.1767767   0.065628162
+## Maserati Bora         0.1767767  -0.081219555
+## Volvo 142E            0.1767767   0.063792566
+## attr(,&quot;assign&quot;)
+## [1] 0 1
+## 
+## $qraux
+## [1] 1.176777 1.046354
+## 
+## $pivot
+## [1] 1 2
+## 
+## $tol
+## [1] 1e-07
+## 
+## $rank
+## [1] 2
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;qr&quot;
+## 
+## $df.residual
+## [1] 30
+## 
+## $xlevels
+## named list()
+## 
+## $call
+## lm(formula = mpg ~ wt, data = mtcars)
+## 
+## $terms
+## mpg ~ wt
+## attr(,&quot;variables&quot;)
+## list(mpg, wt)
+## attr(,&quot;factors&quot;)
+##     wt
+## mpg  0
+## wt   1
+## attr(,&quot;term.labels&quot;)
+## [1] &quot;wt&quot;
+## attr(,&quot;order&quot;)
+## [1] 1
+## attr(,&quot;intercept&quot;)
+## [1] 1
+## attr(,&quot;response&quot;)
+## [1] 1
+## attr(,&quot;.Environment&quot;)
+## &lt;environment: R_GlobalEnv&gt;
+## attr(,&quot;predvars&quot;)
+## list(mpg, wt)
+## attr(,&quot;dataClasses&quot;)
+##       mpg        wt 
+## &quot;numeric&quot; &quot;numeric&quot; 
+## 
+## $model
+##                      mpg    wt
+## Mazda RX4           21.0 2.620
+## Mazda RX4 Wag       21.0 2.875
+## Datsun 710          22.8 2.320
+## Hornet 4 Drive      21.4 3.215
+## Hornet Sportabout   18.7 3.440
+## Valiant             18.1 3.460
+## Duster 360          14.3 3.570
+## Merc 240D           24.4 3.190
+## Merc 230            22.8 3.150
+## Merc 280            19.2 3.440
+## Merc 280C           17.8 3.440
+## Merc 450SE          16.4 4.070
+## Merc 450SL          17.3 3.730
+## Merc 450SLC         15.2 3.780
+## Cadillac Fleetwood  10.4 5.250
+## Lincoln Continental 10.4 5.424
+## Chrysler Imperial   14.7 5.345
+## Fiat 128            32.4 2.200
+## Honda Civic         30.4 1.615
+## Toyota Corolla      33.9 1.835
+## Toyota Corona       21.5 2.465
+## Dodge Challenger    15.5 3.520
+## AMC Javelin         15.2 3.435
+## Camaro Z28          13.3 3.840
+## Pontiac Firebird    19.2 3.845
+## Fiat X1-9           27.3 1.935
+## Porsche 914-2       26.0 2.140
+## Lotus Europa        30.4 1.513
+## Ford Pantera L      15.8 3.170
+## Ferrari Dino        19.7 2.770
+## Maserati Bora       15.0 3.570
+## Volvo 142E          21.4 2.780</code></pre>
+<p>It just prints like any list. This isn’t very useful output…why?</p>
+</div>
+<div id="to-build-a-new-object" class="section level2">
+<h2>To build a new object</h2>
+<p>You can either make the object from it’s base type and add a class (or any other attributes):</p>
+<pre class="r"><code>y &lt;- 1:6
+class(y) &lt;- &quot;my_special_kind_of_vector&quot;
+attr(y, &quot;max&quot;) &lt;- 6
+y</code></pre>
+<pre><code>## [1] 1 2 3 4 5 6
+## attr(,&quot;class&quot;)
+## [1] &quot;my_special_kind_of_vector&quot;
+## attr(,&quot;max&quot;)
+## [1] 6</code></pre>
+<p>Or use <code>structure()</code> to do it in one go</p>
+<pre class="r"><code>y &lt;- structure(1:6, max = 6, class = &quot;my_special_kind_of_vector&quot;)</code></pre>
+</div>
+</div>
+<div id="back-to-our-goal" class="section level1">
+<h1>Back to our goal</h1>
+<p>Let’s build a new class to hold <code>optim()</code> output, then write a <code>print()</code> method that prints output in more useful fashion.</p>
+<p>General procedure:</p>
+<ol style="list-style-type: decimal">
+<li>Decide on a name for the class</li>
+<li>Decide what structure/properties the class should have</li>
+<li>Write a low level <em>constructor</em> function creates this kind of object, and a user friendly <em>helper</em> function to easily get an example.</li>
+<li>Write methods</li>
+</ol>
+<p><strong>Your turn</strong> What shall we call the class to hold an <code>optim()</code> result?</p>
+<div id="a-constructor" class="section level2">
+<h2>A constructor</h2>
+<p><a href="https://adv-r.hadley.nz/s3.html#s3-constrcutor" class="uri">https://adv-r.hadley.nz/s3.html#s3-constrcutor</a></p>
+<p>First we’ll write a function that creates an object of class <code>optimum</code>.</p>
+<p>By convention, call it <code>new_classname()</code>:</p>
+<pre class="r"><code>new_optimum &lt;- function(l){
+  stopifnot(is.list(l))
+  structure(
+    l,
+    class = &quot;optimum&quot;
+  )
+}</code></pre>
+<p>I’m being a little lazy checking the input, but I’ll assume the incoming list has all the components of an <code>optim()</code> output.</p>
+<pre class="r"><code>new_optimum(mle1)</code></pre>
+<pre><code>## $par
+## [1] 0.9362468 0.3054438 2.2488241 1.2412696 0.1166007
+## 
+## $value
+## [1] 411.6919
+## 
+## $counts
+## function gradient 
+##      125       41 
+## 
+## $convergence
+## [1] 0
+## 
+## $message
+## NULL
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;optimum&quot;</code></pre>
+</div>
+<div id="a-helper" class="section level2">
+<h2>A helper</h2>
+<p><a href="https://adv-r.hadley.nz/s3.html#helpers" class="uri">https://adv-r.hadley.nz/s3.html#helpers</a></p>
+<p>It’s useful to have a function <code>class_name()</code> that conveniently creates object of this class, which we’ll assume just passes it’s arguments onto <code>optim()</code>:</p>
+<pre class="r"><code>optimum &lt;- function(..., quiet = TRUE){
+  if(quiet){
+    suppressWarnings({
+      opt &lt;- optim(...)
+      })
+  } else {
+    opt &lt;- optim(...)
+  }
+  new_optimum(opt)
+}</code></pre>
+<pre class="r"><code>optimum(par = c(1, 0, 1.8, 1.2, 0.7), 
+  fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)  </code></pre>
+<pre><code>## $par
+## [1] 0.9362468 0.3054438 2.2488241 1.2412696 0.1166007
+## 
+## $value
+## [1] 411.6919
+## 
+## $counts
+## function gradient 
+##      125       41 
+## 
+## $convergence
+## [1] 0
+## 
+## $message
+## NULL
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;optimum&quot;</code></pre>
+</div>
+<div id="our-first-method-print.optimum" class="section level2">
+<h2>Our first method <code>print.optimum()</code></h2>
+<p>To define a new method, you just write a regular function with a special name <code>generic.class()</code>:</p>
+<pre class="r"><code>print.optimum &lt;- function(x, ...){
+  cat(&quot;My print method!&quot;)
+  invisible(x)
+}
+
+optimum(par = c(1, 0, 1.8, 1.2, 0.7), 
+  fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)  </code></pre>
+<pre><code>## My print method!</code></pre>
+<p><strong>Your turn</strong> Edit the method to just print the final parameter values.</p>
+</div>
+<div id="better-output" class="section level2">
+<h2>Better output</h2>
+<p>We should check that value of <code>convergence</code> and print a message if <code>optim()</code> didn’t converge:</p>
+<pre class="r"><code>print.optimum &lt;- function(x, ...){
+  if(x$convergence != 0){
+    cat(&quot;Failure to converge \n&quot;)
+  } else {
+    cat(&quot;Coverged! \n&quot;)
+  }
+  cat(&quot;Final parameter values \n&quot;)
+  print(x$par)
+  invisible(x)
+}
+optimum(par = c(1, 0, 1.8, 1.2, 0.7), 
+  fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)  </code></pre>
+<pre><code>## Coverged! 
+## Final parameter values 
+## [1] 0.9362468 0.3054438 2.2488241 1.2412696 0.1166007</code></pre>
+<pre class="r"><code>optimum(par = c(0.5, 0, 1, 2, 1), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)</code></pre>
+<pre><code>## Failure to converge 
+## Final parameter values 
+## [1] -3410.0610 -6066.8409  -230.4462   550.6597   588.7451</code></pre>
+<p>Even better we might check some more convergence values and add some color! (might need <code>install.packages(&quot;crayon&quot;)</code>):</p>
+<pre class="r"><code>print.optimum &lt;- function(x, ...){
+  if(x$convergence != 0){
+    cat(crayon::red(&quot;Failure to converge \n&quot;))
+    if (x$convergence == 1){
+      cat(&quot;Iteration limit `maxit` reached. \n&quot;)
+    } else {
+      cat(x$message)
+    }
+  } else {
+    cat(crayon::green(&quot;Coverged! \n&quot;))
+  }
+  cat(&quot;Final parameter values \n&quot;)
+  print(x$par)
+  invisible(x)
+}
+optimum(par = c(1, 0, 1.8, 1.2, 0.7), 
+  fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)  </code></pre>
+<pre><code>## Coverged! 
+## Final parameter values 
+## [1] 0.9362468 0.3054438 2.2488241 1.2412696 0.1166007</code></pre>
+<pre class="r"><code>optimum(par = c(0.5, 0, 1, 2, 1), fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)</code></pre>
+<pre><code>## Failure to converge 
+## Iteration limit `maxit` reached. 
+## Final parameter values 
+## [1] -3410.0610 -6066.8409  -230.4462   550.6597   588.7451</code></pre>
+</div>
+<div id="another-method" class="section level2">
+<h2>Another method</h2>
+<p><strong>Your turn</strong> Is <code>coef()</code> a generic? Write a <code>coef()</code> method for <code>optimum</code> that returns the parameter estimates.</p>
+</div>
+<div id="fyi-stats4mle" class="section level2">
+<h2>FYI stats4::mle()</h2>
+<p>Does a similar thing to what we have implemented but it uses the S4 OO system.</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

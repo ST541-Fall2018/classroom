@@ -1,0 +1,329 @@
+---
+title: S3 Object Oriented Programming in R
+author: Charlotte Wickham
+date: Nov 8th 2018
+---
+
+```{r setup, message = FALSE}
+library(tidyverse)
+library(here)
+library(sloop)
+set.seed(36528)
+```
+
+# Motivation
+
+Some code from last week:
+```{r}
+# some fake data
+true_pi <- 0.8
+true_mu <- c(0,   2)
+true_sigma <- c(1,   0.5)
+n <- 250
+pop <- rbinom(n, size = 1, prob = 1 - true_pi) + 1
+x <- rnorm(n, mean = true_mu[pop], sd = true_sigma[pop])
+
+dmix <- function(x, theta){
+  pi <- theta[1]
+  mu_1 <- theta[2]
+  mu_2 <- theta[3]
+  sigma_1 <- theta[4]
+  sigma_2 <- theta[5]
+  pi * dnorm(x, mean = mu_1, sd = sigma_1) +
+   (1 - pi) * dnorm(x, mean = mu_2, sd = sigma_2) 
+}
+nllhood_mix <- function(theta, x){
+  d <- dmix(x, theta)
+  -1 * sum(log(d))
+}
+```
+
+Recall:
+
+```{r, warning = FALSE}
+mle1 <- optim(par = c(1, 0, 1.8, 1.2, 0.7), fn = nllhood_mix, x = x, method = "BFGS")
+mle1
+```
+
+```{r, warning = FALSE}
+mle2 <- optim(par = c(0.5, 0, 1, 2, 1), fn = nllhood_mix, x = x, method = "BFGS")
+mle2
+```
+
+**Your Turn** What do you do with this output?  How might you improve what the output looks like to help you as a user?
+
+**Our goal**: 
+
+
+# Object Oriented Programming (OOP)
+
+A programming paradigm where objects are central.  Two important terms:
+
+* **Class** defines what an object is
+
+* **Methods** describe what an object can do
+
+Gives us a way to have the same function operate differently on different classes of object, e.g. `summary()`
+
+```{r}
+z <- factor(sample(letters[1:5], size = 10, replace = TRUE))
+y <- rnorm(n = 10)
+summary(z)
+summary(y)
+```
+
+There is more than one OOP system in R, we'll focus on S3.
+
+## S3
+
+The most common OO system R. Also the simplest.
+
+> S3 allows your functions to return rich results with user-friendly display and programmer-friendly internals. S3 is used throughout base R, so it's important to master if you want to extend base R functions to work with new types of input.
+
+-- [Advanced R](https://adv-r.hadley.nz/oo.html)
+
+## Why use bother?
+
+**Primarily** to make your functions easier to use (for you or others), by creating a new class and defining some methods:
+
+* Have your functions print nice output
+* Implement methods for familiar functions, e.g. `plot()`, `summary()`
+
+**More advanced** make it easy for others to extend your work for other data types, by supplying generic functions.
+
+## Orientation
+
+As our functions get more complicated they need to return complicated things.
+
+E.g. Linear models
+
+```{r}
+mod <- lm(mpg ~ wt, data = mtcars)
+str(mod)
+```
+
+Complicated objects are built on top of simple objects (vectors, matrices, lists etc.) with the additional of attributes.
+
+E.g. `lm()` returns a list along with the a `class` attribute.
+
+The `class` attribute is special, it's how R knows what kind of object something is.
+
+Use `class()` to see the class, 
+```{r}
+class(mod) # the class of this object
+```
+`typeof()` to see the base type the object is built on, 
+```{r}
+typeof(mod) # the base type this object is built on
+```
+and `attributes()` to see all attributes:
+```{r}
+attributes(mod)
+```
+
+**Your turn** What class is `z`? What base object is it built on? What other attributes does this object have?
+
+```{r}
+z <- factor(sample(letters[1:5], size = 10, replace = TRUE))
+```
+
+## Methods
+
+In S3 methods are associated with generic functions (generics for short).
+
+This is different to most other OO languages out there, which use encapsulated OO - the methods are associated with the object.
+
+When an S3 generic function is called, it looks at the class of the object passed to it, and searches for the appropriate method, of the form `generic.class`, e.g. 
+```{r}
+summary(mod) # calls summary.lm
+```
+looks for finds and calls `summary.lm()`
+
+This process is known as method dispatch.  You can see the process with `s3_dispatch()` in the `sloop` package:
+```{r}
+s3_dispatch(summary(mod))
+```
+
+`=>` the method that is called, `*` a method that is defined but not called.
+  
+If you want to know if a function is a generic you can use `ftype()` in sloop
+```{r}
+ftype(summary)
+ftype(summary.lm)
+```
+  
+**Your turn**  You can use `.` in a name in R without it being a method.  Can you figure out if `t.test()` is the `t` method for objects of class `test`?  What about `t.data.frame()`?
+
+## `print()` is a generic
+
+```{r}
+ftype(print)
+```
+
+It gets called when you ask for an object
+```{r}
+mod # is the same as
+print(mod)
+```
+
+Behind the scenes it finds the `print.lm()` function
+```{r}
+s3_dispatch(print(mod))
+```
+
+## `class` doesn't get any special treatment
+
+You can set the class of an object just like any usual assignment:
+```{r}
+class(mod) <- "table"
+mod
+```
+
+But you probably wouldn't want to...
+
+If we remove the class of `mod`
+```{r}
+class(mod) <- NULL
+mod 
+```
+
+It just prints like any list.  This isn't very useful output...why?
+
+## To build a new object
+
+You can either make the object from it's base type and add a class (or any other attributes):
+```{r}
+y <- 1:6
+class(y) <- "my_special_kind_of_vector"
+attr(y, "max") <- 6
+y
+```
+
+Or use `structure()` to do it in one go
+```{r}
+y <- structure(1:6, max = 6, class = "my_special_kind_of_vector")
+```
+
+# Back to our goal
+
+Let's build a new class to hold `optim()` output, then write a `print()` method that prints output in more useful fashion.
+
+General procedure:
+
+1. Decide on a name for the class
+2. Decide what structure/properties the class should have
+3. Write a low level *constructor* function creates this kind of object, and a user friendly *helper* function to easily get an example.
+4. Write methods
+
+**Your turn** What shall we call the class to hold an `optim()` result?
+
+## A constructor
+
+https://adv-r.hadley.nz/s3.html#s3-constrcutor
+
+First we'll write a function that creates an object of class `optimum`.  
+
+By convention, call it `new_classname()`:
+```{r}
+new_optimum <- function(l){
+  stopifnot(is.list(l))
+  structure(
+    l,
+    class = "optimum"
+  )
+}
+```
+
+I'm being a little lazy checking the input, but I'll assume the incoming list has all the components of an `optim()` output.
+
+```{r}
+new_optimum(mle1)
+```
+
+## A helper
+
+https://adv-r.hadley.nz/s3.html#helpers
+
+It's useful to have a function `class_name()` that conveniently creates object of this class, which we'll assume just passes it's arguments onto `optim()`:
+```{r}
+optimum <- function(..., quiet = TRUE){
+  if(quiet){
+    suppressWarnings({
+      opt <- optim(...)
+      })
+  } else {
+    opt <- optim(...)
+  }
+  new_optimum(opt)
+}
+```
+
+```{r}
+optimum(par = c(1, 0, 1.8, 1.2, 0.7), 
+  fn = nllhood_mix, x = x, method = "BFGS")  
+```
+
+## Our first method `print.optimum()`
+
+To define a new method, you just write a regular function with a special name `generic.class()`:
+```{r}
+print.optimum <- function(x, ...){
+  cat("My print method!")
+  invisible(x)
+}
+
+optimum(par = c(1, 0, 1.8, 1.2, 0.7), 
+  fn = nllhood_mix, x = x, method = "BFGS")  
+```
+
+**Your turn** Edit the method to just print the final parameter values.
+
+## Better output
+
+We should check that value of `convergence` and print a message if `optim()` didn't converge: 
+```{r}
+print.optimum <- function(x, ...){
+  if(x$convergence != 0){
+    cat("Failure to converge \n")
+  } else {
+    cat("Coverged! \n")
+  }
+  cat("Final parameter values \n")
+  print(x$par)
+  invisible(x)
+}
+optimum(par = c(1, 0, 1.8, 1.2, 0.7), 
+  fn = nllhood_mix, x = x, method = "BFGS")  
+optimum(par = c(0.5, 0, 1, 2, 1), fn = nllhood_mix, x = x, method = "BFGS")
+```
+
+
+Even better we might check some more convergence values and add some color! (might need `install.packages("crayon")`):
+```{r}
+print.optimum <- function(x, ...){
+  if(x$convergence != 0){
+    cat(crayon::red("Failure to converge \n"))
+    if (x$convergence == 1){
+      cat("Iteration limit `maxit` reached. \n")
+    } else {
+      cat(x$message)
+    }
+  } else {
+    cat(crayon::green("Coverged! \n"))
+  }
+  cat("Final parameter values \n")
+  print(x$par)
+  invisible(x)
+}
+optimum(par = c(1, 0, 1.8, 1.2, 0.7), 
+  fn = nllhood_mix, x = x, method = "BFGS")  
+optimum(par = c(0.5, 0, 1, 2, 1), fn = nllhood_mix, x = x, method = "BFGS")
+```
+
+## Another method
+
+**Your turn** Is `coef()` a generic?  Write a `coef()` method for `optimum` that returns the parameter estimates.
+
+## FYI stats4::mle()
+
+Does a similar thing to what we have implemented but it uses the S4 OO system.

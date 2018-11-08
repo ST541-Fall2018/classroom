@@ -59,6 +59,7 @@
 ### Week 7
 
 * Nov 6 [**C++ and parallelization**](notes/13-cpp-parallel.html) ([Rmd](notes/13-cpp-parallel.Rmd))
+* Nov 8 [**Object Oriented programming in R**](notes/14-s3.html) ([Rmd](notes/14-s3.Rmd))
 
 ### Week 8
 
