@@ -134,7 +134,7 @@ $(document).ready(function () {
 <li><a href="#motivation">Motivation</a></li>
 <li><a href="#object-oriented-programming-oop">Object Oriented Programming (OOP)</a><ul>
 <li><a href="#s3">S3</a></li>
-<li><a href="#why-use-bother">Why use bother?</a></li>
+<li><a href="#why-bother">Why bother?</a></li>
 <li><a href="#orientation">Orientation</a></li>
 <li><a href="#methods">Methods</a></li>
 <li><a href="#print-is-a-generic"><code>print()</code> is a generic</a></li>
@@ -216,7 +216,7 @@ mle2</code></pre>
 ## $message
 ## NULL</code></pre>
 <p><strong>Your Turn</strong> What do you do with this output? How might you improve what the output looks like to help you as a user?</p>
-<p><strong>Our goal</strong>:</p>
+<p><strong>Our goal</strong>: To get a more user friendly output from <code>optim()</code></p>
 </div>
 <div id="object-oriented-programming-oop" class="section level1">
 <h1>Object Oriented Programming (OOP)</h1>
@@ -243,8 +243,8 @@ summary(z)</code></pre>
 </blockquote>
 <p>– <a href="https://adv-r.hadley.nz/oo.html">Advanced R</a></p>
 </div>
-<div id="why-use-bother" class="section level2">
-<h2>Why use bother?</h2>
+<div id="why-bother" class="section level2">
+<h2>Why bother?</h2>
 <p><strong>Primarily</strong> to make your functions easier to use (for you or others), by creating a new class and defining some methods:</p>
 <ul>
 <li>Have your functions print nice output</li>
@@ -334,7 +334,23 @@ str(mod)</code></pre>
 ## $class
 ## [1] &quot;lm&quot;</code></pre>
 <p><strong>Your turn</strong> What class is <code>z</code>? What base object is it built on? What other attributes does this object have?</p>
-<pre class="r"><code>z &lt;- factor(sample(letters[1:5], size = 10, replace = TRUE))</code></pre>
+<pre class="r"><code>z &lt;- factor(sample(letters[1:5], size = 10, replace = TRUE))
+
+class(z)</code></pre>
+<pre><code>## [1] &quot;factor&quot;</code></pre>
+<pre class="r"><code>typeof(z)</code></pre>
+<pre><code>## [1] &quot;integer&quot;</code></pre>
+<pre class="r"><code>attributes(z)</code></pre>
+<pre><code>## $levels
+## [1] &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;d&quot; &quot;e&quot;
+## 
+## $class
+## [1] &quot;factor&quot;</code></pre>
+<p>Does everything have a class? <code>class()</code> will return something, even if the object doesn’t have a <code>class</code> attribute:</p>
+<pre class="r"><code>class(y)</code></pre>
+<pre><code>## [1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>attributes(y)</code></pre>
+<pre><code>## NULL</code></pre>
 </div>
 <div id="methods" class="section level2">
 <h2>Methods</h2>
@@ -360,6 +376,8 @@ str(mod)</code></pre>
 ## Residual standard error: 3.046 on 30 degrees of freedom
 ## Multiple R-squared:  0.7528, Adjusted R-squared:  0.7446 
 ## F-statistic: 91.38 on 1 and 30 DF,  p-value: 1.294e-10</code></pre>
+<pre class="r"><code>class(mod)</code></pre>
+<pre><code>## [1] &quot;lm&quot;</code></pre>
 <p>looks for finds and calls <code>summary.lm()</code></p>
 <p>This process is known as method dispatch. You can see the process with <code>s3_dispatch()</code> in the <code>sloop</code> package:</p>
 <pre class="r"><code>s3_dispatch(summary(mod))</code></pre>
@@ -372,6 +390,20 @@ str(mod)</code></pre>
 <pre class="r"><code>ftype(summary.lm)</code></pre>
 <pre><code>## [1] &quot;S3&quot;     &quot;method&quot;</code></pre>
 <p><strong>Your turn</strong> You can use <code>.</code> in a name in R without it being a method. Can you figure out if <code>t.test()</code> is the <code>t</code> method for objects of class <code>test</code>? What about <code>t.data.frame()</code>?</p>
+<pre class="r"><code># install.packages(&quot;sloop&quot;)
+library(sloop)
+
+ftype(t.test) # S3 generic, not a method for `t()` for class &quot;test&quot;</code></pre>
+<pre><code>## [1] &quot;S3&quot;      &quot;generic&quot;</code></pre>
+<pre class="r"><code>ftype(t.data.frame) # S3 method for `t()` for class &quot;data.frame&quot;</code></pre>
+<pre><code>## [1] &quot;S3&quot;     &quot;method&quot;</code></pre>
+<pre class="r"><code>fake &lt;- data.frame(x = 1:10)
+class(fake)</code></pre>
+<pre><code>## [1] &quot;data.frame&quot;</code></pre>
+<pre class="r"><code>s3_dispatch(t(fake))  # let&#39;s you see how R found the method</code></pre>
+<pre><code>## =&gt; t.data.frame
+## -&gt; t.default</code></pre>
+<p>Unanswered question: What if we define a <code>frame</code> class and a <code>t.data()</code> generic, then and a <code>frame</code> method for <code>t.data()</code>, do things break?</p>
 </div>
 <div id="print-is-a-generic" class="section level2">
 <h2><code>print()</code> is a generic</h2>
@@ -626,6 +658,9 @@ mod </code></pre>
 ## Ferrari Dino        19.7 2.770
 ## Maserati Bora       15.0 3.570
 ## Volvo 142E          21.4 2.780</code></pre>
+<pre class="r"><code>s3_dispatch(print(mod))</code></pre>
+<pre><code>##    print.list
+## =&gt; print.default</code></pre>
 <p>It just prints like any list. This isn’t very useful output…why?</p>
 </div>
 <div id="to-build-a-new-object" class="section level2">
@@ -641,7 +676,13 @@ y</code></pre>
 ## attr(,&quot;max&quot;)
 ## [1] 6</code></pre>
 <p>Or use <code>structure()</code> to do it in one go</p>
-<pre class="r"><code>y &lt;- structure(1:6, max = 6, class = &quot;my_special_kind_of_vector&quot;)</code></pre>
+<pre class="r"><code>y &lt;- structure(1:6, max = 6, class = &quot;my_special_kind_of_vector&quot;)
+y</code></pre>
+<pre><code>## [1] 1 2 3 4 5 6
+## attr(,&quot;max&quot;)
+## [1] 6
+## attr(,&quot;class&quot;)
+## [1] &quot;my_special_kind_of_vector&quot;</code></pre>
 </div>
 </div>
 <div id="back-to-our-goal" class="section level1">
@@ -655,18 +696,34 @@ y</code></pre>
 <li>Write methods</li>
 </ol>
 <p><strong>Your turn</strong> What shall we call the class to hold an <code>optim()</code> result?</p>
+<ol style="list-style-type: decimal">
+<li><p><code>my_new_class</code>, <code>optim</code>, <code>my_optim</code>, <code>cl_optim</code>, <code>optim_class</code>, <code>optim_out</code>, <strong><code>optimum</code></strong></p></li>
+<li><p>Takes the same structure as existing <code>optim()</code> output - list with certain elements. We aren’t going to check for these elements in our constructor.</p></li>
+</ol>
 <div id="a-constructor" class="section level2">
 <h2>A constructor</h2>
 <p><a href="https://adv-r.hadley.nz/s3.html#s3-constrcutor" class="uri">https://adv-r.hadley.nz/s3.html#s3-constrcutor</a></p>
 <p>First we’ll write a function that creates an object of class <code>optimum</code>.</p>
 <p>By convention, call it <code>new_classname()</code>:</p>
 <pre class="r"><code>new_optimum &lt;- function(l){
+  # This is where you need to enforce any desired structure
   stopifnot(is.list(l))
+  
   structure(
     l,
     class = &quot;optimum&quot;
   )
-}</code></pre>
+}
+
+new_optimum(list(par = c(1, 2, 3), y = &quot;weird&quot;))</code></pre>
+<pre><code>## $par
+## [1] 1 2 3
+## 
+## $y
+## [1] &quot;weird&quot;
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;optimum&quot;</code></pre>
 <p>I’m being a little lazy checking the input, but I’ll assume the incoming list has all the components of an <code>optim()</code> output.</p>
 <pre class="r"><code>new_optimum(mle1)</code></pre>
 <pre><code>## $par
@@ -687,6 +744,9 @@ y</code></pre>
 ## 
 ## attr(,&quot;class&quot;)
 ## [1] &quot;optimum&quot;</code></pre>
+<pre class="r"><code>s3_dispatch(print(new_optimum(mle1)))</code></pre>
+<pre><code>##    print.optimum
+## =&gt; print.default</code></pre>
 </div>
 <div id="a-helper" class="section level2">
 <h2>A helper</h2>
@@ -727,13 +787,15 @@ y</code></pre>
 <h2>Our first method <code>print.optimum()</code></h2>
 <p>To define a new method, you just write a regular function with a special name <code>generic.class()</code>:</p>
 <pre class="r"><code>print.optimum &lt;- function(x, ...){
-  cat(&quot;My print method!&quot;)
+  cat(&quot;Final parameter values: \n&quot;)
+  cat(x$par)
   invisible(x)
 }
 
 optimum(par = c(1, 0, 1.8, 1.2, 0.7), 
   fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)  </code></pre>
-<pre><code>## My print method!</code></pre>
+<pre><code>## Final parameter values: 
+## 0.9362468 0.3054438 2.248824 1.24127 0.1166007</code></pre>
 <p><strong>Your turn</strong> Edit the method to just print the final parameter values.</p>
 </div>
 <div id="better-output" class="section level2">
@@ -788,6 +850,22 @@ optimum(par = c(1, 0, 1.8, 1.2, 0.7),
 <div id="another-method" class="section level2">
 <h2>Another method</h2>
 <p><strong>Your turn</strong> Is <code>coef()</code> a generic? Write a <code>coef()</code> method for <code>optimum</code> that returns the parameter estimates.</p>
+<pre class="r"><code>ftype(coef) # Yes, it&#39;s a generic</code></pre>
+<pre><code>## [1] &quot;S3&quot;      &quot;generic&quot;</code></pre>
+<pre class="r"><code>coef # Our method needs to accept the same arguments as the generic</code></pre>
+<pre><code>## function (object, ...) 
+## UseMethod(&quot;coef&quot;)
+## &lt;bytecode: 0x7fd1a7440f08&gt;
+## &lt;environment: namespace:stats&gt;</code></pre>
+<pre class="r"><code>coef.optimum &lt;- function(object, ...) {
+  object$par
+}
+
+mle_1a &lt;- optimum(par = c(1, 0, 1.8, 1.2, 0.7), 
+  fn = nllhood_mix, x = x, method = &quot;BFGS&quot;)  
+
+coef(mle_1a)</code></pre>
+<pre><code>## [1] 0.9362468 0.3054438 2.2488241 1.2412696 0.1166007</code></pre>
 </div>
 <div id="fyi-stats4mle" class="section level2">
 <h2>FYI stats4::mle()</h2>

@@ -52,7 +52,7 @@ mle2
 
 **Your Turn** What do you do with this output?  How might you improve what the output looks like to help you as a user?
 
-**Our goal**: 
+**Our goal**: To get a more user friendly output from `optim()`
 
 
 # Object Oriented Programming (OOP)
@@ -82,7 +82,7 @@ The most common OO system R. Also the simplest.
 
 -- [Advanced R](https://adv-r.hadley.nz/oo.html)
 
-## Why use bother?
+## Why bother?
 
 **Primarily** to make your functions easier to use (for you or others), by creating a new class and defining some methods:
 
@@ -125,6 +125,16 @@ attributes(mod)
 
 ```{r}
 z <- factor(sample(letters[1:5], size = 10, replace = TRUE))
+
+class(z)
+typeof(z)
+attributes(z)
+```
+
+Does everything have a class?  `class()` will return something, even if the object doesn't have a `class` attribute:
+```{r}
+class(y)
+attributes(y)
 ```
 
 ## Methods
@@ -136,6 +146,7 @@ This is different to most other OO languages out there, which use encapsulated O
 When an S3 generic function is called, it looks at the class of the object passed to it, and searches for the appropriate method, of the form `generic.class`, e.g. 
 ```{r}
 summary(mod) # calls summary.lm
+class(mod)
 ```
 looks for finds and calls `summary.lm()`
 
@@ -153,6 +164,22 @@ ftype(summary.lm)
 ```
   
 **Your turn**  You can use `.` in a name in R without it being a method.  Can you figure out if `t.test()` is the `t` method for objects of class `test`?  What about `t.data.frame()`?
+
+```{r}
+# install.packages("sloop")
+library(sloop)
+
+ftype(t.test) # S3 generic, not a method for `t()` for class "test"
+ftype(t.data.frame) # S3 method for `t()` for class "data.frame"
+```
+
+```{r}
+fake <- data.frame(x = 1:10)
+class(fake)
+s3_dispatch(t(fake))  # let's you see how R found the method
+```
+
+Unanswered question: What if we define a `frame` class and a `t.data()` generic, then and a `frame` method for `t.data()`, do things break?
 
 ## `print()` is a generic
 
@@ -185,6 +212,7 @@ If we remove the class of `mod`
 ```{r}
 class(mod) <- NULL
 mod 
+s3_dispatch(print(mod))
 ```
 
 It just prints like any list.  This isn't very useful output...why?
@@ -202,6 +230,7 @@ y
 Or use `structure()` to do it in one go
 ```{r}
 y <- structure(1:6, max = 6, class = "my_special_kind_of_vector")
+y
 ```
 
 # Back to our goal
@@ -217,6 +246,10 @@ General procedure:
 
 **Your turn** What shall we call the class to hold an `optim()` result?
 
+1.  `my_new_class`, `optim`, `my_optim`, `cl_optim`, `optim_class`, `optim_out`, **`optimum`**
+
+2. Takes the same structure as existing `optim()` output - list with certain elements.  We aren't going to check for these elements in our constructor.  
+
 ## A constructor
 
 https://adv-r.hadley.nz/s3.html#s3-constrcutor
@@ -226,18 +259,23 @@ First we'll write a function that creates an object of class `optimum`.
 By convention, call it `new_classname()`:
 ```{r}
 new_optimum <- function(l){
+  # This is where you need to enforce any desired structure
   stopifnot(is.list(l))
+  
   structure(
     l,
     class = "optimum"
   )
 }
+
+new_optimum(list(par = c(1, 2, 3), y = "weird"))
 ```
 
 I'm being a little lazy checking the input, but I'll assume the incoming list has all the components of an `optim()` output.
 
 ```{r}
 new_optimum(mle1)
+s3_dispatch(print(new_optimum(mle1)))
 ```
 
 ## A helper
@@ -268,7 +306,8 @@ optimum(par = c(1, 0, 1.8, 1.2, 0.7),
 To define a new method, you just write a regular function with a special name `generic.class()`:
 ```{r}
 print.optimum <- function(x, ...){
-  cat("My print method!")
+  cat("Final parameter values: \n")
+  cat(x$par)
   invisible(x)
 }
 
@@ -323,6 +362,21 @@ optimum(par = c(0.5, 0, 1, 2, 1), fn = nllhood_mix, x = x, method = "BFGS")
 ## Another method
 
 **Your turn** Is `coef()` a generic?  Write a `coef()` method for `optimum` that returns the parameter estimates.
+
+```{r}
+ftype(coef) # Yes, it's a generic
+coef # Our method needs to accept the same arguments as the generic
+
+coef.optimum <- function(object, ...) {
+  object$par
+}
+
+mle_1a <- optimum(par = c(1, 0, 1.8, 1.2, 0.7), 
+  fn = nllhood_mix, x = x, method = "BFGS")  
+
+coef(mle_1a)
+```
+
 
 ## FYI stats4::mle()
 
