@@ -147,7 +147,10 @@ $(document).ready(function () {
 <li><a href="#parallelization">Parallelization</a><ul>
 <li><a href="#quick-talk-about-multiple-cores-multiple-processors-and-clusters">Quick talk about multiple cores, multiple processors and clusters</a></li>
 <li><a href="#two-parts-to-running-in-parallel">Two parts to running in parallel</a></li>
-<li><a href="#an-example">An example</a></li>
+<li><a href="#an-example-package-furrr">An example package: furrr</a></li>
+<li><a href="#execution">Execution</a></li>
+<li><a href="#setup">Setup</a></li>
+<li><a href="#on-your-machine">On your machine?</a></li>
 </ul></li>
 </ul>
 </div>
@@ -222,7 +225,7 @@ int add(int x, int y, int z) {
 <p>Either way, then the function, <code>add()</code> in this case, can be used just like any R function:</p>
 <pre class="r"><code>add</code></pre>
 <pre><code>## function (x, y, z) 
-## .Call(&lt;pointer: 0x11470c210&gt;, x, y, z)</code></pre>
+## .Call(&lt;pointer: 0x112cda210&gt;, x, y, z)</code></pre>
 <pre class="r"><code>add(1, 2, 3)</code></pre>
 <pre><code>## [1] 6</code></pre>
 </div>
@@ -378,10 +381,10 @@ bench::mark(
 <pre><code>## # A tibble: 4 x 10
 ##   expression      min     mean   median      max `itr/sec` mem_alloc  n_gc
 ##   &lt;chr&gt;      &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:tm&gt;     &lt;dbl&gt; &lt;bch:byt&gt; &lt;dbl&gt;
-## 1 abs_loop     6.75µs   7.81µs   7.13µs 127.35µs   128046.   49.12KB     0
-## 2 abs_sets     1.89µs   4.04µs   4.25µs    2.2ms   247720.    2.95KB     1
-## 3 absC         1.27µs   3.98µs   4.04µs   1.07ms   251154.    3.33KB     0
-## 4 abs_base      157ns 506.29ns    172ns  38.51µs  1975170.      456B     0
+## 1 abs_loop     6.64µs   8.23µs   7.07µs  67.07µs   121530.   49.12KB     0
+## 2 abs_sets     1.79µs    4.5µs   4.42µs   3.03ms   222173.    2.95KB     1
+## 3 absC         1.28µs   3.72µs   3.92µs 913.97µs   268934.    3.33KB     0
+## 4 abs_base      157ns 454.96ns    169ns  39.44µs  2198010.      456B     0
 ## # ... with 2 more variables: n_itr &lt;int&gt;, total_time &lt;bch:tm&gt;</code></pre>
 <p>Despite operating one element at a time, the C++ version is about as fast as the set version. Still not as fast as the base version.</p>
 </div>
@@ -425,12 +428,21 @@ bench::mark(
 <p><strong>Execute</strong> changes to your code that make use of the parallel set up. (Technically, explicit parallelism as opposed to implicit parallelism).</p>
 <p>Lot’s of R packages available: <a href="https://cran.r-project.org/web/views/HighPerformanceComputing.html" class="uri">https://cran.r-project.org/web/views/HighPerformanceComputing.html</a></p>
 </div>
-<div id="an-example" class="section level2">
-<h2>An example</h2>
+<div id="an-example-package-furrr" class="section level2">
+<h2>An example package: furrr</h2>
 <p><strong>Your turn</strong>: Start reading the readme at: <a href="https://github.com/DavisVaughan/furrr" class="uri">https://github.com/DavisVaughan/furrr</a></p>
 <p>What is the goal of the package? What packages does it build on?</p>
+</div>
+<div id="execution" class="section level2">
+<h2>Execution</h2>
 <p><strong>Your turn</strong>: Scroll down to the first example. What does it illustrate?</p>
+</div>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
 <p><strong>Your turn</strong>: Keep reading the examples, what changes to get the map operation to run in parallel? How does the author provide proof that it is running in parallel?</p>
+</div>
+<div id="on-your-machine" class="section level2">
+<h2>On your machine?</h2>
 <p><strong>Your turn</strong>: Try running the example on your own, can you replicate the timings?</p>
 </div>
 </div>

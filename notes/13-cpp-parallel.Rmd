@@ -1,5 +1,5 @@
 ---
-title: C++ and Parallelization
+title: C++ or Parallelization
 author: Charlotte Wickham
 date: Nov 6th 2018
 ---
@@ -61,11 +61,20 @@ int add(int x, int y, int z) {
 
 Differences:
 
-*
-*
-*
-*
-*
+* Defining a function in C++: define it like you call it 
+    ```
+    function_name(arg1_name, arg2_name){
+      /* Body of function */
+    }
+    ```
+* Explicit types for both function output, arguments and any intermediate objects
+
+* Finish lines with `;`
+
+* Explicit `return()` statement
+
+* Use `=` not `<-`
+
 
 ## Using a C++ function in R
 
@@ -90,10 +99,12 @@ Three possibilities:
       return sum;
     }
     ```
+          
 
 3. Put the definition (and the same additional lines) into their own file, e.g. `file.cpp` and use `sourceCpp()`:
     ```{r, eval = FALSE}
-    sourceCpp("path/to/file.cpp")
+    library(Rcpp)
+    sourceCpp("functions.cpp")
     ```
 
 Either way, then the function, `add()` in this case, can be used just like any R function:
@@ -104,6 +115,15 @@ add
 ```{r}
 add(1, 2, 3)
 ```
+
+C+ is strict on inputs, although coercion will happen automatically
+```{r}
+add(1.3, 2, 3) # 1.2 gets coerced to integer (rounded down)
+```
+```{r}
+add(c(1, 2), 1, 2) # vector input raised an error
+```
+
 
 ## Types in C++
 
@@ -150,6 +170,8 @@ int signC(int x) {
 ```
 
 **Your Turn** How are `if` statements different in C++?
+
+There isn't any!
 
 ## A function with a `for` loop
 
@@ -201,6 +223,11 @@ NumericVector f2(NumericVector x) {
   }
   return out;
 }
+```
+
+
+```{r}
+f2(c(1, 3, 4, 2, 1))
 ```
 
 ## Speed 
@@ -270,6 +297,7 @@ A software library for the C++ with common algorithms and data structures.
 
 E.g. `std::max()`,  `std::random_shuffle()`, `std::partial_sort()`
 
+Back at 9:00
 
 # Parallelization
 
@@ -303,16 +331,21 @@ parallel::detectCores()
 
 Lot's of R packages available: https://cran.r-project.org/web/views/HighPerformanceComputing.html
 
-## An example
+## An example package: furrr
 
 **Your turn**: Start reading the readme at: https://github.com/DavisVaughan/furrr
 
 What is the goal of the package? What packages does it build on?
 
+## Execution
+
 **Your turn**: Scroll down to the first example.  What does it illustrate?
 
+## Setup
 
 **Your turn**: Keep reading the examples, what changes to get the map operation to run in parallel? How does the author provide proof that it is running in parallel?
+
+## On your machine?
 
 **Your turn**: Try running the example on your own, can you replicate the timings?
 
