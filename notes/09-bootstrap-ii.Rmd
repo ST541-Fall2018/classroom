@@ -94,12 +94,24 @@ The standard deviation of the sampling distribution of the sample median:
 ```{r}
 (emp_sd <- sd(sample_median))
 ```
+Our simulation based estimate of the true standard deviation of sample medians in this setting.
 
 ### The bootstrap performance
 
 If we have a single sample from the population distribution
 ```{r}
 x <- rt(n, df = 3)
+```
+**Your turn**: How would you proceed?  How would you estimate the median and get a standard devation/error on that estimate using the bootstrap? 
+
+We would estimate the population median to be:
+```{r}
+median(x)
+```
+
+To do one bootstrap resample, and find median:
+```{r}
+x %>% sample(replace = TRUE) %>% median()
 ```
 
 We can find the bootstrap estimate of the sampling distribution
@@ -124,7 +136,7 @@ many_bootstraps <- data_frame(
 )
 ```
 
-Now for each sample, generate many bootstrapped sample medians. Easiest to understand with a function for the bootstrap part:
+Now for each sample, generate many bootstrapped sample medians. Easiest to understand with a function afor the bootstrap part:
 ```{r}
 bootstrap_medians <- function(x, ntimes = 250){
   rerun(ntimes,
@@ -163,6 +175,7 @@ many_bootstraps <- many_bootstraps %>%
     ci = map(bootstrapped_medians, quantile, 
       probs = c(0.025, 0.975)),
     covers_true_median = map_lgl(ci, ~ .[1] < 0 & .[2] > 0))
+# 0 = median for population, t(df = 3)
 many_bootstraps %>% pull(covers_true_median) %>% mean()
 ```
 Coverage isn't too far from 95%
