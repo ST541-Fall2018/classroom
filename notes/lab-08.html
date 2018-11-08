@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Lab 08 - S3 OO programming in R</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Lab 08 - S3 OO programming in R</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Nov 9th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#reading-s3-chapter">Reading S3 Chapter</a><ul>
+<li><a href="#s3">10 S3</a></li>
+<li><a href="#attributes">10.2 Attributes</a></li>
+<li><a href="#generic-functions">10.3 Generic Functions</a></li>
+<li><a href="#methods">10.4 Methods</a></li>
+<li><a href="#classes">10.5 Classes</a></li>
+</ul></li>
+<li><a href="#going-further">Going further</a></li>
+<li><a href="#other-possible-extensions">Other possible extensions</a></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+set.seed(181763)</code></pre>
+<p>Get ready to play the slots! In this lab you’ll follow along with the chapter on S3 programming in <a href="https://rstudio-education.github.io/hopr/s3.html">Hands-On Programming with R</a> (HOPR).</p>
+<p>To get oriented start by reading the <a href="https://rstudio-education.github.io/hopr/project-3-slot-machine.html">introduction to the slot machine project</a>.</p>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>A slot machine randomly draws three symbols, and depending on the combination of symbols that are drawn, a player may receive a payout. In the slot machine implemented in HOPR the symbols that can be drawn and their probabilities of being drawn are captured in the function <code>get_symbols()</code>:</p>
+<pre class="r"><code># from https://github.com/rstudio-education/hopr
+get_symbols &lt;- function() {
+  wheel &lt;- c(&quot;DD&quot;, &quot;7&quot;, &quot;BBB&quot;, &quot;BB&quot;, &quot;B&quot;, &quot;C&quot;, &quot;0&quot;)
+  sample(wheel, size = 3, replace = TRUE, 
+    prob = c(0.03, 0.03, 0.06, 0.1, 0.25, 0.01, 0.52))
+}</code></pre>
+<p>where <code>DD</code> is diamonds, <code>7</code> sevens, <code>BBB</code> triple bars, <code>BB</code> double bars, <code>B</code> a single bar, <code>C</code> cherries and <code>0</code> zeros.</p>
+<p>You can run <code>get_symbols()</code> to see an example of the symbols drawn on a play of the machine:</p>
+<pre class="r"><code>get_symbols()</code></pre>
+<pre><code>## [1] &quot;0&quot;   &quot;0&quot;   &quot;BBB&quot;</code></pre>
+<p>The payout is complicated for the particular type of machine being emulated (you can see the details in Table 9 in <a href="https://rstudio-education.github.io/hopr/programs.html">HOPR</a>) and is captured in the <code>score()</code> function:</p>
+<pre class="r"><code>score &lt;- function (symbols) {
+  # identify case
+  same &lt;- symbols[1] == symbols[2] &amp;&amp; symbols[2] == symbols[3]
+  bars &lt;- symbols %in% c(&quot;B&quot;, &quot;BB&quot;, &quot;BBB&quot;)
+  
+  # get prize
+  if (same) {
+    payouts &lt;- c(&quot;DD&quot; = 100, &quot;7&quot; = 80, &quot;BBB&quot; = 40, &quot;BB&quot; = 25, 
+      &quot;B&quot; = 10, &quot;C&quot; = 10, &quot;0&quot; = 0)
+    prize &lt;- unname(payouts[symbols[1]])
+  } else if (all(bars)) {
+    prize &lt;- 5
+  } else {
+    cherries &lt;- sum(symbols == &quot;C&quot;)
+    prize &lt;- c(0, 2, 5)[cherries + 1]
+  }
+  
+  # adjust for diamonds
+  diamonds &lt;- sum(symbols == &quot;DD&quot;)
+  prize * 2 ^ diamonds
+}</code></pre>
+<p>This can be used to figure out the payout for a particular symbol set:</p>
+<pre class="r"><code>(one_play &lt;- get_symbols())</code></pre>
+<pre><code>## [1] &quot;B&quot;   &quot;BBB&quot; &quot;0&quot;</code></pre>
+<pre class="r"><code>score(one_play)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>Finally, <code>play()</code> combines the two steps: drawing and scoring</p>
+<pre class="r"><code>play &lt;- function() {
+  symbols &lt;- get_symbols()
+  print(symbols)
+  score(symbols)
+}</code></pre>
+<pre class="r"><code>play()</code></pre>
+<pre><code>## [1] &quot;DD&quot; &quot;0&quot;  &quot;0&quot;</code></pre>
+<pre><code>## [1] 0</code></pre>
+</div>
+<div id="reading-s3-chapter" class="section level2">
+<h2>Reading S3 Chapter</h2>
+<p>OK, now you have the setup you can start with the S3 section: <a href="https://rstudio-education.github.io/hopr/s3.html" class="uri">https://rstudio-education.github.io/hopr/s3.html</a></p>
+<p>Here are some questions labelled with corresponding section number that you should answer after reading and working through each section.</p>
+<div id="s3" class="section level3">
+<h3>10 S3</h3>
+<ul>
+<li>What’s the difference between the current output of <code>play()</code> and the desired output of <code>play()</code></li>
+<li>Examine the object <code>one_play</code> (created in this section), what is missing from it.</li>
+</ul>
+</div>
+<div id="attributes" class="section level3">
+<h3>10.2 Attributes</h3>
+<p>This section refers to the variable <code>DECK</code> which you can get with</p>
+<pre class="r"><code>DECK &lt;- read.csv(url(&quot;https://gist.githubusercontent.com/garrettgman/9629323/raw/ee5dfc039fd581cb467cc69c226ea2524913c3d8/deck.csv&quot;))
+DECK</code></pre>
+<ul>
+<li><p>Do Exercise 10.1, which problem from above does this solve?</p></li>
+<li><p>How does <code>slot_display()</code> go part-way to solving the other problem? Why doesn’t it completely solve the problem?</p></li>
+</ul>
+</div>
+<div id="generic-functions" class="section level3">
+<h3>10.3 Generic Functions</h3>
+<ul>
+<li>How do you see all the methods associated with a function? E.g. what methods are available for <code>summary()</code>?</li>
+</ul>
+</div>
+<div id="methods" class="section level3">
+<h3>10.4 Methods</h3>
+<ul>
+<li><p>What happens when a object has more than one class?</p></li>
+<li><p>Do exercise 10.2</p></li>
+</ul>
+</div>
+<div id="classes" class="section level3">
+<h3>10.5 Classes</h3>
+<ul>
+<li>How do you see all the methods associated with a class?</li>
+</ul>
+</div>
+</div>
+<div id="going-further" class="section level2">
+<h2>Going further</h2>
+<p>By the end of the chapter, <code>play()</code> has been altered to always return an object with class <code>slots</code>:</p>
+<pre class="r"><code>play &lt;- function() {
+  symbols &lt;- get_symbols()
+  structure(score(symbols), symbols = symbols, class = &quot;slots&quot;)
+}</code></pre>
+<p>And a <code>print()</code> method for <code>slots</code> is defined relying on a function called <code>slot_display()</code>:</p>
+<pre class="r"><code>slot_display &lt;- function(prize){
+
+  # extract symbols
+  symbols &lt;- attr(prize, &quot;symbols&quot;)
+
+  # collapse symbols into single string
+  symbols &lt;- paste(symbols, collapse = &quot; &quot;)
+
+  # combine symbol with prize as a regular expression
+  # \n is regular expression for new line (i.e. return or enter)
+  string &lt;- paste(symbols, prize, sep = &quot;\n$&quot;)
+
+  # display regular expression in console without quotes
+  cat(string)
+}
+
+print.slots &lt;- function(x, ...) {
+  slot_display(x)
+}</code></pre>
+<p>In class we saw it was best practice to create both a constructor and a helper function for a new class, so let’s alter the above to do that.</p>
+<p><a href="https://adv-r.hadley.nz/s3.html#s3-constrcutor">Advanced R</a> recommends our <strong>constructor</strong> function should:</p>
+<ul>
+<li>Be called <code>new_myClass()</code> where we substitute <code>myClass</code> for our class name. So in this case <code>new_slots()</code></li>
+<li>Have one argument for the base object, and one for each attribute. In this case <code>score</code> is the base object and <code>symbols</code> is an attribute.</li>
+<li>Check the type of the base object and the types of each attribute. <code>score</code> should be a length one numeric value, and <code>symbols</code> a length 3 character vector.</li>
+</ul>
+<p>Constructors will always finish with a call to <code>structure()</code> and set the appropriate class.</p>
+<p><strong>Fill in the following function to complete the constructor</strong></p>
+<pre class="r"><code>new_slots &lt;- function(){
+  
+  
+}</code></pre>
+<p>Rewrite <code>play()</code> to make use of the new constructor function</p>
+<pre class="r"><code>play &lt;- function() {
+  symbols &lt;- get_symbols()
+  structure(score(symbols), symbols = symbols, class = &quot;slots&quot;)
+}</code></pre>
+<p>It may also be useful to have a <strong>helper</strong> function, that according to Advanced R should:</p>
+<ul>
+<li><p>Have the same name as the class, e.g. <code>myclass()</code>.</p></li>
+<li><p>Finish by calling the constructor, and the validator, if it exists.</p></li>
+<li><p>Create carefully crafted error messages tailored towards an end-user.</p></li>
+<li><p>Have a thoughtfully crafted user interface with carefully chosen default values and useful conversions.</p></li>
+</ul>
+<p>This would allow us to quickly make a <code>slots</code> object. For example we might want to create specific instances of slot machine output for testing, in which case we might expect to be able to do something like:</p>
+<pre class="r"><code>slots(c(&quot;BB&quot;, &quot;B&quot;, &quot;DD&quot;))
+# BB B DD
+# $0</code></pre>
+<p>Notice a useful default might be that if the score isn’t supplied <code>score()</code> is used to find it, one way to do this is by providing a default value of <code>NULL</code> and checking for it in the body of the function.</p>
+<p><strong>Create a helper function for <code>slots()</code></strong>, it should at least:</p>
+<ul>
+<li>check <code>symbols</code> is of length 3</li>
+<li>if <code>score</code> is <code>NULL</code> (use <code>is.null()</code> to check), calculate it with the <code>score</code> function</li>
+<li>call the constructor function at the end</li>
+</ul>
+<pre class="r"><code>slots &lt;- function(symbols, score = NULL){
+  
+}
+slots(c(&quot;BB&quot;, &quot;B&quot;, &quot;DD&quot;))</code></pre>
+<pre><code>## NULL</code></pre>
+<p>Once you have a helper consider the following two possible results:</p>
+<pre class="r"><code>slots(c(&quot;BB&quot;, &quot;B&quot;, &quot;DD&quot;))
+slots(c(&quot;BB&quot;, &quot;B&quot;, &quot;BBB&quot;))</code></pre>
+<p>It might be nice if we win any money that a congratulations message appears.</p>
+<p><strong>Edit the print method to make this change</strong>. Bonus points if it prints in color.</p>
+</div>
+<div id="other-possible-extensions" class="section level2">
+<h2>Other possible extensions</h2>
+<ul>
+<li><p>What else should be checked if someone constructs their own <code>slots</code> output with <code>slots()</code>? Where is the best place to make the checks?</p></li>
+<li><p>What other methods might be useful for the <code>slots</code> class?</p></li>
+<li><p>Use the <code>emo</code> package to add some more exciting symbols, when printing:</p>
+<pre class="r"><code># devtools::install_github(&quot;hadley/emo&quot;)
+emo::ji(&quot;diamonds&quot;)</code></pre>
+<pre><code>## ♦️</code></pre>
+<pre class="r"><code>emo::ji(&quot;cherries&quot;)</code></pre>
+<pre><code>## 🍒</code></pre>
+<pre class="r"><code>emo::ji(&quot;seven&quot;)</code></pre>
+<pre><code>## 7️⃣</code></pre></li>
+<li><p>When being using interactively (see <code>interactive()</code> to check), put a delay between each symbol being printed using <code>sys.sleep()</code>, and for the payout to be displayed.</p></li>
+</ul>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

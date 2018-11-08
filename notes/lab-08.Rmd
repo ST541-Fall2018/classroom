@@ -1,0 +1,234 @@
+---
+title: Lab 08 - S3 OO programming in R
+author: Charlotte Wickham
+date: Nov 9th 2018
+---
+
+```{r setup, message=FALSE}
+library(tidyverse)
+set.seed(181763)
+```
+
+Get ready to play the slots! In this lab you'll follow along with the chapter on S3 programming in [Hands-On Programming with R](https://rstudio-education.github.io/hopr/s3.html) (HOPR).
+
+To get oriented start by reading the [introduction to the slot machine project](https://rstudio-education.github.io/hopr/project-3-slot-machine.html).
+
+## Introduction
+
+A slot machine randomly draws three symbols, and depending on the combination of symbols that are drawn, a player may receive a payout. In the slot machine implemented in HOPR the symbols that can be drawn and their probabilities of being drawn are captured in the function `get_symbols()`:
+```{r}
+# from https://github.com/rstudio-education/hopr
+get_symbols <- function() {
+  wheel <- c("DD", "7", "BBB", "BB", "B", "C", "0")
+  sample(wheel, size = 3, replace = TRUE, 
+    prob = c(0.03, 0.03, 0.06, 0.1, 0.25, 0.01, 0.52))
+}
+```
+where `DD` is diamonds, `7` sevens, `BBB` triple bars, `BB` double bars, `B` a single bar, `C` cherries and `0` zeros.
+
+You can run `get_symbols()` to see an example of the symbols drawn on a play of the machine:
+```{r}
+get_symbols()
+```
+
+The payout is complicated for the particular type of machine being emulated (you can see the details in Table 9 in [HOPR](https://rstudio-education.github.io/hopr/programs.html)) and is captured in the `score()` function:
+```{r}
+score <- function (symbols) {
+  # identify case
+  same <- symbols[1] == symbols[2] && symbols[2] == symbols[3]
+  bars <- symbols %in% c("B", "BB", "BBB")
+  
+  # get prize
+  if (same) {
+    payouts <- c("DD" = 100, "7" = 80, "BBB" = 40, "BB" = 25, 
+      "B" = 10, "C" = 10, "0" = 0)
+    prize <- unname(payouts[symbols[1]])
+  } else if (all(bars)) {
+    prize <- 5
+  } else {
+    cherries <- sum(symbols == "C")
+    prize <- c(0, 2, 5)[cherries + 1]
+  }
+  
+  # adjust for diamonds
+  diamonds <- sum(symbols == "DD")
+  prize * 2 ^ diamonds
+}
+```
+
+This can be used to figure out the payout for a particular symbol set:
+```{r}
+(one_play <- get_symbols())
+score(one_play)
+```
+
+Finally, `play()` combines the two steps: drawing and scoring
+```{r}
+play <- function() {
+  symbols <- get_symbols()
+  print(symbols)
+  score(symbols)
+}
+```
+
+```{r}
+play()
+```
+
+## Reading S3 Chapter
+
+OK, now you have the setup you can start with the S3 section: https://rstudio-education.github.io/hopr/s3.html
+
+Here are some questions labelled with corresponding section number that you should answer after reading and working through each section.
+
+### 10 S3
+
+* What's the difference between the current output of `play()` and the desired output of `play()`
+* Examine the object `one_play` (created in this section), what is missing from it.
+
+### 10.2 Attributes
+
+This section refers to the variable `DECK` which you can get with
+```{r, results = "hide"}
+DECK <- read.csv(url("https://gist.githubusercontent.com/garrettgman/9629323/raw/ee5dfc039fd581cb467cc69c226ea2524913c3d8/deck.csv"))
+DECK
+```
+
+
+* Do Exercise 10.1, which problem from above does this solve?
+
+* How does `slot_display()` go part-way to solving the other problem?  Why doesn't it completely solve the problem?
+
+### 10.3 Generic Functions
+
+* How do you see all the methods associated with a function? E.g. what methods are available for `summary()`?
+
+### 10.4 Methods
+
+* What happens when a object has more than one class?
+
+* Do exercise 10.2
+
+### 10.5 Classes
+
+* How do you see all the methods associated with a class?
+
+## Going further
+
+By the end of the chapter, `play()` has been altered to always return an object with class `slots`:
+```{r}
+play <- function() {
+  symbols <- get_symbols()
+  structure(score(symbols), symbols = symbols, class = "slots")
+}
+```
+
+And a `print()` method for `slots` is defined relying on a function called  `slot_display()`:
+```{r}
+slot_display <- function(prize){
+
+  # extract symbols
+  symbols <- attr(prize, "symbols")
+
+  # collapse symbols into single string
+  symbols <- paste(symbols, collapse = " ")
+
+  # combine symbol with prize as a regular expression
+  # \n is regular expression for new line (i.e. return or enter)
+  string <- paste(symbols, prize, sep = "\n$")
+
+  # display regular expression in console without quotes
+  cat(string)
+}
+
+print.slots <- function(x, ...) {
+  slot_display(x)
+}
+```
+
+In class we saw it was best practice to create both a constructor and a helper function for a new class, so let's alter the above to do that.
+
+[Advanced R](https://adv-r.hadley.nz/s3.html#s3-constrcutor) recommends our **constructor** function should:
+
+* Be called `new_myClass()` where we substitute `myClass` for our class name.  So in this case `new_slots()`
+* Have one argument for the base object, and one for each attribute. In this case `score` is the base object and `symbols` is an attribute.
+* Check the type of the base object and the types of each attribute. `score` should be a length one numeric value, and `symbols` a length 3 character vector.
+
+Constructors will always finish with a call to `structure()` and set the appropriate class. 
+
+**Fill in the following function to complete the constructor**
+```{r}
+new_slots <- function(){
+  
+  
+}
+```
+
+Rewrite `play()` to make use of the new constructor function
+```{r}
+play <- function() {
+  symbols <- get_symbols()
+  structure(score(symbols), symbols = symbols, class = "slots")
+}
+```
+
+
+It may also be useful to have a **helper** function, that according to Advanced R should:
+
+* Have the same name as the class, e.g. `myclass()`.
+
+* Finish by calling the constructor, and the validator, if it exists.
+
+* Create carefully crafted error messages tailored towards an end-user.
+
+* Have a thoughtfully crafted user interface with carefully chosen default values and useful conversions.
+
+This would allow us to quickly make a `slots` object.  For example we might want to create specific instances of slot machine output for testing, in which case we might expect to be able to do something like:
+
+```r
+slots(c("BB", "B", "DD"))
+# BB B DD
+# $0
+```
+
+Notice a useful default might be that if the score isn't supplied `score()` is used to find it, one way to do this is by providing a default value of `NULL` and checking for it in the body of the function.
+
+**Create a helper function for `slots()`**, it should at least:
+
+* check `symbols` is of length 3
+* if `score` is `NULL` (use `is.null()` to check), calculate it with the `score` function 
+* call the constructor function at the end
+
+```{r}
+slots <- function(symbols, score = NULL){
+  
+}
+slots(c("BB", "B", "DD"))
+```
+
+Once you have a helper consider the following two possible results:
+```{r, results = "hide"}
+slots(c("BB", "B", "DD"))
+slots(c("BB", "B", "BBB"))
+```
+
+It might be nice if we win any money that a congratulations message appears.  
+
+**Edit the print method to make this change**. Bonus points if it prints in color.
+
+## Other possible extensions
+
+* What else should be checked if someone constructs their own `slots` output with `slots()`?  Where is the best place to make the checks?
+
+* What other methods might be useful for the `slots` class?
+
+* Use the `emo` package to add some more exciting symbols, when printing:
+    ```{r}
+    # devtools::install_github("hadley/emo")
+    emo::ji("diamonds")
+    emo::ji("cherries")
+    emo::ji("seven")
+    ```
+
+*  When being using interactively (see `interactive()` to check), put a delay between each symbol being printed using `sys.sleep()`, and for the payout to be displayed.
+
