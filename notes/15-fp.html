@@ -179,6 +179,11 @@ set.seed(57291)</code></pre>
 1 %&gt;% f(2) %&gt;% f(3) %&gt;% f(4)</code></pre>
 <p><strong>Your turn</strong> Guess what the output will be, then run to check Hint: <code>`+`(1, 2)</code> is the same as <code>1 + 2</code></p>
 <pre class="r"><code>reduce(c(1, 2, 3, 4), `+`)</code></pre>
+<p>The same as</p>
+<pre class="r"><code>(((1 + 2) + 3) + 4)</code></pre>
+<pre><code>## [1] 10</code></pre>
+<pre class="r"><code>sum(1:4)</code></pre>
+<pre><code>## [1] 10</code></pre>
 </div>
 <div id="a-more-interesting-example" class="section level2">
 <h2>A more interesting example</h2>
@@ -197,6 +202,9 @@ set.seed(57291)</code></pre>
 <p><strong>What is the complete list of possible items in the baskets?</strong></p>
 <pre class="r"><code>reduce(baskets, union)</code></pre>
 <pre><code>## [1] &quot;bread&quot;   &quot;milk&quot;    &quot;apples&quot;  &quot;bananas&quot; &quot;cheese&quot;  &quot;ham&quot;     &quot;salami&quot;</code></pre>
+<pre class="r"><code># A non- reduce() solution
+unlist(baskets) %&gt;% unique()</code></pre>
+<pre><code>## [1] &quot;bread&quot;   &quot;milk&quot;    &quot;apples&quot;  &quot;bananas&quot; &quot;cheese&quot;  &quot;ham&quot;     &quot;salami&quot;</code></pre>
 </div>
 <div id="map-reduce" class="section level2">
 <h2>map-reduce</h2>
@@ -207,9 +215,21 @@ set.seed(57291)</code></pre>
 <h1>Functional operators</h1>
 <div id="motivation" class="section level2">
 <h2>Motivation</h2>
-<p>Imagine simulating 100 AR(1) series with parameter <span class="math inline">\(\alpha = 0.9\)</span></p>
+<p>Imagine simulating 100 AR(1) time series with parameter <span class="math inline">\(\alpha = 0.95\)</span>:</p>
 <pre class="r"><code>ar1_series &lt;- rerun(100, 
   arima.sim(model = list(ar = 0.95), n = 20))</code></pre>
+<p>You can fit the model to one series with <code>arima()</code> (does a numerical optimization to get MLE, started from conditional least squares estimates):</p>
+<pre class="r"><code>arima(ar1_series[[1]], order = c(1, 0, 0))</code></pre>
+<pre><code>## 
+## Call:
+## arima(x = ar1_series[[1]], order = c(1, 0, 0))
+## 
+## Coefficients:
+##          ar1  intercept
+##       0.6099    -0.7289
+## s.e.  0.1971     0.5903
+## 
+## sigma^2 estimated as 1.194:  log likelihood = -30.38,  aic = 66.77</code></pre>
 <p>We might be interested in investigating the performance of an estimate for <span class="math inline">\(\alpha\)</span>:</p>
 <pre class="r"><code>map(ar1_series, arima, order = c(1, 0, 0))</code></pre>
 <pre><code>## Error in .f(.x[[i]], ...): non-stationary AR part from CSS</code></pre>
@@ -218,16 +238,22 @@ set.seed(57291)</code></pre>
 <div id="safely-a-functional-operator" class="section level2">
 <h2><code>safely()</code> a functional operator</h2>
 <pre class="r"><code>safe_log &lt;- safely(log)</code></pre>
-<p><strong>Your turn</strong> What kind of object is <code>safe_log()</code>?</p>
+<p><strong>Your turn</strong> What kind of object is <code>safe_log</code>?</p>
 <p>Compare the output of the following:</p>
 <pre class="r"><code>log(10)
 safe_log(10)</code></pre>
 <pre class="r"><code>log(&quot;a&quot;)</code></pre>
 <pre><code>## Error in log(&quot;a&quot;): non-numeric argument to mathematical function</code></pre>
 <pre class="r"><code>safe_log(&quot;a&quot;)</code></pre>
+<p><code>safely()</code>returns a function that always returns a list with two elements <code>result</code> and <code>error</code>, one of which is always <code>NULL</code></p>
 </div>
 <div id="putting-it-to-good-use" class="section level2">
 <h2>Putting it to good use</h2>
+<pre class="r"><code>safely(arima)</code></pre>
+<pre><code>## function (...) 
+## capture_error(.f(...), otherwise, quiet)
+## &lt;bytecode: 0x7fa505ec1a00&gt;
+## &lt;environment: 0x7fa508051348&gt;</code></pre>
 <p>Now this runs without stopping:</p>
 <pre class="r"><code>ar1_fits &lt;- map(ar1_series, safely(arima), order = c(1, 0, 0))</code></pre>
 <pre><code>## Warning in .f(...): possible convergence problem: optim gave code = 1</code></pre>
@@ -337,8 +363,16 @@ ar1_fits_t %&gt;% str(max.level = 1)</code></pre>
 ## [13]  2.9581368  1.2483577  0.7783952 -1.0070619 -1.7582732 -2.9540844
 ## [19] -3.3423897 -4.3291866</code></pre>
 <p><strong>Your turn</strong> Use <code>ok</code> to pull out the elements that successfully fit, and find the estimate of <span class="math inline">\(\alpha\)</span> from each one.</p>
-<pre class="r"><code>ar1_fits_t$result</code></pre>
-<pre><code>## Warning in sqrt(diag(x$var.coef)): NaNs produced</code></pre>
+<pre class="r"><code>ar1_fits_t$result[ok] %&gt;% 
+  map(coef) %&gt;% 
+  map_dbl(1)
+
+## OR
+ar1_fits_t$result[ok] %&gt;% 
+  map(&quot;coef&quot;) %&gt;% 
+  map_dbl(1) %&gt;% 
+  hist()</code></pre>
+<p><img src="15-fp_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 </div>
 <div id="also-see-possibly-and-quietly" class="section level2">
 <h2>Also see <code>possibly()</code> and <code>quietly()</code></h2>
@@ -346,7 +380,11 @@ ar1_fits_t %&gt;% str(max.level = 1)</code></pre>
 <pre class="r"><code>estimate_alpha &lt;- function(x){
   arima(x, order = c(1, 0, 0)) %&gt;% coef() %&gt;% pluck(1)
 }
-map_dbl(ar1_series, possibly(estimate_alpha, otherwise = NA))</code></pre>
+map_dbl(ar1_series, 
+  possibly(estimate_alpha, otherwise = NA, quiet = FALSE))</code></pre>
+<pre><code>## Error: non-stationary AR part from CSS
+## Error: non-stationary AR part from CSS
+## Error: non-stationary AR part from CSS</code></pre>
 <pre><code>## Warning in arima(x, order = c(1, 0, 0)): possible convergence problem:
 ## optim gave code = 1</code></pre>
 <pre><code>##   [1]  0.6099325  0.6816754  0.8255509  0.5404877  0.8281109  0.7325073
@@ -391,6 +429,18 @@ cube &lt;- power1(3)</code></pre>
 <pre><code>## [1] 9</code></pre>
 <pre class="r"><code>cube(3)</code></pre>
 <pre><code>## [1] 27</code></pre>
+<p>Q: What’s does <code>force()</code> do? It forces the argument to be evaluated so you don’t end up with problems like this:</p>
+<pre class="r"><code>power2 &lt;- function(exp) {
+  function(x) {
+    x ^ exp
+  }
+}
+
+my_exp &lt;- 2
+my_square &lt;- power2(my_exp)
+my_exp &lt;- 3
+my_square(3)</code></pre>
+<pre><code>## [1] 27</code></pre>
 <div id="an-application" class="section level2">
 <h2>An application</h2>
 <p>From: <a href="https://adv-r.hadley.nz/function-factories.html#MLE" class="uri">https://adv-r.hadley.nz/function-factories.html#MLE</a></p>
@@ -433,7 +483,7 @@ nll1</code></pre>
 <pre><code>## function(lambda){
 ##     -1 * (log(lambda)*s_x - n*lambda - s_fac_x)
 ##   }
-## &lt;environment: 0x7fbf8cea3ce0&gt;</code></pre>
+## &lt;environment: 0x7fa5053d8ae0&gt;</code></pre>
 <pre class="r"><code>nll1(5)</code></pre>
 <pre><code>## [1] 43.76526</code></pre>
 <pre class="r"><code>optimize(nll1, interval = c(0, 10)) </code></pre>
@@ -450,10 +500,10 @@ nll1</code></pre>
   nll1(5)
 )</code></pre>
 <pre><code>## # A tibble: 2 x 10
-##   expression        min     mean   median    max `itr/sec` mem_alloc  n_gc
-##   &lt;chr&gt;        &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:&gt;     &lt;dbl&gt; &lt;bch:byt&gt; &lt;dbl&gt;
-## 1 nllhood_poi…   3.08µs   4.06µs   3.65µs 87.6µs   246145.      208B     1
-## 2 nll1(5)         724ns 974.25ns    880ns 55.9µs  1026429.        0B     0
+##   expression       min     mean   median     max `itr/sec` mem_alloc  n_gc
+##   &lt;chr&gt;       &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:t&gt;     &lt;dbl&gt; &lt;bch:byt&gt; &lt;dbl&gt;
+## 1 nllhood_po…   3.11µs   4.38µs   3.71µs 413.5µs   228278.      208B     1
+## 2 nll1(5)        705ns 992.52ns    875ns  52.1µs  1007534.        0B     1
 ## # ... with 2 more variables: n_itr &lt;int&gt;, total_time &lt;bch:tm&gt;</code></pre></li>
 <li><p>code becomes closer to mathematical structure of the problem. E.g. given data we define a function of <span class="math inline">\(\lambda\)</span>, then maximize that function.</p></li>
 </ul>

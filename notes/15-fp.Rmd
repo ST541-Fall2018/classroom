@@ -21,7 +21,6 @@ We'll touch on three techniques:
 
 All using functions in the purrr package
 
-
 **Resources**: https://adv-r.hadley.nz/fp.html
 
 # Functionals
@@ -56,6 +55,11 @@ Hint: `` `+`(1, 2)`` is the same as `1 + 2`
 reduce(c(1, 2, 3, 4), `+`)
 ```
 
+The same as
+```{r}
+(((1 + 2) + 3) + 4)
+sum(1:4)
+```
 
 ## A more interesting example
 
@@ -86,6 +90,11 @@ reduce(baskets, intersect)
 reduce(baskets, union)
 ```
 
+```{r}
+# A non- reduce() solution
+unlist(baskets) %>% unique()
+```
+
 ## map-reduce
 
 Idea behind *map-reduce* a framework for working with large data sets -- in the  *map* step, workers do the map operation on the data they have, then a single process *reduces* all the results into one.
@@ -94,11 +103,17 @@ Idea behind *map-reduce* a framework for working with large data sets -- in the 
 
 ## Motivation
 
-Imagine simulating 100 AR(1) series with parameter $\alpha = 0.9$
+Imagine simulating 100 AR(1) time series with parameter $\alpha = 0.95$:
 ```{r}
 ar1_series <- rerun(100, 
   arima.sim(model = list(ar = 0.95), n = 20))
 ```
+
+You can fit the model to one series with `arima()` (does a numerical optimization to get MLE, started from conditional least squares estimates):
+```{r}
+arima(ar1_series[[1]], order = c(1, 0, 0))
+```
+
 
 We might be interested in investigating the performance of an estimate for $\alpha$:
 ```{r, error = TRUE}
@@ -113,19 +128,26 @@ On which iteration did the error arise? How can we keep going without one error 
 safe_log <- safely(log)
 ```
 
-**Your turn** What kind of object is `safe_log()`?  
+**Your turn** What kind of object is `safe_log`?  
 
 Compare the output of the following:
 ```{r, results = "hide"}
 log(10)
 safe_log(10)
 ```
+
 ```{r, results = "hide", error = TRUE}
 log("a")
 safe_log("a")
 ```
 
+`safely()`returns a function that  always returns a list with two elements `result` and `error`, one of which is always `NULL`
+
 ## Putting it to good use
+
+```{r}
+safely(arima)
+```
 
 Now this runs without stopping:
 ```{r}
@@ -160,7 +182,15 @@ ar1_series[!ok]  # which series generated them
 **Your turn** Use `ok` to pull out the elements that successfully fit, and find the estimate of $\alpha$ from each one. 
 
 ```{r, results="hide"}
-ar1_fits_t$result
+ar1_fits_t$result[ok] %>% 
+  map(coef) %>% 
+  map_dbl(1)
+
+## OR
+ar1_fits_t$result[ok] %>% 
+  map("coef") %>% 
+  map_dbl(1) %>% 
+  hist()
 ```
 
 ## Also see `possibly()` and `quietly()`
@@ -170,7 +200,8 @@ ar1_fits_t$result
 estimate_alpha <- function(x){
   arima(x, order = c(1, 0, 0)) %>% coef() %>% pluck(1)
 }
-map_dbl(ar1_series, possibly(estimate_alpha, otherwise = NA))
+map_dbl(ar1_series, 
+  possibly(estimate_alpha, otherwise = NA, quiet = FALSE))
 ```
 
 `quietly()` captures messages or warnings.
@@ -200,6 +231,20 @@ cube <- power1(3)
 ```{r}
 square(3)
 cube(3)
+```
+
+Q: What's does `force()` do?  It forces the argument to be evaluated so you don't end up with problems like this:
+```{r}
+power2 <- function(exp) {
+  function(x) {
+    x ^ exp
+  }
+}
+
+my_exp <- 2
+my_square <- power2(my_exp)
+my_exp <- 3
+my_square(3)
 ```
 
 ## An application
