@@ -1,0 +1,274 @@
+---
+title: Functional Programming
+author: Charlotte Wickham
+date: Nov 13th 2018
+---
+
+```{r setup, message = FALSE}
+library(tidyverse)
+set.seed(57291)
+```
+
+Functional programming is another programming paradigm like object oriented programming.
+
+It's style that works quite well in R, because R has **first class functions** --  you can do anything with a function that you can do with a regular value.
+
+We'll touch on three techniques:
+
+* **Functionals** functions that take functions as arguments, and return vectors as input.
+* **Functional operators** functions that take functions as input and return functions as output.
+* **Function factories** functions that create functions.
+
+All using functions in the purrr package
+
+
+**Resources**: https://adv-r.hadley.nz/fp.html
+
+# Functionals
+
+You are already familiar with the `map()`!  
+
+```r
+map(.x, .f, ...)
+```
+
+`.f` a function to apply to each element
+
+The rest of the family...
+
+## `reduce()`
+
+`reduce(.x, .f)`
+
+`.f` is some function that takes two values and returns a single value.
+
+`reduce()` iteratively applies `.f` to `.x` to reduce many values to one.
+
+E.g. `reduce(.x = c(1, 2, 3, 4), .f =  f)` is equivalent to:
+```r
+f(f(f(1, 2), 3), 4) # OR equally
+1 %>% f(2) %>% f(3) %>% f(4)
+```
+
+**Your turn** Guess what the output will be, then run to check
+Hint: `` `+`(1, 2)`` is the same as `1 + 2`
+```{r, results='hide'}
+reduce(c(1, 2, 3, 4), `+`)
+```
+
+
+## A more interesting example
+
+```{r}
+baskets <- list(
+  c("bread", "milk", "apples", "bananas"),
+  c("milk", "cheese", "bread"),
+  c("ham", "salami", "milk"),
+  c("milk", "ham", "apples", "bananas")
+)
+```
+
+**Which items are in every basket?**
+
+One approach is to think about the *set intersection* of all the baskets.
+
+```{r}
+intersect(baskets[[1]], baskets[[2]])
+```
+
+```{r}
+reduce(baskets, intersect)
+```
+
+**What is the complete list of possible items in the baskets?**
+
+```{r}
+reduce(baskets, union)
+```
+
+## map-reduce
+
+Idea behind *map-reduce* a framework for working with large data sets -- in the  *map* step, workers do the map operation on the data they have, then a single process *reduces* all the results into one.
+
+# Functional operators
+
+## Motivation
+
+Imagine simulating 100 AR(1) series with parameter $\alpha = 0.9$
+```{r}
+ar1_series <- rerun(100, 
+  arima.sim(model = list(ar = 0.95), n = 20))
+```
+
+We might be interested in investigating the performance of an estimate for $\alpha$:
+```{r, error = TRUE}
+map(ar1_series, arima, order = c(1, 0, 0))
+```
+
+On which iteration did the error arise? How can we keep going without one error stopping all our iteration?
+
+## `safely()` a functional operator
+
+```{r}
+safe_log <- safely(log)
+```
+
+**Your turn** What kind of object is `safe_log()`?  
+
+Compare the output of the following:
+```{r, results = "hide"}
+log(10)
+safe_log(10)
+```
+```{r, results = "hide", error = TRUE}
+log("a")
+safe_log("a")
+```
+
+## Putting it to good use
+
+Now this runs without stopping:
+```{r}
+ar1_fits <- map(ar1_series, safely(arima), order = c(1, 0, 0))
+```
+
+But the output is a little awkward:
+```{r}
+ar1_fits[1:2]
+ar1_fits[1:5] %>% str(max.level = 2)
+```
+
+We need to find the elements where the `error` element isn't `NULL`.
+
+`transpose()` turns a list inside out:
+```{r}
+ar1_fits_t <- transpose(ar1_fits)
+ar1_fits_t %>% str(max.level = 1)
+```
+
+Which makes it easy to find the elements without an error: 
+```{r}
+ok <- map_lgl(ar1_fits_t$error, is.null)
+```
+
+And use that to pull out the errors, or which samples produced them:
+```{r}
+ar1_fits_t$error[!ok] # what were the errors
+ar1_series[!ok]  # which series generated them
+```
+
+**Your turn** Use `ok` to pull out the elements that successfully fit, and find the estimate of $\alpha$ from each one. 
+
+```{r, results="hide"}
+ar1_fits_t$result
+```
+
+## Also see `possibly()` and `quietly()`
+
+`possibly()` doesn't capture the error, it just returns a default value you specify:
+```{r}
+estimate_alpha <- function(x){
+  arima(x, order = c(1, 0, 0)) %>% coef() %>% pluck(1)
+}
+map_dbl(ar1_series, possibly(estimate_alpha, otherwise = NA))
+```
+
+`quietly()` captures messages or warnings.
+
+## `memoise::memoise()`
+
+Another useful functional operator is `memoise::memoise()`.  It produces a version of the function that remembers which arguments is has been called with and can reuse already calculated outputs instead of recalculating them.
+
+# Function factories
+
+Functions that create functions
+
+E.g. from Advanced R
+```{r}
+power1 <- function(exp) {
+  force(exp)
+  
+  function(x) {
+    x ^ exp
+  }
+}
+
+square <- power1(2)
+cube <- power1(3)
+```
+
+```{r}
+square(3)
+cube(3)
+```
+
+## An application
+
+From: https://adv-r.hadley.nz/function-factories.html#MLE
+
+ML estimation of $\lambda$ in a Poisson model.
+
+If $X_1, \ldots, X_n$ are i.i.d Poisson($\lambda$), then the log likelihood is: 
+$$
+\ell(\lambda; x) = \log(\lambda)\sum_{i = 1}^n x_i - n\lambda - \sum_{i = 1}^{n}\log(x_i!)
+$$
+
+```{r}
+x <- c(9L, 6L, 1L, 8L, 3L, 4L, 3L, 2L, 4L, 4L, 3L, 2L, 4L, 5L,
+  3L, 3L, 5L, 8L, 4L, 8L)
+```
+
+## Our previous approach
+
+Write a function for the negative log-likelihood:
+```{r}
+nllhood_poission1 <- function(lambda, x){
+  -1 * (log(lambda)*sum(x) - length(x)*lambda - 
+    sum(lfactorial(x)))
+}
+```
+
+Optimize over `lambda` passing in `x` to `optimize` through `...`:
+```{r}
+optimize(nllhood_poission1, interval = c(0, 10), x = x) 
+```
+
+
+## An alternative approach
+
+Define a factory for poisson negative likelihoods:
+```{r}
+nllhood_poission <- function(x){
+  s_x <- sum(x)
+  n <- length(x)
+  s_fac_x <- sum(lfactorial(x))
+  function(lambda){
+    -1 * (log(lambda)*s_x - n*lambda - s_fac_x)
+  }
+}
+```
+
+Use it to create the function for our specific data:
+```{r}
+nll1 <- nllhood_poission(x)
+nll1
+nll1(5)
+```
+
+```{r}
+optimize(nll1, interval = c(0, 10)) 
+```
+
+Advantages:
+
+* should be faster, since the computation of the data summaries only happens once (not on every call to `nll1()`)
+    ```{r}
+    bench::mark(
+      nllhood_poission1(5, x = x),
+      nll1(5)
+    )
+    ```
+* code becomes closer to mathematical structure of the problem.  E.g. given data we define a function of $\lambda$, then maximize that function.
+
+
+

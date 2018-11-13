@@ -64,6 +64,8 @@
 
 ### Week 8
 
+* Nov 13 [**Functional programming in R**](notes/15-fp.html) ([Rmd](notes/15-fp.Rmd))
+
 ### Week 9
 
 * Nov 22 **Thanksgiving** - no class

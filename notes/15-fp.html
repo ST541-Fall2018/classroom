@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Functional Programming</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Functional Programming</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Nov 13th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#functionals">Functionals</a><ul>
+<li><a href="#reduce"><code>reduce()</code></a></li>
+<li><a href="#a-more-interesting-example">A more interesting example</a></li>
+<li><a href="#map-reduce">map-reduce</a></li>
+</ul></li>
+<li><a href="#functional-operators">Functional operators</a><ul>
+<li><a href="#motivation">Motivation</a></li>
+<li><a href="#safely-a-functional-operator"><code>safely()</code> a functional operator</a></li>
+<li><a href="#putting-it-to-good-use">Putting it to good use</a></li>
+<li><a href="#also-see-possibly-and-quietly">Also see <code>possibly()</code> and <code>quietly()</code></a></li>
+<li><a href="#memoisememoise"><code>memoise::memoise()</code></a></li>
+</ul></li>
+<li><a href="#function-factories">Function factories</a><ul>
+<li><a href="#an-application">An application</a></li>
+<li><a href="#our-previous-approach">Our previous approach</a></li>
+<li><a href="#an-alternative-approach">An alternative approach</a></li>
+</ul></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+set.seed(57291)</code></pre>
+<p>Functional programming is another programming paradigm like object oriented programming.</p>
+<p>It’s style that works quite well in R, because R has <strong>first class functions</strong> – you can do anything with a function that you can do with a regular value.</p>
+<p>We’ll touch on three techniques:</p>
+<ul>
+<li><strong>Functionals</strong> functions that take functions as arguments, and return vectors as input.</li>
+<li><strong>Functional operators</strong> functions that take functions as input and return functions as output.</li>
+<li><strong>Function factories</strong> functions that create functions.</li>
+</ul>
+<p>All using functions in the purrr package</p>
+<p><strong>Resources</strong>: <a href="https://adv-r.hadley.nz/fp.html" class="uri">https://adv-r.hadley.nz/fp.html</a></p>
+<div id="functionals" class="section level1">
+<h1>Functionals</h1>
+<p>You are already familiar with the <code>map()</code>!</p>
+<pre class="r"><code>map(.x, .f, ...)</code></pre>
+<p><code>.f</code> a function to apply to each element</p>
+<p>The rest of the family…</p>
+<div id="reduce" class="section level2">
+<h2><code>reduce()</code></h2>
+<p><code>reduce(.x, .f)</code></p>
+<p><code>.f</code> is some function that takes two values and returns a single value.</p>
+<p><code>reduce()</code> iteratively applies <code>.f</code> to <code>.x</code> to reduce many values to one.</p>
+<p>E.g. <code>reduce(.x = c(1, 2, 3, 4), .f =  f)</code> is equivalent to:</p>
+<pre class="r"><code>f(f(f(1, 2), 3), 4) # OR equally
+1 %&gt;% f(2) %&gt;% f(3) %&gt;% f(4)</code></pre>
+<p><strong>Your turn</strong> Guess what the output will be, then run to check Hint: <code>`+`(1, 2)</code> is the same as <code>1 + 2</code></p>
+<pre class="r"><code>reduce(c(1, 2, 3, 4), `+`)</code></pre>
+</div>
+<div id="a-more-interesting-example" class="section level2">
+<h2>A more interesting example</h2>
+<pre class="r"><code>baskets &lt;- list(
+  c(&quot;bread&quot;, &quot;milk&quot;, &quot;apples&quot;, &quot;bananas&quot;),
+  c(&quot;milk&quot;, &quot;cheese&quot;, &quot;bread&quot;),
+  c(&quot;ham&quot;, &quot;salami&quot;, &quot;milk&quot;),
+  c(&quot;milk&quot;, &quot;ham&quot;, &quot;apples&quot;, &quot;bananas&quot;)
+)</code></pre>
+<p><strong>Which items are in every basket?</strong></p>
+<p>One approach is to think about the <em>set intersection</em> of all the baskets.</p>
+<pre class="r"><code>intersect(baskets[[1]], baskets[[2]])</code></pre>
+<pre><code>## [1] &quot;bread&quot; &quot;milk&quot;</code></pre>
+<pre class="r"><code>reduce(baskets, intersect)</code></pre>
+<pre><code>## [1] &quot;milk&quot;</code></pre>
+<p><strong>What is the complete list of possible items in the baskets?</strong></p>
+<pre class="r"><code>reduce(baskets, union)</code></pre>
+<pre><code>## [1] &quot;bread&quot;   &quot;milk&quot;    &quot;apples&quot;  &quot;bananas&quot; &quot;cheese&quot;  &quot;ham&quot;     &quot;salami&quot;</code></pre>
+</div>
+<div id="map-reduce" class="section level2">
+<h2>map-reduce</h2>
+<p>Idea behind <em>map-reduce</em> a framework for working with large data sets – in the <em>map</em> step, workers do the map operation on the data they have, then a single process <em>reduces</em> all the results into one.</p>
+</div>
+</div>
+<div id="functional-operators" class="section level1">
+<h1>Functional operators</h1>
+<div id="motivation" class="section level2">
+<h2>Motivation</h2>
+<p>Imagine simulating 100 AR(1) series with parameter <span class="math inline">\(\alpha = 0.9\)</span></p>
+<pre class="r"><code>ar1_series &lt;- rerun(100, 
+  arima.sim(model = list(ar = 0.95), n = 20))</code></pre>
+<p>We might be interested in investigating the performance of an estimate for <span class="math inline">\(\alpha\)</span>:</p>
+<pre class="r"><code>map(ar1_series, arima, order = c(1, 0, 0))</code></pre>
+<pre><code>## Error in .f(.x[[i]], ...): non-stationary AR part from CSS</code></pre>
+<p>On which iteration did the error arise? How can we keep going without one error stopping all our iteration?</p>
+</div>
+<div id="safely-a-functional-operator" class="section level2">
+<h2><code>safely()</code> a functional operator</h2>
+<pre class="r"><code>safe_log &lt;- safely(log)</code></pre>
+<p><strong>Your turn</strong> What kind of object is <code>safe_log()</code>?</p>
+<p>Compare the output of the following:</p>
+<pre class="r"><code>log(10)
+safe_log(10)</code></pre>
+<pre class="r"><code>log(&quot;a&quot;)</code></pre>
+<pre><code>## Error in log(&quot;a&quot;): non-numeric argument to mathematical function</code></pre>
+<pre class="r"><code>safe_log(&quot;a&quot;)</code></pre>
+</div>
+<div id="putting-it-to-good-use" class="section level2">
+<h2>Putting it to good use</h2>
+<p>Now this runs without stopping:</p>
+<pre class="r"><code>ar1_fits &lt;- map(ar1_series, safely(arima), order = c(1, 0, 0))</code></pre>
+<pre><code>## Warning in .f(...): possible convergence problem: optim gave code = 1</code></pre>
+<p>But the output is a little awkward:</p>
+<pre class="r"><code>ar1_fits[1:2]</code></pre>
+<pre><code>## [[1]]
+## [[1]]$result
+## 
+## Call:
+## .f(x = ..1, order = ..2)
+## 
+## Coefficients:
+##          ar1  intercept
+##       0.6099    -0.7289
+## s.e.  0.1971     0.5903
+## 
+## sigma^2 estimated as 1.194:  log likelihood = -30.38,  aic = 66.77
+## 
+## [[1]]$error
+## NULL
+## 
+## 
+## [[2]]
+## [[2]]$result
+## 
+## Call:
+## .f(x = ..1, order = ..2)
+## 
+## Coefficients:
+##          ar1  intercept
+##       0.6817     3.2588
+## s.e.  0.1750     0.5204
+## 
+## sigma^2 estimated as 0.5985:  log likelihood = -23.56,  aic = 53.12
+## 
+## [[2]]$error
+## NULL</code></pre>
+<pre class="r"><code>ar1_fits[1:5] %&gt;% str(max.level = 2)</code></pre>
+<pre><code>## List of 5
+##  $ :List of 2
+##   ..$ result:List of 14
+##   .. ..- attr(*, &quot;class&quot;)= chr &quot;Arima&quot;
+##   ..$ error : NULL
+##  $ :List of 2
+##   ..$ result:List of 14
+##   .. ..- attr(*, &quot;class&quot;)= chr &quot;Arima&quot;
+##   ..$ error : NULL
+##  $ :List of 2
+##   ..$ result:List of 14
+##   .. ..- attr(*, &quot;class&quot;)= chr &quot;Arima&quot;
+##   ..$ error : NULL
+##  $ :List of 2
+##   ..$ result:List of 14
+##   .. ..- attr(*, &quot;class&quot;)= chr &quot;Arima&quot;
+##   ..$ error : NULL
+##  $ :List of 2
+##   ..$ result:List of 14
+##   .. ..- attr(*, &quot;class&quot;)= chr &quot;Arima&quot;
+##   ..$ error : NULL</code></pre>
+<p>We need to find the elements where the <code>error</code> element isn’t <code>NULL</code>.</p>
+<p><code>transpose()</code> turns a list inside out:</p>
+<pre class="r"><code>ar1_fits_t &lt;- transpose(ar1_fits)
+ar1_fits_t %&gt;% str(max.level = 1)</code></pre>
+<pre><code>## List of 2
+##  $ result:List of 100
+##  $ error :List of 100</code></pre>
+<p>Which makes it easy to find the elements without an error:</p>
+<pre class="r"><code>ok &lt;- map_lgl(ar1_fits_t$error, is.null)</code></pre>
+<p>And use that to pull out the errors, or which samples produced them:</p>
+<pre class="r"><code>ar1_fits_t$error[!ok] # what were the errors</code></pre>
+<pre><code>## [[1]]
+## &lt;simpleError in .f(...): non-stationary AR part from CSS&gt;
+## 
+## [[2]]
+## &lt;simpleError in .f(...): non-stationary AR part from CSS&gt;
+## 
+## [[3]]
+## &lt;simpleError in .f(...): non-stationary AR part from CSS&gt;</code></pre>
+<pre class="r"><code>ar1_series[!ok]  # which series generated them</code></pre>
+<pre><code>## [[1]]
+## Time Series:
+## Start = 1 
+## End = 20 
+## Frequency = 1 
+##  [1] -3.3534368 -3.0951481 -3.0516036 -4.7160478 -4.7480772 -5.7081727
+##  [7] -5.2347177 -5.2526778 -5.0563317 -4.0665666 -4.9653963 -5.7939490
+## [13] -5.8242676 -3.0556686 -1.7263417 -0.5358495  1.7128079  2.2412037
+## [19]  4.1916670  4.4768658
+## 
+## [[2]]
+## Time Series:
+## Start = 1 
+## End = 20 
+## Frequency = 1 
+##  [1] -0.36068860  0.24861314 -0.41445358 -1.14363445 -0.93666186
+##  [6] -0.02801535  0.94656881  1.00018206  1.65730761  3.27611153
+## [11]  2.98063259  3.06498382  3.40821958  2.14774649  1.63483418
+## [16]  1.00621711 -0.78402215 -1.29709084 -3.14324946 -3.89710475
+## 
+## [[3]]
+## Time Series:
+## Start = 1 
+## End = 20 
+## Frequency = 1 
+##  [1]  5.2788934  4.9829612  3.9225622  3.5281228  2.8421032  3.8841123
+##  [7]  4.8598289  6.1408107  5.3025480  6.6070733  5.6165941  4.5296112
+## [13]  2.9581368  1.2483577  0.7783952 -1.0070619 -1.7582732 -2.9540844
+## [19] -3.3423897 -4.3291866</code></pre>
+<p><strong>Your turn</strong> Use <code>ok</code> to pull out the elements that successfully fit, and find the estimate of <span class="math inline">\(\alpha\)</span> from each one.</p>
+<pre class="r"><code>ar1_fits_t$result</code></pre>
+<pre><code>## Warning in sqrt(diag(x$var.coef)): NaNs produced</code></pre>
+</div>
+<div id="also-see-possibly-and-quietly" class="section level2">
+<h2>Also see <code>possibly()</code> and <code>quietly()</code></h2>
+<p><code>possibly()</code> doesn’t capture the error, it just returns a default value you specify:</p>
+<pre class="r"><code>estimate_alpha &lt;- function(x){
+  arima(x, order = c(1, 0, 0)) %&gt;% coef() %&gt;% pluck(1)
+}
+map_dbl(ar1_series, possibly(estimate_alpha, otherwise = NA))</code></pre>
+<pre><code>## Warning in arima(x, order = c(1, 0, 0)): possible convergence problem:
+## optim gave code = 1</code></pre>
+<pre><code>##   [1]  0.6099325  0.6816754  0.8255509  0.5404877  0.8281109  0.7325073
+##   [7]  0.6672460         NA  0.6992435  0.8318520  0.7837984  0.8435008
+##  [13]  0.6603792  0.9109857  0.9441183  0.3017143  0.9379027  0.7203600
+##  [19]  0.9464088  0.8573701  0.7976971  0.8258578  0.9794134  0.8057567
+##  [25]  0.8971668  0.3627412  0.7592842  0.8193397  0.9109259  0.8401488
+##  [31]  0.7608817 -0.0761697  0.7934027  0.7605834  0.7116478  0.5251081
+##  [37]  0.9234897  0.7893801  0.8782270  0.8483945  0.6645448  0.2908150
+##  [43]  0.8809670  0.3087400  0.7294408         NA  0.8518711  0.4165418
+##  [49]  0.9499480  0.4989194  0.9375076  0.7898615  0.3033989  0.3980182
+##  [55]  0.8899871  0.9368759  0.7860537  0.9234076  0.9002606  0.8012560
+##  [61]  0.8012382  0.4223826  0.5484254  0.9187579  0.7356023  0.5200131
+##  [67]  0.6563350  0.5997682  0.8813759  0.5965004  0.7467530  0.4123580
+##  [73]  0.8930968  0.5002282  0.7460675  0.8791760  0.7994180  0.9093477
+##  [79]  0.4632585  0.8893103  0.7498224  0.6686794  0.7158937  0.6961227
+##  [85]  0.7385590  0.9070601  0.9272516  0.9201210  0.5747246         NA
+##  [91]  0.9599866  0.7453595  0.7692607  0.8863382  0.9829849  0.9671730
+##  [97]  0.7060810  0.4204500  0.8737742  0.8585487</code></pre>
+<p><code>quietly()</code> captures messages or warnings.</p>
+</div>
+<div id="memoisememoise" class="section level2">
+<h2><code>memoise::memoise()</code></h2>
+<p>Another useful functional operator is <code>memoise::memoise()</code>. It produces a version of the function that remembers which arguments is has been called with and can reuse already calculated outputs instead of recalculating them.</p>
+</div>
+</div>
+<div id="function-factories" class="section level1">
+<h1>Function factories</h1>
+<p>Functions that create functions</p>
+<p>E.g. from Advanced R</p>
+<pre class="r"><code>power1 &lt;- function(exp) {
+  force(exp)
+  
+  function(x) {
+    x ^ exp
+  }
+}
+
+square &lt;- power1(2)
+cube &lt;- power1(3)</code></pre>
+<pre class="r"><code>square(3)</code></pre>
+<pre><code>## [1] 9</code></pre>
+<pre class="r"><code>cube(3)</code></pre>
+<pre><code>## [1] 27</code></pre>
+<div id="an-application" class="section level2">
+<h2>An application</h2>
+<p>From: <a href="https://adv-r.hadley.nz/function-factories.html#MLE" class="uri">https://adv-r.hadley.nz/function-factories.html#MLE</a></p>
+<p>ML estimation of <span class="math inline">\(\lambda\)</span> in a Poisson model.</p>
+<p>If <span class="math inline">\(X_1, \ldots, X_n\)</span> are i.i.d Poisson(<span class="math inline">\(\lambda\)</span>), then the log likelihood is: <span class="math display">\[
+\ell(\lambda; x) = \log(\lambda)\sum_{i = 1}^n x_i - n\lambda - \sum_{i = 1}^{n}\log(x_i!)
+\]</span></p>
+<pre class="r"><code>x &lt;- c(9L, 6L, 1L, 8L, 3L, 4L, 3L, 2L, 4L, 4L, 3L, 2L, 4L, 5L,
+  3L, 3L, 5L, 8L, 4L, 8L)</code></pre>
+</div>
+<div id="our-previous-approach" class="section level2">
+<h2>Our previous approach</h2>
+<p>Write a function for the negative log-likelihood:</p>
+<pre class="r"><code>nllhood_poission1 &lt;- function(lambda, x){
+  -1 * (log(lambda)*sum(x) - length(x)*lambda - 
+    sum(lfactorial(x)))
+}</code></pre>
+<p>Optimize over <code>lambda</code> passing in <code>x</code> to <code>optimize</code> through <code>...</code>:</p>
+<pre class="r"><code>optimize(nllhood_poission1, interval = c(0, 10), x = x) </code></pre>
+<pre><code>## $minimum
+## [1] 4.450001
+## 
+## $objective
+## [1] 43.13677</code></pre>
+</div>
+<div id="an-alternative-approach" class="section level2">
+<h2>An alternative approach</h2>
+<p>Define a factory for poisson negative likelihoods:</p>
+<pre class="r"><code>nllhood_poission &lt;- function(x){
+  s_x &lt;- sum(x)
+  n &lt;- length(x)
+  s_fac_x &lt;- sum(lfactorial(x))
+  function(lambda){
+    -1 * (log(lambda)*s_x - n*lambda - s_fac_x)
+  }
+}</code></pre>
+<p>Use it to create the function for our specific data:</p>
+<pre class="r"><code>nll1 &lt;- nllhood_poission(x)
+nll1</code></pre>
+<pre><code>## function(lambda){
+##     -1 * (log(lambda)*s_x - n*lambda - s_fac_x)
+##   }
+## &lt;environment: 0x7fbf8cea3ce0&gt;</code></pre>
+<pre class="r"><code>nll1(5)</code></pre>
+<pre><code>## [1] 43.76526</code></pre>
+<pre class="r"><code>optimize(nll1, interval = c(0, 10)) </code></pre>
+<pre><code>## $minimum
+## [1] 4.450001
+## 
+## $objective
+## [1] 43.13677</code></pre>
+<p>Advantages:</p>
+<ul>
+<li><p>should be faster, since the computation of the data summaries only happens once (not on every call to <code>nll1()</code>)</p>
+<pre class="r"><code>bench::mark(
+  nllhood_poission1(5, x = x),
+  nll1(5)
+)</code></pre>
+<pre><code>## # A tibble: 2 x 10
+##   expression        min     mean   median    max `itr/sec` mem_alloc  n_gc
+##   &lt;chr&gt;        &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:tm&gt; &lt;bch:&gt;     &lt;dbl&gt; &lt;bch:byt&gt; &lt;dbl&gt;
+## 1 nllhood_poi…   3.08µs   4.06µs   3.65µs 87.6µs   246145.      208B     1
+## 2 nll1(5)         724ns 974.25ns    880ns 55.9µs  1026429.        0B     0
+## # ... with 2 more variables: n_itr &lt;int&gt;, total_time &lt;bch:tm&gt;</code></pre></li>
+<li><p>code becomes closer to mathematical structure of the problem. E.g. given data we define a function of <span class="math inline">\(\lambda\)</span>, then maximize that function.</p></li>
+</ul>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
