@@ -26,7 +26,7 @@ Adpated from *Tidy Tools* by Hadley Wickham CC BY NC 4.0.
 
 **Resource**:  http://r-pkgs.had.co.nz/tests.html
 
-You will need this RStudio Cloud Project
+You will need this [RStudio Cloud Project](https://rstudio.cloud/spaces/4116/project/136930)
 
 ## Motivation
 
