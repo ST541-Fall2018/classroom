@@ -65,7 +65,7 @@
 ### Week 8
 
 * Nov 13 [**Functional programming in R**](notes/15-fp.html) ([Rmd](notes/15-fp.Rmd))
-* Nov 15 [**Documentation and testing in R**](notes/16-doc-test.html) ([Rmd](16-doc-test.Rmd))
+* Nov 15 [**Documentation and testing in R**](notes/16-doc-test.html) ([Rmd](notes/16-doc-test.Rmd))
 
 ### Week 9
 
