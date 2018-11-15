@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Charlotte Wickham" />
+
+
+<title>Documentation and Testing</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<link href="libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Documentation and Testing</h1>
+<h4 class="author"><em>Charlotte Wickham</em></h4>
+<h4 class="date"><em>Nov 15th 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#documentation-and-testing">Documentation and Testing</a></li>
+<li><a href="#testing">Testing</a><ul>
+<li><a href="#motivation">Motivation</a></li>
+<li><a href="#set-up-testing-infrastructure">Set up testing infrastructure</a></li>
+<li><a href="#test">Test</a></li>
+<li><a href="#testing-workflow">Testing workflow</a></li>
+<li><a href="#writing-tests">Writing tests</a></li>
+<li><a href="#some-useful-testing-functions">Some useful testing functions</a></li>
+</ul></li>
+<li><a href="#documentation">Documentation</a><ul>
+<li><a href="#documentation-using-roxygen2">Documentation using roxygen2</a></li>
+<li><a href="#starting-from-scratch">Starting from scratch</a></li>
+<li><a href="#next-week">Next week</a></li>
+</ul></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+set.seed(197387)
+knitr::opts_chunk$set(eval = FALSE)</code></pre>
+<p><a href="https://github.com/ST541-Fall2018/presentations">Presentation Schedule</a></p>
+<div id="documentation-and-testing" class="section level1">
+<h1>Documentation and Testing</h1>
+<p>Useful techniques that come from R package development.</p>
+<ul>
+<li><p><strong>Testing</strong> - formal tests of functions to ensure correctness as changes are made</p></li>
+<li><p><strong>Documentation</strong> - formal R documentation so others (and future you) know how to use functions</p></li>
+</ul>
+<p>Adpated from <em>Tidy Tools</em> by Hadley Wickham CC BY NC 4.0.</p>
+</div>
+<div id="testing" class="section level1">
+<h1>Testing</h1>
+<p><strong>Resource</strong>: <a href="http://r-pkgs.had.co.nz/tests.html" class="uri">http://r-pkgs.had.co.nz/tests.html</a></p>
+<p>You will need this RStudio Cloud Project</p>
+<div id="motivation" class="section level2">
+<h2>Motivation</h2>
+<p>We want a function that adds columns from one dataframe to another at any position.</p>
+<p><em>E.g Give example on board</em></p>
+<p>In <code>R/add_cols.R</code> a first attempt <code>add_cols()</code>, ignore comments for now.</p>
+<p>To load this function:</p>
+<pre class="r"><code>devtools::load_all()</code></pre>
+<p>Or Crtl/Cmd + Shift + L</p>
+<p><strong>Your turn</strong> Come up with a simple example that we can test the <code>add_cols()</code> with.</p>
+<p>What does the input to <code>add_cols()</code> look like? What should the output look like?</p>
+<p>Try it out in a new R script or Rmarkdown.</p>
+<p><strong>What’s wrong with the current version of <code>add_cols()</code>?</strong> Don’t fix it yet!</p>
+<p>Testing is a way to formalise this process.</p>
+</div>
+<div id="set-up-testing-infrastructure" class="section level2">
+<h2>Set up testing infrastructure</h2>
+<p>With <code>add_cols.R</code> open:</p>
+<pre class="r"><code>usethis::use_test()</code></pre>
+<p>Replace this code:</p>
+<pre class="r"><code>test_that(&quot;multiplication works&quot;, {
+  expect_equal(2 * 2, 4)
+})</code></pre>
+<p>With this code:</p>
+<pre class="r"><code>test_that(&quot;can add column at any position&quot;, {
+  df1 &lt;- data.frame(a = 3, b = 4, c = 5)
+  df2 &lt;- data.frame(X = 1, Y = 2)
+  at_pos &lt;- function(i) {
+    add_cols(df1, df2, where = i)
+  }
+  expect_named(at_pos(1), c(&quot;X&quot;, &quot;Y&quot;, &quot;a&quot;, &quot;b&quot;, &quot;c&quot;))
+  expect_named(at_pos(2), c(&quot;a&quot;, &quot;X&quot;, &quot;Y&quot;, &quot;b&quot;, &quot;c&quot;))
+  expect_named(at_pos(3), c(&quot;a&quot;, &quot;b&quot;, &quot;X&quot;, &quot;Y&quot;, &quot;c&quot;))
+  expect_named(at_pos(4), c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;X&quot;, &quot;Y&quot;))
+})</code></pre>
+</div>
+<div id="test" class="section level2">
+<h2>Test</h2>
+<p><strong>Your turn</strong></p>
+<p>Run</p>
+<pre class="r"><code>devtools::test()</code></pre>
+<p>Or Crtl/Cmd + Shift + T to run the tests.</p>
+<p>Verify that they fail, then try to fix <code>add_cols()</code> to fix it.</p>
+</div>
+<div id="testing-workflow" class="section level2">
+<h2>Testing workflow</h2>
+<ol style="list-style-type: decimal">
+<li>Write code</li>
+<li>Test code: <code>devtools::test()</code> or Crtl/Cmd + Shift +</li>
+<li>Repeat</li>
+</ol>
+<p>Some other uses:</p>
+<ul>
+<li>When you stop work leave a test failing, that way you know where to start when you come back.</li>
+<li>Test driven development: start by writing the tests before the function.</li>
+</ul>
+</div>
+<div id="writing-tests" class="section level2">
+<h2>Writing tests</h2>
+<p>Now we’ll add another function <code>add_col()</code> in it’s own R file.</p>
+<p><code>add_col(x, name, value, where)</code> adds a single new column - <strong>draw picture on board</strong>.</p>
+<p>Create the file in the right place:</p>
+<pre class="r"><code>usethis::use_r(&quot;add-col&quot;)</code></pre>
+<p>Copy in this code:</p>
+<pre class="r"><code>add_col &lt;- function(x, name, value, where) {
+  df &lt;- setNames(data.frame(value), name)
+  add_cols(x, df, where = where)
+}</code></pre>
+<pre class="r"><code>devtools::load_all()</code></pre>
+<p>Then run:</p>
+<pre class="r"><code>usethis::use_test()</code></pre>
+<p>to open up the appropriate file for the tests.</p>
+</div>
+<div id="some-useful-testing-functions" class="section level2">
+<h2>Some useful testing functions</h2>
+<p><code>expect_equal(a, b)</code> <code>TRUE</code> if <code>a</code> and <code>b</code> are that same based on <code>all.equal()</code>.</p>
+<p><strong>Your turn</strong></p>
+<p>Add the following test, filling in the blank (<code>___</code>) to test the output.</p>
+<pre class="r"><code>test_that(&quot;where controls position&quot;, {
+  df &lt;- data.frame(x = 1)
+  expect_equal(add_col(df, &quot;y&quot;, 2, where = 1), ___)
+})</code></pre>
+<p>Add another test for <code>add_col(df, &quot;y&quot;, 2, where = 2)</code></p>
+<p><code>expect_error(a, &quot;b&quot;)</code> checks <code>a</code> results in an error message with a message that contain <code>&quot;b&quot;</code>.</p>
+<p><strong>Your turn</strong> What should happen in this case?</p>
+<pre class="r"><code>add_col(df, &quot;y&quot;, 2, where = &quot;a&quot;)</code></pre>
+</div>
+</div>
+<div id="documentation" class="section level1">
+<h1>Documentation</h1>
+<p><strong>Resource</strong>: <a href="http://r-pkgs.had.co.nz/man.html" class="uri">http://r-pkgs.had.co.nz/man.html</a></p>
+<p>Special comments where the function is defined get turned into documentation, e.g. in <code>add_cols.R</code></p>
+<pre><code>#&#39; Add a column to a data frame
+#&#39;
+#&#39; Allows you to specify the position. Will replace existing variable
+#&#39; with the same name if present.
+#&#39;
+#&#39; @param x A data frame
+#&#39; @param name Name of variable to create. If a variable of that name
+#&#39;   already exists it will be replaced
+#&#39; @param value Values to insert.
+#&#39; @param where Position to insert. Use 1 to insert on LHS, or -1 to insert on
+#&#39;   RHS.
+#&#39; @examples
+#&#39; df &lt;- data.frame(x = 1:5)
+#&#39; add_col(df, &quot;y&quot;, runif(5))
+#&#39; add_col(df, &quot;y&quot;, runif(5), where = 1)
+#&#39;
+#&#39; add_col(df, &quot;x&quot;, 5:1)</code></pre>
+<div id="documentation-using-roxygen2" class="section level2">
+<h2>Documentation using roxygen2</h2>
+<p>Workflow:</p>
+<ol style="list-style-type: decimal">
+<li>You write specially formatted comment above function definitions</li>
+<li><code>devtools::document()</code> generates <code>.Rd</code> files</li>
+<li>Preview, <code>?topicname</code> R converts <code>.Rd</code> to HTML for viewing.</li>
+</ol>
+<p><strong>Your turn</strong></p>
+<pre class="r"><code>devtools::document()
+?add_cols</code></pre>
+<p>Fix the typos in <code>add_cols()</code> documentation, re-document to check your work.</p>
+<p>Typos:</p>
+<ul>
+<li>“Another” in the title is spelled wrong.</li>
+<li>The “x” in the description of the <code>where</code> argument should look like code.</li>
+<li>In Details, “right” should be “left”</li>
+</ul>
+</div>
+<div id="starting-from-scratch" class="section level2">
+<h2>Starting from scratch</h2>
+<p>For a function with no documentation. Put your cursor in the body of the function: Code -&gt; Insert Roxygen Skeleton</p>
+<p>Try it with <code>add_col()</code>.</p>
+</div>
+<div id="next-week" class="section level2">
+<h2>Next week</h2>
+<ul>
+<li>Presentations</li>
+<li>Package/Project level documentation</li>
+</ul>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

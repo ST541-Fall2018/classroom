@@ -1,0 +1,220 @@
+---
+title: Documentation and Testing 
+author: Charlotte Wickham
+date: Nov 15th 2018
+---
+
+```{r setup, message = FALSE}
+library(tidyverse)
+set.seed(197387)
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+[Presentation Schedule](https://github.com/ST541-Fall2018/presentations)
+
+# Documentation and Testing
+
+Useful techniques that come from R package development.  
+
+* **Testing** - formal tests of functions to ensure correctness as changes are made
+
+* **Documentation** - formal R documentation so others (and future you) know how to use functions
+
+Adpated from *Tidy Tools* by Hadley Wickham CC BY NC 4.0.
+
+# Testing
+
+**Resource**:  http://r-pkgs.had.co.nz/tests.html
+
+You will need this RStudio Cloud Project
+
+## Motivation
+
+We want a function that adds columns from one dataframe to another at any position.
+
+*E.g Give example on board*
+
+In `R/add_cols.R` a first attempt `add_cols()`, ignore comments for now.
+
+To load this function:
+```{r}
+devtools::load_all()
+```
+
+Or Crtl/Cmd + Shift + L
+
+**Your turn** Come up with a simple example that we can test the `add_cols()` with.  
+
+What does the input to `add_cols()` look like?  What should the output look like?  
+
+Try it out in a new R script or Rmarkdown.
+
+**What's wrong with the current version of `add_cols()`?**  Don't fix it yet!
+
+Testing is a way to formalise this process.
+
+## Set up testing infrastructure
+
+With `add_cols.R` open:
+```{r}
+usethis::use_test()
+```
+
+Replace this code:
+```{r}
+test_that("multiplication works", {
+  expect_equal(2 * 2, 4)
+})
+```
+
+With this code:
+```{r}
+test_that("can add column at any position", {
+  df1 <- data.frame(a = 3, b = 4, c = 5)
+  df2 <- data.frame(X = 1, Y = 2)
+  at_pos <- function(i) {
+    add_cols(df1, df2, where = i)
+  }
+  expect_named(at_pos(1), c("X", "Y", "a", "b", "c"))
+  expect_named(at_pos(2), c("a", "X", "Y", "b", "c"))
+  expect_named(at_pos(3), c("a", "b", "X", "Y", "c"))
+  expect_named(at_pos(4), c("a", "b", "c", "X", "Y"))
+})
+```
+
+## Test 
+
+**Your turn** 
+
+Run
+```{r}
+devtools::test()
+```
+Or Crtl/Cmd + Shift + T to run the tests.
+
+Verify that they fail, then try to fix `add_cols()` to fix it.  
+
+## Testing workflow
+
+1. Write code
+2. Test code: `devtools::test()` or Crtl/Cmd + Shift +
+3. Repeat
+
+Some other uses:
+
+* When you stop work leave a test failing, that way you know where to start when you come back.
+* Test driven development: start by writing the tests before the function.
+
+## Writing tests
+
+Now we'll add another function `add_col()` in it's own R file.
+
+`add_col(x, name, value, where)` adds a single new column - **draw picture on board**.
+
+Create the file in the right place:
+```{r}
+usethis::use_r("add-col")
+```
+
+Copy in this code:
+```{r}
+add_col <- function(x, name, value, where) {
+  df <- setNames(data.frame(value), name)
+  add_cols(x, df, where = where)
+}
+```
+
+```{r}
+devtools::load_all()
+```
+
+Then run:
+```{r}
+usethis::use_test()
+```
+to open up the appropriate file for the tests.
+
+## Some useful testing functions
+
+`expect_equal(a, b)` `TRUE` if `a` and `b` are that same based on `all.equal()`. 
+
+**Your turn**
+
+Add the following test, filling in the blank (`___`) to test the output.
+
+```{r}
+test_that("where controls position", {
+  df <- data.frame(x = 1)
+  expect_equal(add_col(df, "y", 2, where = 1), ___)
+})
+```
+
+Add another test for `add_col(df, "y", 2, where = 2)`
+
+`expect_error(a, "b")` checks `a` results in an error message with a message that contain `"b"`.
+
+**Your turn** What should happen in this case? 
+
+```{r}
+add_col(df, "y", 2, where = "a")
+```
+
+# Documentation
+
+**Resource**:  http://r-pkgs.had.co.nz/man.html
+
+Special comments where the function is defined get turned into documentation, e.g. in `add_cols.R`
+
+```
+#' Add a column to a data frame
+#'
+#' Allows you to specify the position. Will replace existing variable
+#' with the same name if present.
+#'
+#' @param x A data frame
+#' @param name Name of variable to create. If a variable of that name
+#'   already exists it will be replaced
+#' @param value Values to insert.
+#' @param where Position to insert. Use 1 to insert on LHS, or -1 to insert on
+#'   RHS.
+#' @examples
+#' df <- data.frame(x = 1:5)
+#' add_col(df, "y", runif(5))
+#' add_col(df, "y", runif(5), where = 1)
+#'
+#' add_col(df, "x", 5:1)
+```
+
+## Documentation using roxygen2
+
+Workflow:
+
+1. You write specially formatted comment above function definitions
+2. `devtools::document()` generates `.Rd` files
+3. Preview, `?topicname` R converts `.Rd` to HTML for viewing.
+
+**Your turn** 
+
+```{r}
+devtools::document()
+?add_cols
+```
+
+Fix the typos in `add_cols()` documentation, re-document to check your work.
+
+Typos:
+
+* "Another" in the title is spelled wrong.
+* The "x" in the description of the `where` argument should look like code.
+* In Details, "right" should be "left"
+
+## Starting from scratch
+
+For a function with no documentation.  Put your cursor in the body of the function: Code -> Insert Roxygen Skeleton
+
+Try it with `add_col()`.
+
+## Next week
+
+* Presentations
+* Package/Project level documentation
