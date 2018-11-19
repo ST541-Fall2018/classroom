@@ -100,7 +100,7 @@ usethis::use_git()
 
 For us, this will mostly be definitions of R functions, in which case put it in `R`, not `src`.  This follows the conventions for R packages and allows us to leverage the devtools package for easy loading and documentation.
 
-Pick up here ... Tuesday. 
+*To be clear* Only R function definitions should go in `R/`  inside `.R` files.  R code to run functions, simulations or analyses should be somewhere else.
 
 ## Your Turn
 

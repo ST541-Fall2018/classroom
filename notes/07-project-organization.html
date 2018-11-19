@@ -228,7 +228,7 @@ git config --global credential.helper &#39;cache --timeout 3600&#39;</code></pre
 <p><code>src</code> contains all of the code written for the project. This includes programs written in interpreted languages such as R or Python; those written in compiled languages like Fortran, C++, or Java; as well as shell scripts, snippets of SQL used to pull information from databases; and other code needed to regenerate the results.</p>
 </blockquote>
 <p>For us, this will mostly be definitions of R functions, in which case put it in <code>R</code>, not <code>src</code>. This follows the conventions for R packages and allows us to leverage the devtools package for easy loading and documentation.</p>
-<p>Pick up here … Tuesday.</p>
+<p><em>To be clear</em> Only R function definitions should go in <code>R/</code> inside <code>.R</code> files. R code to run functions, simulations or analyses should be somewhere else.</p>
 </div>
 <div id="your-turn-1" class="section level2">
 <h2>Your Turn</h2>
