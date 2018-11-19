@@ -1,0 +1,180 @@
+---
+title: Communication
+author: Charlotte Wickham
+date: Nov 20th 2018
+---
+
+# For this class
+
+## Presentations
+
+3 minutes isn't very long.  
+
+Talking super fast isn't the solution.  Being very **focused** is. 
+
+**Your audience**: the other students in this class (not me!).  Your goal is to entice them into looking further at your repo, or reading your report.  
+
+A rough guide:
+
+* Tell us what the goal of your project is, and why it is interesting/fun/useful.
+
+* Describe one result or example.
+
+* Tell us what else we might find if we visit the repo.
+
+## Your turn
+
+(3 mins) **Brainstorm** and write down: 
+
+**Goal**: What is the goal of your project?
+
+**Motivation** Why it is interesting/fun/useful?
+
+## Your turn
+
+(6 mins)
+
+Get into groups of two or three.  Designate a speaking order and a timer.
+
+Each person gets a **strict** 60 seconds, to describe the goal and motivation for their project.
+
+How did it go?  Was anything missing, e.g. do your listeners have questions?  Was anything redundant? 
+
+## Your turn
+
+(2 mins)
+
+Plan... on your next attempt (same topic) you'll aim for 30 seconds.
+
+## Your turn
+
+(3 mins)
+
+Each person gets a **strict** 30 seconds, to describe the goal and motivation for their project.
+
+## Practice
+
+Your talk is 3 minutes.  You could practice 5 times and only have used 15 minutes.  Do it!
+
+## Slides
+
+You **must** have a title slide, that includes:
+
+* A title
+* Your name (as you prefer to be addressed)
+* The link to your project github repository
+
+In conference scenarios, it is this slide someone might take a photo of to remind them to look into your work, in which case:
+
+* Make it as easy to read as possible -- large type in a color easily distinguished from the background
+* Repeat it at the end of your talk, and leave it on the screen as you wrap up or answer questions
+* Include any pertinent contact info
+
+## Slide content
+
+With three minutes we won't have time to read your slides and listen to you.  
+
+Use the slides just as visual aids, don't expect us to see anything you don't point out verbally.  
+
+## Slide tools
+
+* RMarkdown has some presentation ouputs: https://bookdown.org/yihui/rmarkdown/presentations.html
+
+* Xaringan is another popular package for HTML presentations from Rmarkdown https://github.com/yihui/xaringan
+
+* Or use Keynote, Powerpoint or Google Slides, export to PDF and store the PDF in your repo.
+
+I need a link by noon the day before your presentation -- but you can update the content at the link up until the time you present.
+
+## Submission
+
+Due date for the project is Sunday Dec 2nd at midnight.  You submit a link to your repo on canvas.
+
+Your repo must include:
+
+* a PDF version of your report
+* a README
+* everything needed to reproduce your results in your report
+
+## Written report
+
+**Must**:
+
+* be PDF
+* be at most *3 pages* 
+
+Preferably written in RMarkdown -- ensures reproducibility.
+
+**Audience**: me, but also think of it as a summary for someone outside the class (i.e. a potential employer).
+
+Make sure to point out anything you did to "Exceed Expectations".  
+
+
+## README
+
+I'll visit your README first.
+
+It should:
+
+* have a brief (2-5 sentence) description of the project
+* link to both the written report and slides
+* give pointers to someone who wants to reproduce your work, e.g.:
+  
+    * required packages
+    * locations of important code files, and any order they need to be run in,
+    * the primary functions, and how should they be used
+
+# Beyond class
+
+## R package vignettes
+
+Long form documentation for R packages:
+http://r-pkgs.had.co.nz/vignettes.html
+
+E.g. https://cran.r-project.org/web/packages/dplyr/
+
+## Moving your project to your personal github site
+
+Right now your project is currently Private.  But I hope by the end of the quarter you will have produced a project you are proud to share.
+
+**To share it with the class:** Add the "Students Team" 
+    `https://github.com/ST541-Fall2018/{YOUR_REPO_NAME}/settings/collaboration`
+
+**To share it publically** you should move it to your own github account (i.e. out of the class organization).  Two good options:
+
+* [Transfer the repo](https://help.github.com/articles/about-repository-transfers/).  Keeps all history and github features like issues.  You'll need to talk to me to get this done.
+
+* Clone and push to a new repo. Set up a new repo in your personal account.  Then set this as the new remote for your current working copy. Get a clean slate for issues, but keeps all commit history.
+
+## Sharing with others
+
+Even if someone doesn't use github you can share the entire project by sending them to:
+
+`{PATH_TO_YOUR_PROJECT_ON_GITHUB}/archive/master.zip` 
+
+to download a zip file of the whole repository.
+
+## Sharing a specific point in time
+
+When you want to link to your code in an article/thesis etc. you usually want to point to a specific point in time (i.e. the code as it was at time of submission):
+
+* Use releases to mark a specific point in time:
+https://help.github.com/articles/about-releases/
+
+* You can integrate with Zenodo to give a citable DOI to code:
+https://guides.github.com/activities/citable-code/
+
+## Websites for yourself or your project
+
+Github has some nice integration with jekyll to create websites for yourself or any github projects.
+
+See: https://pages.github.com/
+
+For example, https://github.com/ST541-Fall2018/classroom generates http://stat541.cwick.co.nz
+
+## Office hours in Week 10
+
+* Mon 11am-noon Weniger 255
+* Tue 11am-noon Weniger 255
+* Thu 11am-noon Weniger 255
+* Fri **Lab** 3-4pm Bexell 324

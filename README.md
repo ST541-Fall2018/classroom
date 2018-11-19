@@ -70,6 +70,7 @@
 
 ### Week 9
 
+* Nov 20 [**Communication**](notes/17-communication.html)
 * Nov 22 **Thanksgiving** - no class
 
 ### Week 10
