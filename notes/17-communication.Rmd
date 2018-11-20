@@ -84,7 +84,7 @@ Use the slides just as visual aids, don't expect us to see anything you don't po
 
 * Or use Keynote, Powerpoint or Google Slides, export to PDF and store the PDF in your repo.
 
-I need a link by noon the day before your presentation -- but you can update the content at the link up until the time you present.
+You will email me (wickhamc@oregonstate.edu) the link to the PDF/HTML slides by noon the day before your presentation -- but you can update the content at the link up until the time you present.
 
 ## Submission
 
@@ -101,9 +101,9 @@ Your repo must include:
 **Must**:
 
 * be PDF
-* be at most *3 pages* 
+* be at most *3 pages* (including figures, but not references)
 
-Preferably written in RMarkdown -- ensures reproducibility.
+Preferably written in RMarkdown -- ensures reproducibility. (play with `fig.height` to get better sized figures)
 
 **Audience**: me, but also think of it as a summary for someone outside the class (i.e. a potential employer).
 
